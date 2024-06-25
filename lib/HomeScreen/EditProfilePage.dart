@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,40 +22,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _imageUrl = widget.profileImageURL; // Initialize _imageUrl with the received URL
-    // Fetch the current user's data and populate the text controllers
-    final User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      FirebaseFirestore.instance.collection('users').doc(user.uid).get().then((snapshot) {
-        if (snapshot.exists) {
-          final userData = snapshot.data() as Map<String, dynamic>;
-          _firstNameController.text = userData['firstName'] ?? '';
-          _lastNameController.text = userData['lastName'] ?? '';
-          _emailController.text = userData['email'] ?? '';
-          _mobileNumberController.text = userData['mobile'] ?? '';
-          _dateOfBirthController.text = userData['dob'] ?? '';
-        }
-      });
+    _imageUrl = widget.profileImageURL;
     }
-  }
 
   void _updateUserProfile() {
-    final User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'firstName': _firstNameController.text,
-        'lastName': _lastNameController.text,
-        'email': _emailController.text,
-        'mobileNumber': _mobileNumberController.text,
-        'dateOfBirth': _dateOfBirthController.text,
-        'imageUrl': _imageUrl, // Update the image URL in Firestore
-      }).then((_) {
-        // Pass the updated image URL back to ProfilePage
-        Navigator.pop(context, _imageUrl);
-      }).catchError((error) {
-        print('Error updating profile: $error');
-      });
-    }
   }
 
   @override

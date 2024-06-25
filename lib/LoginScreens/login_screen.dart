@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:postgres/postgres.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -112,144 +111,112 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Form(
-          key: formkey,
-          child: Column(
-            children: <Widget>[
-              const SizedBox(height: 120),
-              SizedBox(
-                width: double.infinity,height: 300,
-                child: Expanded(
-                  flex: 1,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: images.length,
-                    onPageChanged: (int index) {
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                    },
-                    itemBuilder: (_, i) {
-                      return Image.asset(
-                        images[i],
-                      );
-                    },
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Form(
+            key: formkey,
+            child: Column(
+              children: <Widget>[
+                const SizedBox(height: 120),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: emailController,
+                    validator: MultiValidator([
+                      RequiredValidator(errorText: 'Enter email address'),
+                      EmailValidator(errorText: 'Please correct email filled'),
+                    ]).call,
+                    decoration: const InputDecoration(
+                        hintText: 'Email',
+                        labelText: 'Email',
+                        prefixIcon: Icon(
+                          Icons.email,
+                          color: Colors.lightBlue,
+                        ),
+                        contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                            borderRadius: BorderRadius.all(Radius.circular(9.0)))),
                   ),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    controller: passwordController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Enter Password';
+                      }
+                      // Check if password meets the criteria
+                      bool isValidPassword = _validatePassword(value);
+                      if (!isValidPassword) {
+                        return 'Password must have a minimum of 8 characters and include letters, numbers, and special characters.';
+                      }
+                      return null; // Validation passed
+                    },
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                        hintText: 'Password',
+                        labelText: 'Password',
+                        prefixIcon: Icon(
+                          Icons.password,
+                          color: Colors.lightBlue,
+                        ),
+                        contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
+                        border: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.red),
+                            borderRadius: BorderRadius.all(Radius.circular(9.0)))),
+                  ),
+                ),
+                SizedBox(height: ScreenUtility.screenHeight * 0.05),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _isLoggingIn ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      minimumSize: Size(
+                        ScreenUtility.screenWidth * 0.8,
+                        ScreenUtility.screenHeight * 0.07,
+                      ), // Increase button size
+                    ),
+                    child: _isLoggingIn
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : const Text(
+                      'Log In',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  icon: SvgPicture.asset(
-                    'assets/icons/phone-svgrepo-com.svg',height: 20,),
-                  style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.black, backgroundColor: Colors.white,
-                      minimumSize: const Size(double.infinity, 50)
-                  ),
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, 'phoneLogin');
-                    // Implement phone number sign-in using Firebase
-                  },
-                  label: const Text('Login with Phone'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text("Don't have an account? "),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, 'signupScreen');
+                      },
+                      child: const Text('Sign Up'),
+                    ),
+                  ],
                 ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: emailController,
-                  validator: MultiValidator([
-                    RequiredValidator(errorText: 'Enter email address'),
-                    EmailValidator(errorText: 'Please correct email filled'),
-                  ]).call,
-                  decoration: const InputDecoration(
-                      hintText: 'Email',
-                      labelText: 'Email',
-                      prefixIcon: Icon(
-                        Icons.email,
-                        color: Colors.lightBlue,
-                      ),
-                      contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                          borderRadius: BorderRadius.all(Radius.circular(9.0)))),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text("Want to be a partner? "),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, 'partner-page');
+                      },
+                      child: const Text('Click here'),
+                    ),
+                  ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  controller: passwordController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Enter Password';
-                    }
-                    // Check if password meets the criteria
-                    bool isValidPassword = _validatePassword(value);
-                    if (!isValidPassword) {
-                      return 'Password must have a minimum of 8 characters and include letters, numbers, and special characters.';
-                    }
-                    return null; // Validation passed
-                  },
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                      hintText: 'Password',
-                      labelText: 'Password',
-                      prefixIcon: Icon(
-                        Icons.password,
-                        color: Colors.lightBlue,
-                      ),
-                      contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                          borderRadius: BorderRadius.all(Radius.circular(9.0)))),
-                ),
-              ),
-              SizedBox(height: ScreenUtility.screenHeight * 0.05),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _isLoggingIn ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    minimumSize: Size(
-                      ScreenUtility.screenWidth * 0.8,
-                      ScreenUtility.screenHeight * 0.07,
-                    ), // Increase button size
-                  ),
-                  child: _isLoggingIn
-                      ? const CircularProgressIndicator(
-                    color: Colors.white,
-                  )
-                      : const Text(
-                    'Log In',
-                    style: TextStyle(color: Colors.white, fontSize: 24),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text("Don't have an account? "),
-                  TextButton(
-                    onPressed: () {
-                      // Handle the Sign Up action here
-                    },
-                    child: const Text('Sign Up'),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text("Want to be a partner? "),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, 'partner-page');
-                    },
-                    child: const Text('Click here'),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -269,7 +236,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final result = await connection.execute(
-        'SELECT * FROM ai.black_ox_user WHERE email = \$1 AND password = \$2',
+        'SELECT * FROM ai.master_demo_user WHERE email = \$1 AND password = \$2',
         parameters: [email, password],
       );
 
@@ -296,7 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       final result = await connection.execute(
-        'SELECT * FROM ai.black_ox_user WHERE email = \$1',
+        'SELECT * FROM ai.master_demo_user WHERE email = \$1',
         parameters: [email],
       );
 

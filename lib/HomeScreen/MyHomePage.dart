@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/SearchPage.dart';
 
@@ -17,20 +15,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    // Get the current user
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      // Fetch the user's data from Firestore
-      FirebaseFirestore.instance.collection('users').doc(user.uid).get().then((snapshot) {
-        if (snapshot.exists) {
-          final userData = snapshot.data() as Map<String, dynamic>;
-          setState(() {
-            userFirstName = userData['firstName'] ?? ''; // Update the user's first name
-          });
-        }
-      });
-    }
   }
   @override
   Widget build(BuildContext context) {
@@ -41,19 +25,19 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Container(
               color: Colors.blue, // Blue container
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   Text(
                     'Hello, $userFirstName!', // Display the user's first name
-                    style: TextStyle(fontSize: 28),
+                    style: const TextStyle(fontSize: 28),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   TextField(
                     decoration: InputDecoration(
                       hintText: 'Search for a salon',
                       suffixIcon: IconButton(
-                        icon: Icon(Icons.search),
+                        icon: const Icon(Icons.search),
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -65,7 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16.0),
+                  const SizedBox(height: 16.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -73,8 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           // Salon category
                         },
-                        icon: Icon(Icons.local_florist),
-                        label: Text('Salon'),
+                        icon: const Icon(Icons.local_florist),
+                        label: const Text('Salon'),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -85,8 +69,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           // Parlour category
                         },
-                        icon: Icon(Icons.face),
-                        label: Text('Parlour'),
+                        icon: const Icon(Icons.face),
+                        label: const Text('Parlour'),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -97,8 +81,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () {
                           // Spa category
                         },
-                        icon: Icon(Icons.spa),
-                        label: Text('Spa'),
+                        icon: const Icon(Icons.spa),
+                        label: const Text('Spa'),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
@@ -110,8 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            SizedBox(height: 16.0), 
-            Container(
+            const SizedBox(height: 16.0),
+            SizedBox(
               // Container for the list view of images
               height: 200,
               child: ListView.builder(
@@ -119,7 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 itemCount: 10, // Number of images
                 itemBuilder: (BuildContext context, int index) {
                   return Padding(
-                    padding: EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Image.network(
                       'https://via.placeholder.com/150', // Replace with your image URLs
                       width: 150,
@@ -130,13 +114,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'Top Rated Salons',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
@@ -144,12 +128,12 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPressed: () {
                       // See all salons
                     },
-                    child: Text('See All'),
+                    child: const Text('See All'),
                   ),
                 ],
               ),
             ),
-            Container(
+            SizedBox(
               // Container for the horizontal scrolling view
               height: 150,
               child: ListView.builder(
@@ -157,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 itemCount: 10, // Number of top-rated salons
                 itemBuilder: (BuildContext context, int index) {
                   return Padding(
-                    padding: EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: [
                         Image.network(

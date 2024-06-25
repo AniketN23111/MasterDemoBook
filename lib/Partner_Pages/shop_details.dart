@@ -1,5 +1,4 @@
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -51,8 +50,8 @@ class _ShopDetailsState extends State<ShopDetails> {
   String? cityValue = "";
   String address = "";
 
-  TimeOfDay startTime = TimeOfDay(hour: 9, minute: 0); // Default start time
-  TimeOfDay endTime = TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay startTime = const TimeOfDay(hour: 9, minute: 0); // Default start time
+  TimeOfDay endTime = const TimeOfDay(hour: 18, minute: 0);
 
   Future<void> fetchLocationDetailsFromPincode(String pincode) async {
     final response = await http.get(
@@ -93,23 +92,23 @@ class _ShopDetailsState extends State<ShopDetails> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 350),
-            Text(
+            const SizedBox(height: 100),
+            const Text(
               "Shop Details",
               style: TextStyle(fontSize: 30,color: Colors.black),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -119,11 +118,12 @@ class _ShopDetailsState extends State<ShopDetails> {
                     if (text == null || text.isEmpty) {
                       return "Shop Name is Empty";
                     }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Shop Name',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
@@ -135,18 +135,18 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -156,11 +156,12 @@ class _ShopDetailsState extends State<ShopDetails> {
                     if (text == null || text.isEmpty) {
                       return "Address Name is Empty";
                     }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Address',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(9),
@@ -173,18 +174,18 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -204,16 +205,17 @@ class _ShopDetailsState extends State<ShopDetails> {
                       return "Pin-code is Empty";
                     } else if (text.length <= 5) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text("Pin-Code is Not Valid"),
                         ),
                       );
                     }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Pin code',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(9),
@@ -226,9 +228,9 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Column(
                 children: [
                   CSCPicker(
@@ -239,11 +241,11 @@ class _ShopDetailsState extends State<ShopDetails> {
                     disabledDropdownDecoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                            color: Color(0xff1D1617).withOpacity(0.11),
+                            color: const Color(0xff1D1617).withOpacity(0.11),
                             blurRadius: 40,
                             spreadRadius: 0.0)
                       ],
-                      color: Color.fromRGBO(247, 247, 249, 1),
+                      color: const Color.fromRGBO(247, 247, 249, 1),
                       borderRadius: BorderRadius.circular(32.0),
                     ),
                     countrySearchPlaceholder: "Country",
@@ -252,15 +254,15 @@ class _ShopDetailsState extends State<ShopDetails> {
                     countryDropdownLabel: "Country",
                     stateDropdownLabel: "State",
                     cityDropdownLabel: "City",
-                    selectedItemStyle: TextStyle(
+                    selectedItemStyle: const TextStyle(
                       color: Colors.black,
                       fontSize: 14,
                     ),
-                    dropdownHeadingStyle: TextStyle(
+                    dropdownHeadingStyle: const TextStyle(
                         color: Colors.black,
                         fontSize: 17,
                         fontWeight: FontWeight.bold),
-                    dropdownItemStyle: TextStyle(
+                    dropdownItemStyle: const TextStyle(
                       color: Colors.black,
                       fontSize: 14,
                     ),
@@ -285,9 +287,9 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ],
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -308,7 +310,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                       selectedArea = value;
                     });
                   },
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Area',
                     prefixIcon: Icon(Icons.location_on),
                     border: InputBorder.none,
@@ -316,18 +318,18 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -337,11 +339,12 @@ class _ShopDetailsState extends State<ShopDetails> {
                     if (text == null || text.isEmpty) {
                      return "Shop License is Empty";
                     }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Shop License',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
@@ -353,13 +356,13 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
+                  const Center(
                     child: Text(
                       'Working Days:',
                       style: TextStyle(fontSize: 30,color: Colors.black),
@@ -368,7 +371,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                   Center(
                     child: GridView.builder(
                       shrinkWrap: true,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
                         mainAxisSpacing: 0.0,
                         crossAxisSpacing: 8.1,
@@ -394,7 +397,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                               checkColor: Colors.black,
                             ),
                             Text(getDayName(index),
-                                style: TextStyle(color: Colors.black)),
+                                style: const TextStyle(color: Colors.black)),
                           ],
                         );
                       },
@@ -403,9 +406,9 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ],
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 120),
+              padding: const EdgeInsets.symmetric(horizontal: 120),
               child: Row(
                 children: [
                   Expanded(
@@ -419,7 +422,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                       },
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: TimePickerButton(
                       label: 'End Time',
@@ -434,46 +437,18 @@ class _ShopDetailsState extends State<ShopDetails> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 150),
               child: ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-
-                    final DatabaseReference databaseRef = FirebaseDatabase.instance.reference();
-                    final Map<String, dynamic> shopData = {
-                      "shopName": _shopname.text,
-                      "address": _address.text,
-                      "pincode": _pincode.text,
-                      "license": _licence.text,
-                      "country": countryValue,
-                      "state": stateValue,
-                      "city": cityValue,
-                      "area": selectedArea,
-                      "workingDays": workingDays,
-                      "startTime": startTime.toString(),
-                      "endTime": endTime.toString(),
-                    };
-
-                    // Push the data to Firebase
-                    databaseRef.child(_shopname.text).push().set(shopData).then((_) {
-                      // Data saved successfully
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Shop information saved to Firebase"),
-                        ),
-                      );
-                      widget.changePageIndex(2);
-                    }).catchError((error) {
-                      print("Error saving data: $error");
-                    });
                   }
                 },
-                child: Center(child: Text('Next')),
+                child: const Center(child: Text('Next')),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),

@@ -1,5 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
@@ -8,7 +6,6 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  Query dbRef = FirebaseDatabase.instance.ref().child('shops');
 
   Widget listItem({required Map shops}){
     return Container(
@@ -41,17 +38,6 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         title: Text('Shop Search'),
       ),
-      body: Container(
-        height: double.infinity,
-        child: FirebaseAnimatedList(
-          query: dbRef,
-          itemBuilder: (BuildContext context,DataSnapshot snapshot,Animation <double> animation,int index){
-            Map shops =snapshot.value as Map;
-            shops['key'] =snapshot.key;
-            return listItem(shops: shops);
-          },
-        ),
-      )
     );
   }
 }

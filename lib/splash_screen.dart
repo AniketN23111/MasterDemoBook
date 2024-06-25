@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:saloon/HomeScreen/HomePage.dart';
@@ -12,18 +11,8 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreen extends State<SplashScreen> {
   var isLogin = false;
-  var auth = FirebaseAuth.instance;
-  late User? user; // Change User to User? to handle null when user is not logged in
 
   checkIfLogin() async {
-    auth.authStateChanges().listen((User? currentUser) {
-      if (currentUser != null && mounted) {
-        setState(() {
-          isLogin = true;
-          user = currentUser; // Assign the logged-in user
-        });
-      }
-    });
   }
 
   void initState() {
@@ -42,11 +31,11 @@ class _SplashScreen extends State<SplashScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(user: user!), // Use user!
+          builder: (context) => HomePage(), // Use user!
         ),
       );
     } else {
-      Navigator.pushReplacementNamed(context, 'getStarted');
+      Navigator.pushReplacementNamed(context, 'loginScreen');
     }
   }
 

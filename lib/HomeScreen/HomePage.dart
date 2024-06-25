@@ -1,16 +1,11 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:saloon/HomeScreen/MyHomePage.dart';
 import 'package:saloon/HomeScreen/ProfilePage.dart'; // Import the ProfilePage
 import 'package:flutter/cupertino.dart';
 
 class HomePage extends StatefulWidget {
-  final User user;
-
-  HomePage({required this.user});
-
   @override
   _HomePageState createState() => _HomePageState();
 }

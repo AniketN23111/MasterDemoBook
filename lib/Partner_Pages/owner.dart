@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:country_code_picker/country_code_picker.dart';
-import 'shop_details.dart';
 
 class Owner extends StatefulWidget {
   final Function(int) changePageIndex;
@@ -29,14 +28,14 @@ class _OwnerState extends State<Owner> {
       child: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 350),
-            Text(
+            const SizedBox(height: 100),
+            const Text(
               'Owner Details',
               style: TextStyle(fontSize: 30, color: Colors.black),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Row(
                 children: [
                   Flexible(
@@ -46,11 +45,11 @@ class _OwnerState extends State<Owner> {
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                              color: Color(0xff1D1617).withOpacity(0.11),
+                              color: const Color(0xff1D1617).withOpacity(0.11),
                               blurRadius: 40,
                               spreadRadius: 0.0)
                         ],
-                        color: Color.fromRGBO(247, 247, 249, 1),
+                        color: const Color.fromRGBO(247, 247, 249, 1),
                         borderRadius: BorderRadius.circular(32.0),
                       ),
                       child: TextFormField(
@@ -60,11 +59,12 @@ class _OwnerState extends State<Owner> {
                           if (text == null || text.isEmpty) {
                             return "First Name is Empty";
                           }
+                          return null;
                         },
                         decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: EdgeInsets.all(15),
+                            contentPadding: const EdgeInsets.all(15),
                             hintText: 'FirstName',
                             prefixIcon: Padding(
                               padding: const EdgeInsets.all(12),
@@ -77,7 +77,7 @@ class _OwnerState extends State<Owner> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Flexible(
                     flex: 1,
                     child: Container(
@@ -85,11 +85,11 @@ class _OwnerState extends State<Owner> {
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                              color: Color(0xff1D1617).withOpacity(0.11),
+                              color: const Color(0xff1D1617).withOpacity(0.11),
                               blurRadius: 40,
                               spreadRadius: 0.0)
                         ],
-                        color: Color.fromRGBO(247, 247, 249, 1),
+                        color: const Color.fromRGBO(247, 247, 249, 1),
                         borderRadius: BorderRadius.circular(32.0),
                       ),
                       child: TextFormField(
@@ -99,11 +99,12 @@ class _OwnerState extends State<Owner> {
                           if (text == null || text.isEmpty) {
                             return "Last Name is Empty";
                           }
+                          return null;
                         },
                         decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: EdgeInsets.all(15),
+                            contentPadding: const EdgeInsets.all(15),
                             hintText: 'Last Name',
                             prefixIcon: Padding(
                               padding: const EdgeInsets.all(12),
@@ -119,9 +120,9 @@ class _OwnerState extends State<Owner> {
                 ],
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Row(
                 children: [
                   Flexible(
@@ -131,14 +132,14 @@ class _OwnerState extends State<Owner> {
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                              color: Color(0xff1D1617).withOpacity(0.11),
+                              color: const Color(0xff1D1617).withOpacity(0.11),
                               blurRadius: 40,
                               spreadRadius: 0.0)
                         ],
-                        color: Color.fromRGBO(247, 247, 249, 1),
+                        color: const Color.fromRGBO(247, 247, 249, 1),
                         borderRadius: BorderRadius.circular(16.0),
                       ),
-                      child: CountryCodePicker(
+                      child: const CountryCodePicker(
                         initialSelection: 'IN',
                         showCountryOnly: false,
                         showOnlyCountryWhenClosed: false,
@@ -154,18 +155,18 @@ class _OwnerState extends State<Owner> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Flexible(
                     flex: 2,
                     child: Container(
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(
-                              color: Color(0xff1D1617).withOpacity(0.11),
+                              color: const Color(0xff1D1617).withOpacity(0.11),
                               blurRadius: 40,
                               spreadRadius: 0.0)
                         ],
-                        color: Color.fromRGBO(247, 247, 249, 1),
+                        color: const Color.fromRGBO(247, 247, 249, 1),
                         borderRadius: BorderRadius.circular(32.0),
                       ),
                       child: TextFormField(
@@ -181,6 +182,7 @@ class _OwnerState extends State<Owner> {
                           } else if (text.length <= 9) {
                             return "Put the 10 Digit Number";
                           }
+                          return null;
                         },
                         decoration: InputDecoration(
                             filled: true,
@@ -201,19 +203,19 @@ class _OwnerState extends State<Owner> {
                 ],
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 //width: 50,
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -224,11 +226,12 @@ class _OwnerState extends State<Owner> {
                       {
                         return "Enter Valid Mail";
                       }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Email',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(9),
@@ -241,19 +244,19 @@ class _OwnerState extends State<Owner> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 //width: 50,
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -270,11 +273,12 @@ class _OwnerState extends State<Owner> {
                     } else if (text.length <= 11) {
                      return "Enter Valid Aadhaar Number";
                     }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Aadhaar Number',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(9),
@@ -287,19 +291,19 @@ class _OwnerState extends State<Owner> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Container(
                 //width: 50,
                 decoration: BoxDecoration(
                   boxShadow: [
                     BoxShadow(
-                        color: Color(0xff1D1617).withOpacity(0.11),
+                        color: const Color(0xff1D1617).withOpacity(0.11),
                         blurRadius: 40,
                         spreadRadius: 0.0)
                   ],
-                  color: Color.fromRGBO(247, 247, 249, 1),
+                  color: const Color.fromRGBO(247, 247, 249, 1),
                   borderRadius: BorderRadius.circular(32.0),
                 ),
                 child: TextFormField(
@@ -313,11 +317,12 @@ class _OwnerState extends State<Owner> {
                     if (text == null || text.isEmpty) {
                      return "Put the Pan Card Number";
                     }
+                    return null;
                   },
                   decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      contentPadding: EdgeInsets.all(15),
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Pan Card',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(9),
@@ -330,7 +335,7 @@ class _OwnerState extends State<Owner> {
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 150),
               child: ElevatedButton(
@@ -339,7 +344,7 @@ class _OwnerState extends State<Owner> {
                     widget.changePageIndex(1);
                   }
                 },
-                child: Center(child: Text("Next")),
+                child: const Center(child: Text("Next")),
               ),
             ),
           ],
