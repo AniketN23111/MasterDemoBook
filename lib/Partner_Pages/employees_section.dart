@@ -35,12 +35,10 @@ class _EmployeesSectionState extends State<EmployeesSection> {
     final picker = ImagePicker();
     final pickedImages = await picker.pickMultiImage();
 
-    if (pickedImages != null) {
-      setState(() {
-        selectedImages = pickedImages;
-      });
+    setState(() {
+      selectedImages = pickedImages;
+    });
     }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +55,7 @@ class _EmployeesSectionState extends State<EmployeesSection> {
             const SizedBox(height: 10),
             Column(
               children: widget.employees.map((employee) =>
-                  Text(employee, style: const TextStyle(fontSize: 20, color: Colors.white),)).toList(),
+                  Text(employee, style: const TextStyle(fontSize: 20, color: Colors.black),)).toList(),
             ),
             const SizedBox(height: 10),
             Padding(

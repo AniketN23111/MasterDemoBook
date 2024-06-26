@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'employees_section.dart';
-import 'owner.dart';
 import 'shop_details.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
@@ -36,19 +35,18 @@ class _PartnerPage extends State<PartnerPage> {
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.white,
         color: Colors.grey.shade200,
-        animationDuration: Duration(milliseconds: 300),
+        animationDuration: const Duration(milliseconds: 300),
         onTap: (index){
           navigateToPage(index);
         },
         index: currentIndex,
         items: [
           SvgPicture.asset('assets/icons/user-svgrepo-com.svg', width: 30, height: 30),
-          SvgPicture.asset('assets/icons/shop.svg', width: 30, height: 30),
           SvgPicture.asset('assets/icons/employee.svg', width: 30, height: 30),
         ],
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
          color: Colors.white70,
         ),
         child: Column(
@@ -56,7 +54,7 @@ class _PartnerPage extends State<PartnerPage> {
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                itemCount: 3,
+                itemCount: 2,
                 onPageChanged: (index) {
                   setState(() {
                     currentIndex = index;
@@ -65,10 +63,8 @@ class _PartnerPage extends State<PartnerPage> {
                 itemBuilder: (context, index) {
                   if (index == 0) {
                     return ShopDetails(changePageIndex: changePageIndex);
-                  } else if (index == 1) {
+                  } else  {
 
-                    return Owner(changePageIndex: changePageIndex);
-                  } else {
                     return EmployeesSection(employees);
                   }
                 },

@@ -1,4 +1,6 @@
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:country_code_picker/country_code_picker.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -9,9 +11,9 @@ import 'dart:convert';
 
 class ShopDetails extends StatefulWidget {
   final Function(int) changePageIndex;
-  ShopDetails({required this.changePageIndex});
+  const ShopDetails({super.key, required this.changePageIndex});
   @override
-  _ShopDetailsState createState() => _ShopDetailsState();
+  State<ShopDetails> createState() => _ShopDetailsState();
 }
 
 class _ShopDetailsState extends State<ShopDetails> {
@@ -24,15 +26,17 @@ class _ShopDetailsState extends State<ShopDetails> {
     stateValue = 'Maharashtra';
     cityValue = 'Pune';
     countryValue = 'India';
-    final defaultPincode = '123456'; // Replace with the desired default pincode
+    const defaultPincode = '123456'; // Replace with the desired default pincode
     fetchLocationDetailsFromPincode(defaultPincode);
 
   }
 
-  TextEditingController _shopname = TextEditingController();
-  TextEditingController _address = TextEditingController();
-  TextEditingController _pincode = TextEditingController();
-  TextEditingController _licence = TextEditingController();
+  final TextEditingController _shopname = TextEditingController();
+  final TextEditingController _address = TextEditingController();
+  final TextEditingController _pincode = TextEditingController();
+  final TextEditingController _licence = TextEditingController();
+  final TextEditingController _mNumber = TextEditingController();
+  final TextEditingController _email = TextEditingController();
   bool isEleveted = false;
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> autoCompleteKey =
@@ -57,8 +61,6 @@ class _ShopDetailsState extends State<ShopDetails> {
     final response = await http.get(
       Uri.parse('https://api.postalpincode.in/pincode/$pincode'),
     );
-
-
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
       if (responseData is List) {
@@ -94,7 +96,7 @@ class _ShopDetailsState extends State<ShopDetails> {
           children: [
             const SizedBox(height: 100),
             const Text(
-              "Shop Details",
+              "Details",
               style: TextStyle(fontSize: 30,color: Colors.black),
             ),
             const SizedBox(height: 20),
@@ -116,7 +118,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                   controller: _shopname,
                   validator: (text) {
                     if (text == null || text.isEmpty) {
-                      return "Shop Name is Empty";
+                      return "Name is Empty";
                     }
                     return null;
                   },
@@ -124,10 +126,134 @@ class _ShopDetailsState extends State<ShopDetails> {
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.all(15),
-                      hintText: 'Shop Name',
+                      hintText: 'Name',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
                         child: SvgPicture.asset('assets/icons/shop.svg'),
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none)),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Row(
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: Container(
+                      width: 100,
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                              color: const Color(0xff1D1617).withOpacity(0.11),
+                              blurRadius: 40,
+                              spreadRadius: 0.0)
+                        ],
+                        color: const Color.fromRGBO(247, 247, 249, 1),
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      child: const CountryCodePicker(
+                        initialSelection: 'IN',
+                        showCountryOnly: false,
+                        showOnlyCountryWhenClosed: false,
+                        favorite: ['IN'],
+                        enabled: true,
+                        hideMainText: false,
+                        showFlagMain: true,
+                        showFlag: true,
+                        hideSearch: false,
+                        showFlagDialog: true,
+                        alignLeft: true,
+                        padding: EdgeInsets.all(1.0),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    flex: 2,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                              color: const Color(0xff1D1617).withOpacity(0.11),
+                              blurRadius: 40,
+                              spreadRadius: 0.0)
+                        ],
+                        color: const Color.fromRGBO(247, 247, 249, 1),
+                        borderRadius: BorderRadius.circular(32.0),
+                      ),
+                      child: TextFormField(
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(10)
+                        ],
+                        controller: _mNumber,
+                        validator: (text) {
+                          if (text == null || text.isEmpty) {
+                            return "Number is Empty";
+                          } else if (text.length <= 9) {
+                            return "Put the 10 Digit Number";
+                          }
+                          return null;
+                        },
+                        decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+
+                            hintText: 'Mobile Number',
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: SvgPicture.asset(
+                                  'assets/icons/phone-svgrepo-com.svg'),
+                            ),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                borderSide: BorderSide.none)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Container(
+                //width: 50,
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                        color: const Color(0xff1D1617).withOpacity(0.11),
+                        blurRadius: 40,
+                        spreadRadius: 0.0)
+                  ],
+                  color: const Color.fromRGBO(247, 247, 249, 1),
+                  borderRadius: BorderRadius.circular(32.0),
+                ),
+                child: TextFormField(
+                  keyboardType: TextInputType.text,
+                  controller: _email,
+                  validator: (text) {
+                    if(text != null && !EmailValidator.validate(text))
+                    {
+                      return "Enter Valid Mail";
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.all(15),
+                      hintText: 'Email',
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(9),
+                        child: SvgPicture.asset(
+                            'assets/icons/email-1-svgrepo-com.svg'),
                       ),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -154,7 +280,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                   controller: _address,
                   validator: (text) {
                     if (text == null || text.isEmpty) {
-                      return "Address Name is Empty";
+                      return "Address is Empty";
                     }
                     return null;
                   },
@@ -192,23 +318,15 @@ class _ShopDetailsState extends State<ShopDetails> {
                   keyboardType: TextInputType.number,
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(6)
                   ],
                   controller: _pincode,
                   onChanged: (pincode) {
-                    if (pincode.length >= 6) {
                       fetchLocationDetailsFromPincode(pincode);
-                    }
+
                   },
                   validator: (text) {
                     if (text == null || text.isEmpty) {
                       return "Pin-code is Empty";
-                    } else if (text.length <= 5) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("Pin-Code is Not Valid"),
-                        ),
-                      );
                     }
                     return null;
                   },
@@ -234,6 +352,7 @@ class _ShopDetailsState extends State<ShopDetails> {
               child: Column(
                 children: [
                   CSCPicker(
+                    key: ValueKey('$countryValue$stateValue$cityValue'),
                     showCities: true,
                     showStates: true,
                     defaultCountry: CscCountry.India,
@@ -268,6 +387,9 @@ class _ShopDetailsState extends State<ShopDetails> {
                     ),
                     dropdownDialogRadius: 20.0,
                     searchBarRadius: 10.0,
+                    currentCountry: countryValue,
+                    currentState: stateValue,
+                    currentCity: cityValue,
                     onCountryChanged: (value) {
                       setState(() {
                         countryValue = value;
@@ -337,7 +459,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                   controller: _licence,
                   validator: (text) {
                     if (text == null || text.isEmpty) {
-                     return "Shop License is Empty";
+                     return "License is Empty";
                     }
                     return null;
                   },
@@ -345,7 +467,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.all(15),
-                      hintText: 'Shop License',
+                      hintText: 'License',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
                         child: SvgPicture.asset('assets/icons/license.svg'),

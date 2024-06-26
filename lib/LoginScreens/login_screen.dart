@@ -15,17 +15,11 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   int _currentIndex = 0;
-  final PageController _pageController = PageController();
-  final List<String> images = [
-    'assets/images/Men.jpg',
-    'assets/images/Spa.jpg',
-    'assets/images/Parlour.jpg',
-  ];
 
   final formkey = GlobalKey<FormState>();
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  // Variable to hold user data
+
   List<List<dynamic>>? userData;
 
   // Variable to track login state
@@ -33,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _startAutoPlay();
   }
   Future<void> _login() async {
     if (formkey.currentState!.validate()) {
@@ -91,21 +84,6 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs.setBool('isLoggedIn', true);
     prefs.setString('Email', emailController.text.toString());
     prefs.setString('Password',passwordController.text.toString());
-  }
-  void _startAutoPlay() {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (_currentIndex < images.length - 1) {
-        _currentIndex++;
-      } else {
-        _currentIndex = 0;
-      }
-      _pageController.animateToPage(
-        _currentIndex,
-        duration: const Duration(seconds: 1),
-        curve: Curves.easeInOut,
-      );
-      _startAutoPlay();
-    });
   }
 
   @override
