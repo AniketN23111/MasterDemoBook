@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/SearchPage.dart';
+import 'package:saloon/MasterSeperateDeatails/detail_page.dart';
+import 'package:saloon/Services/database_service.dart';
+import 'package:saloon/Models/master_details.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -10,12 +13,22 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String userFirstName = ''; // Variable to hold the user's first name
+  List<MasterDetails> masterDetailsList = [];
 
   @override
   void initState() {
     super.initState();
-
+    _fetchMasterDetails();
   }
+
+  void _fetchMasterDetails() async {
+    DatabaseService dbService = DatabaseService();
+    List<MasterDetails> details = await dbService.getMasterDetails();
+    setState(() {
+      masterDetailsList = details;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,58 +113,31 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: 10, // Number of images
+                itemCount: masterDetailsList.length,
                 itemBuilder: (BuildContext context, int index) {
+                  final masterDetails = masterDetailsList[index];
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Image.network(
-                      'https://via.placeholder.com/150', // Replace with your image URLs
-                      width: 150,
-                      height: 150,
-                      fit: BoxFit.cover,
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Top Rated Salons',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // See all salons
-                    },
-                    child: const Text('See All'),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(
-              // Container for the horizontal scrolling view
-              height: 150,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: 10, // Number of top-rated salons
-                itemBuilder: (BuildContext context, int index) {
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Image.network(
-                          'https://via.placeholder.com/100', // Replace with your image URLs
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                        ),
-                        Text('Salon $index'),
-                      ],
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailPage(masterDetails: masterDetails),
+                          ),
+                        );
+                      },
+                      child: Column(
+                        children: [
+                          Image.network(
+                            'https://via.placeholder.com/100', // Replace with your image URLs
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
+                          Text(masterDetails.name),
+                        ],
+                      ),
                     ),
                   );
                 },

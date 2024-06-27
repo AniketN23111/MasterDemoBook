@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/LoginScreens/sign_up_screen.dart';
+import 'package:saloon/Partner_Pages/shop_details.dart';
 import 'package:saloon/splash_screen.dart';
 import 'Constants/screen_utility.dart';
-import 'Partner_Pages/partner_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +29,7 @@ class _MyAppState extends State<MyApp> {
         '/': (context) => SplashScreen(),
         'loginScreen':(context) => const LoginScreen(),
         'signupScreen':(context)=> const SignUpScreen(),
-        'partner-page':(context)=> PartnerPage(),
+        'shopDetails':(context)=> const ShopDetails(),
       },
       theme: ThemeData(
         visualDensity: VisualDensity.adaptivePlatformDensity,

@@ -58,6 +58,9 @@ dependencies:
   postgres: ^3.2.1
   form_field_validator: ^1.1.0
   email_otp: ^3.0.1
+  permission_handler: ^11.3.1
+  gcloud: ^0.8.12
+  googleapis_auth: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +86,7 @@ flutter:
     - assets/images/Men.jpg
     - assets/images/Spa.jpg
     - assets/images/Parlour.jpg
+    - assets/GoogleJson/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

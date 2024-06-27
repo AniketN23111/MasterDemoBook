@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "clean-emblem-394910",
+  "private_key_id": "905637ad42b3293f7f2245e66370857ba5d6d32b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDaqdwC9l2x0bhW\nZqnreNsiL0LcDNP0TAYLSLpAoUmfazPVkCXXAGa5UU5p91dQ8W/9xtFw8kG0PKIZ\nRLK0R9NBHS25FbG9Ch8mTXos2uZVgk7zjIOpJa18bS4AKgnBlsMpgWyoQvzgC1gz\nFnLwmrdLZ0Rk1wtMoVLyYbmeBiUtLv8yi3KX3jOeYlKpjUeMbW51zrXHFl4n7xoy\nY849X4Ci1iJkO5Rzva9Iv97W2ACwhtr0EdIrT0zJ/q8K+l9Nl80/1hSluNKGAVfL\naAthL4vMNSuPxsjkjs524Sy+luUsHZpsYxd+DkyM5dMxUZMmV6QER/kImMCWGfnc\n35ms1SG9AgMBAAECggEAHEjE/AAcugPf9ZMljx8sr0UQP7EMGKldzcdcSkBiqtOd\n2pXhAyja4MVG4JedLIvyec/mJxc7DwKZ0C1t9TpmNeG9mJeZDFQbF+QFNfihuzVW\nG5RVMoO8Z2AjB2Poq6kh+QQ0BybVGXD2OXOBriRBKeiDdQzI+iJS/aXM8gcm92tD\nzwG0dQOxpjMQGumuDssT5nyzIOdCnwevc8jCQGlHz9Pc4R0P/N2/jOJ4tK7KDmMr\nUkuUe3qfgayd8uQjf4UJ78GQv4BY7yxJWJdIvItpba865lgoVJN0iMlkDEZLr5OG\nK2U3Lsp+SqtpalXFmyPc/1tgggamprysbiJVowHcSQKBgQD5AQ5Go2tnKCSKiqR+\nhX9t8EtTcHkH6jOImDUQaC64bkLRfDuaqQGP74nYzI09JoMFKs6HIgO7sRNUPfF0\n9+Pp4CPLd9TzAHjV7pPX+Z52ue4uFQqe/6t30qSbcSufqMoe+ty3y6zznnBeKfwk\nTaEXTvCrDq7ovlxnjrBj9jVpFQKBgQDgzpS8MuTxp458SRpjG6gnmK291iszdXZW\n3A/NV5Q75mbEXP+DHTUR4izwTNmBObm8ocYW46op99c7Mq4kYQan7UBv/1QpGX3U\n39ZXsXU5m8+73QtedHz+E8T02MCAGCcmpgk00oN/1ljEGntANSi51VUiZxs4RwMX\nRH2Bm16wCQKBgQDRiwjneviUO9zcVaXt7wv4iYHqOrkvZvBtH6FwKCxA+lDylzhV\ng6oT5YG8Vw74ieMyQv7AC2jW10Ir32DFjSJYG04kGLi0sg3+AiKaWq72vKrqTry8\nZu12DWaGhOswFcvZ3ERHy3fFH+zx4SUVq9pHkh/H47hflmqOny5jQLtbrQKBgEhb\ndZgVsYbubXgnd2zK7BbCl7lwg7suZYaTkip/s+CLyiwN2tfywLAe4mP9+EwVrmi+\nkSmw4YZclVQifdaLvD60qHbj8czAvbWUzkKvhZGjSvumrBAc4lZNOqmsUllobMGN\n04zC7TxqW2vTMjR6Z79YoOxPz30PrjkA/HyI67MxAoGALyVRPiDZWQVv4DPdf677\nMV5GUt12ESz6F2MDHk4bOTFDq4CvtaHdLVq7E/C7irOtKn3CesMkBWByQrMCmP/L\ni4l/vRqdDxHiB3yZvQ6yIEF/8WHZsbl0vyHI6MotExLNI9FSGG1wf9iHKVEYJFia\nVK7DNgE1KBhSrpuJTH6Usj8=\n-----END PRIVATE KEY-----\n",
+  "client_email": "imagestore-camera-serviceaccou@clean-emblem-394910.iam.gserviceaccount.com",
+  "client_id": "104889237407481359811",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/imagestore-camera-serviceaccou%40clean-emblem-394910.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:postgres/postgres.dart';
+import 'package:saloon/Admin/admin_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Constants/screen_utility.dart';
@@ -14,15 +15,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  int _currentIndex = 0;
-
   final formkey = GlobalKey<FormState>();
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
 
   List<List<dynamic>>? userData;
 
-  // Variable to track login state
   bool _isLoggingIn = false;
   @override
   void initState() {
@@ -38,12 +36,12 @@ class _LoginScreenState extends State<LoginScreen> {
         String enteredPassword = passwordController.text.toString();
 
         // Directly check for admin credentials
-        if (enteredEmail == 'admin@gmail.com' && enteredPassword == 'admin123@') {
+        if (enteredEmail == 'admin@gmail.com' && enteredPassword == 'admin@123') {
           await _storeDetailsInPrefs();
-          /*Navigator.pushReplacement(
+          Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const AdminPanel()),
-          );*/
+            MaterialPageRoute(builder: (context) => const AdminPage()),
+          );
           _isLoggingIn = false;
           return; // Exit function early if admin credentials match
         }
@@ -187,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text("Want to be a partner? "),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, 'partner-page');
+                        Navigator.pushNamed(context, 'shopDetails');
                       },
                       child: const Text('Click here'),
                     ),
