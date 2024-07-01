@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/SearchPage.dart';
-import 'package:saloon/MasterSeperateDeatails/detail_page.dart';
+import 'package:saloon/MasterSeperateDeatails/separate_mentor_details.dart';
 import 'package:saloon/Services/database_service.dart';
-import 'package:saloon/Models/master_details.dart';
+import 'package:saloon/Models/mentor_details.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -13,7 +13,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String userFirstName = ''; // Variable to hold the user's first name
-  List<MasterDetails> masterDetailsList = [];
+  List<MentorDetails> masterDetailsList = [];
 
   @override
   void initState() {
@@ -23,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _fetchMasterDetails() async {
     DatabaseService dbService = DatabaseService();
-    List<MasterDetails> details = await dbService.getMasterDetails();
+    List<MentorDetails> details = await dbService.getMentorDetails();
     setState(() {
       masterDetailsList = details;
     });
@@ -48,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   const SizedBox(height: 16.0),
                   TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search for a salon',
+                      hintText: 'Search for a Service',
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.search),
                         onPressed: () {
@@ -63,47 +63,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   const SizedBox(height: 16.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // Salon category
-                        },
-                        icon: const Icon(Icons.local_florist),
-                        label: const Text('Salon'),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // Parlour category
-                        },
-                        icon: const Icon(Icons.face),
-                        label: const Text('Parlour'),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // Spa category
-                        },
-                        icon: const Icon(Icons.spa),
-                        label: const Text('Spa'),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -129,8 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                       child: Column(
                         children: [
-                          Image.network(
-                            'https://via.placeholder.com/100', // Replace with your image URLs
+                          Image.network(masterDetails.imageURl, // Replace with your image URLs
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,

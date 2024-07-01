@@ -106,11 +106,13 @@ class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const SizedBox(height: 10),
               TextFormField(
                 keyboardType: TextInputType.text,
                 controller: _serviceController,
@@ -147,50 +149,6 @@ class _AdminPageState extends State<AdminPage> {
                     fillColor: Colors.white,
                     contentPadding: const EdgeInsets.all(15),
                     hintText: 'SubService',
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: SvgPicture.asset('assets/icons/shop.svg'),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none)),
-              ),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                controller: _rateController,
-                validator: (text) {
-                  if (text == null || text.isEmpty) {
-                    return "Rate is Empty";
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.all(15),
-                    hintText: 'Rate',
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: SvgPicture.asset('assets/icons/shop.svg'),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none)),
-              ),
-              TextFormField(
-                keyboardType: TextInputType.text,
-                controller: _quantityController,
-                validator: (text) {
-                  if (text == null || text.isEmpty) {
-                    return "Quantity is Empty";
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.all(15),
-                    hintText: 'Quantity',
                     prefixIcon: Padding(
                       padding: const EdgeInsets.all(12),
                       child: SvgPicture.asset('assets/icons/shop.svg'),

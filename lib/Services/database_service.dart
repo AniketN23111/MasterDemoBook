@@ -1,6 +1,6 @@
 import 'package:postgres/postgres.dart';
-import 'package:saloon/Models/master_details.dart';
-import 'package:saloon/Models/master_service.dart';
+import 'package:saloon/Models/mentor_details.dart';
+import 'package:saloon/Models/mentor_service.dart';
 
 class DatabaseService {
   final connection = Connection.open(
@@ -14,7 +14,7 @@ class DatabaseService {
     settings: const ConnectionSettings(sslMode: SslMode.disable),
   );
 
-  Future<List<MasterDetails>> getMasterDetails() async {
+  Future<List<MentorDetails>> getMentorDetails() async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -33,10 +33,10 @@ class DatabaseService {
 
       await connection.close();
 
-      List<MasterDetails> MasterDetailsList = [];
+      List<MentorDetails> MentorDetailsList = [];
 
       for (var row in results) {
-        MasterDetailsList.add(MasterDetails(
+        MentorDetailsList.add(MentorDetails(
           name: row[0] as String,
           address: row[1] as String,
           mobile: row[2] as String,
@@ -48,15 +48,21 @@ class DatabaseService {
           area: row[8] as String,
           license: row[9] as String,
           workingDays: row[10] as String,
+          timeSlots: row[11] as String,
+          services: row[12] as String,
+          rate: row[13] as int,
+          quantity: row[14] as int,
+          unitMeasurement: row[15] as String,
+          imageURl: row[16] as String,
         ));
       }
 
-      return MasterDetailsList;
+      return MentorDetailsList;
     } catch (e) {
       return [];
     }
   }
-  Future<List<MasterService>> getMasterService() async {
+  Future<List<MentorService>> getMentorService() async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -75,19 +81,17 @@ class DatabaseService {
 
       await connection.close();
 
-      List<MasterService> MasterServiceList = [];
+      List<MentorService> MentorServiceList = [];
 
       for (var row in results) {
-        MasterServiceList.add(MasterService(
+        MentorServiceList.add(MentorService(
           service: row[0] as String,
           subService: row[1] as String,
           imageIcon: row[2] as String,
-          rate: row[3] as int,
-          quantity: row[4] as String,
         ));
       }
 
-      return MasterServiceList;
+      return MentorServiceList;
     } catch (e) {
       return [];
     }
