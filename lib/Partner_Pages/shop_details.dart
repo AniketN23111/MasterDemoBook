@@ -319,8 +319,12 @@ class _ShopDetailsState extends State<ShopDetails> {
                         hintText: 'Pin',
                         prefixIcon: Padding(
                           padding: const EdgeInsets.all(9),
-                          child: SvgPicture.asset(
-                              'assets/icons/pin-svgrepo-com.svg'),
+                          child: SizedBox(
+                            width: 10,
+                            height: 10,
+                            child: SvgPicture.asset(
+                                'assets/icons/pin-code.svg'),
+                          ),
                         ),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -360,7 +364,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                         prefixIcon: Padding(
                           padding: const EdgeInsets.all(9),
                           child: SvgPicture.asset(
-                              'assets/icons/license-svgrepo-com.svg'),
+                              'assets/icons/license.svg'),
                         ),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -422,7 +426,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                     controller: _area,
                     validator: (text) {
                       if (text == null || text.isEmpty) {
-                        return "Pin is Empty";
+                        return "Area is Empty";
                       }
                       return null;
                     },
@@ -430,11 +434,15 @@ class _ShopDetailsState extends State<ShopDetails> {
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.all(15),
-                        hintText: 'Pin',
+                        hintText: 'Area',
                         prefixIcon: Padding(
                           padding: const EdgeInsets.all(9),
-                          child: SvgPicture.asset(
-                              'assets/icons/pin-svgrepo-com.svg'),
+                          child: SizedBox(
+                            width: 10,
+                            height: 10,
+                            child: SvgPicture.asset(
+                                'assets/icons/address.svg'),
+                          ),
                         ),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -521,12 +529,12 @@ class _ShopDetailsState extends State<ShopDetails> {
                 padding: const EdgeInsets.symmetric(horizontal: 150),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
+                   // if (_formKey.currentState!.validate()) {
                      Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) =>  ServiceDetails(_shopname.text,_address.text,_mNumber.text,_email.text,_pincode.text,countryValue.toString(),stateValue.toString(),cityValue.toString(),_area.text,_licence.text,workingDays.toString(),timeSlots.toString())),
                       );
-                    }
+                 //   }
                   },
                   child: const Center(child: Text('Next')),
                 ),

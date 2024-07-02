@@ -11,11 +11,8 @@ class MentorDetails {
   final String license;
   final String workingDays;
   final String timeSlots;
-  final String services;
-  final int rate;
-  final int quantity;
-  final String unitMeasurement;
-  final String imageURl;
+  final String imageURL;
+  final int shopID;
 
   MentorDetails({
     required this.name,
@@ -30,10 +27,7 @@ class MentorDetails {
     required this.license,
     required this.workingDays,
     required this.timeSlots,
-    required this.services,
-    required this.rate,
-    required this.quantity,
-    required this.unitMeasurement,
-    required this.imageURl
+    required this.imageURL,
+    required this.shopID,
   });
 }

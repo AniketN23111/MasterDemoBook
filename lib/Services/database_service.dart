@@ -1,5 +1,6 @@
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/mentor_details.dart';
+import 'package:saloon/Models/admin_service.dart';
 import 'package:saloon/Models/mentor_service.dart';
 
 class DatabaseService {
@@ -49,11 +50,8 @@ class DatabaseService {
           license: row[9] as String,
           workingDays: row[10] as String,
           timeSlots: row[11] as String,
-          services: row[12] as String,
-          rate: row[13] as int,
-          quantity: row[14] as int,
-          unitMeasurement: row[15] as String,
-          imageURl: row[16] as String,
+          imageURL: row[12] as String,
+          shopID: row[13] as int,
         ));
       }
 
@@ -62,7 +60,7 @@ class DatabaseService {
       return [];
     }
   }
-  Future<List<MentorService>> getMentorService() async {
+  Future<List<AdminService>> getAdminService() async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -81,18 +79,56 @@ class DatabaseService {
 
       await connection.close();
 
-      List<MentorService> MentorServiceList = [];
+      List<AdminService> AdminServiceList = [];
 
       for (var row in results) {
-        MentorServiceList.add(MentorService(
+        AdminServiceList.add(AdminService(
           service: row[0] as String,
           subService: row[1] as String,
           imageIcon: row[2] as String,
         ));
       }
 
-      return MentorServiceList;
+      return AdminServiceList;
     } catch (e) {
+      return [];
+    }
+  }
+  Future<List<MentorService>> getMentorServices() async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'airegulation_dev',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(
+        'SELECT * FROM ai.service_details',
+      );
+
+      await connection.close();
+
+      List<MentorService> mentorServiceList = [];
+
+      for (var row in results) {
+        mentorServiceList.add(MentorService(
+          shopId: row[1] as int,
+          mainService: row[2] as String,
+          subService: row[3] as String,
+          rate: row[4] as int,
+          quantity: row[5] as int,
+          unitMeasurement: row[6] as String,
+        ));
+      }
+
+      return mentorServiceList;
+    } catch (e) {
+      print('Error fetching Mentor Services: $e');
       return [];
     }
   }

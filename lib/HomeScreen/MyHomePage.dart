@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/SearchPage.dart';
 import 'package:saloon/MasterSeperateDeatails/separate_mentor_details.dart';
+import 'package:saloon/Models/mentor_service.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:saloon/Models/mentor_details.dart';
 
@@ -14,11 +15,13 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String userFirstName = ''; // Variable to hold the user's first name
   List<MentorDetails> masterDetailsList = [];
+  List<MentorService> masterServiceList=[];
 
   @override
   void initState() {
     super.initState();
     _fetchMasterDetails();
+    _fetchMasterService();
   }
 
   void _fetchMasterDetails() async {
@@ -26,6 +29,13 @@ class _MyHomePageState extends State<MyHomePage> {
     List<MentorDetails> details = await dbService.getMentorDetails();
     setState(() {
       masterDetailsList = details;
+    });
+  }
+  void _fetchMasterService() async {
+    DatabaseService dbService = DatabaseService();
+    List<MentorService> details = await dbService.getMentorServices();
+    setState(() {
+      masterServiceList = details;
     });
   }
 
@@ -82,13 +92,13 @@ class _MyHomePageState extends State<MyHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DetailPage(masterDetails: masterDetails),
+                            builder: (context) => DetailPage(masterDetails: masterDetails,masterServices: masterServiceList,),
                           ),
                         );
                       },
                       child: Column(
                         children: [
-                          Image.network(masterDetails.imageURl, // Replace with your image URLs
+                          Image.network(masterDetails.imageURL, // Replace with your image URLs
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
