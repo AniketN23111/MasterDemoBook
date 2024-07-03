@@ -419,7 +419,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         'timeslot': widget.timeslot,
         'imageUrl': _downloadUrl,
       });
-
       if (result.isEmpty) {
         throw Exception("Failed to retrieve shop ID.");
       }
