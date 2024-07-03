@@ -5,10 +5,7 @@ import 'package:csc_picker/csc_picker.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:postgres/postgres.dart';
-import 'package:saloon/Partner_Pages/service_details.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:saloon/MentorRegister/service_details.dart';
 
 class ShopDetails extends StatefulWidget {
   const ShopDetails({super.key});
@@ -77,7 +74,7 @@ class _ShopDetailsState extends State<ShopDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shop Details'),
+        title: const Text('Shop Details'),
       ),
       body: Form(
         key: _formKey,
@@ -143,7 +140,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                           color: const Color.fromRGBO(247, 247, 249, 1),
                           borderRadius: BorderRadius.circular(16.0),
                         ),
-                        child: CountryCodePicker(
+                        child: const CountryCodePicker(
                           onChanged: print,
                           initialSelection: 'IN',
                           showCountryOnly: false,
@@ -304,7 +301,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                     borderRadius: BorderRadius.circular(32.0),
                   ),
                   child: TextFormField(
-                    keyboardType: TextInputType.text,
+                    keyboardType: TextInputType.number,
                     controller: _pincode,
                     validator: (text) {
                       if (text == null || text.isEmpty) {
@@ -523,7 +520,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: _addSlot,
-                      child: Text('Add Slot'),
+                      child: const Text('Add Slot'),
                     ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 150),
@@ -561,7 +558,7 @@ class _ShopDetailsState extends State<ShopDetails> {
         ),
         child: Text(
           label,
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
     );

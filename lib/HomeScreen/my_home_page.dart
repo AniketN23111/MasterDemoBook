@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:saloon/HomeScreen/SearchPage.dart';
-import 'package:saloon/MasterSeperateDeatails/separate_mentor_details.dart';
+import 'package:saloon/HomeScreen/search_page.dart';
+import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:saloon/Models/mentor_details.dart';

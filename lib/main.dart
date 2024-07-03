@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/LoginScreens/sign_up_screen.dart';
-import 'package:saloon/Partner_Pages/shop_details.dart';
+import 'package:saloon/MentorRegister/shop_details.dart';
 import 'package:saloon/splash_screen.dart';
 import 'Constants/screen_utility.dart';
 

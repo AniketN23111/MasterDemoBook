@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,23 +22,23 @@ class ServiceDetails extends StatefulWidget {
   final String timeslot;
 
   const ServiceDetails(
-      this.name,
-      this.address,
-      this.number,
-      this.email,
-      this.pincode,
-      this.country,
-      this.state,
-      this.city,
-      this.area,
-      this.license,
-      this.workingDays,
-      this.timeslot, {
-        Key? key,
-      }) : super(key: key);
+    this.name,
+    this.address,
+    this.number,
+    this.email,
+    this.pincode,
+    this.country,
+    this.state,
+    this.city,
+    this.area,
+    this.license,
+    this.workingDays,
+    this.timeslot, {
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _ServiceDetailsState createState() => _ServiceDetailsState();
+  State<ServiceDetails> createState() => _ServiceDetailsState();
 }
 
 class _ServiceDetailsState extends State<ServiceDetails> {
@@ -66,22 +64,16 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   }
 
   Future<void> _loadCloudApi() async {
-    String jsonCredentials =
-    await rootBundle.loadString(
-        'assets/GoogleJson/clean-emblem-394910-905637ad42b3.json');
+    String jsonCredentials = await rootBundle
+        .loadString('assets/GoogleJson/clean-emblem-394910-905637ad42b3.json');
     setState(() {
       cloudApi = CloudApi(jsonCredentials);
     });
   }
 
   Future<void> _requestPermissions() async {
-    if (await Permission.photos
-        .request()
-        .isGranted) {
-      print("Gallery access granted");
-    } else {
-      print("Gallery access denied");
-    }
+    if (await Permission.photos.request().isGranted) {
+    } else {}
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -89,9 +81,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       _uploading = true; // Start uploading, show progress indicator
     });
 
-    final pickedFile = await ImagePicker().pickImage(
-        source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
     if (pickedFile == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No file picked')),
       );
@@ -102,6 +95,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     }
 
     if (cloudApi == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cloud API not initialized')),
       );
@@ -112,13 +106,11 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     }
 
     Uint8List imageBytes = await pickedFile.readAsBytes();
-    String fileName = pickedFile.name ?? 'image.jpg'; // Provide a default name
+    String fileName = pickedFile.name; // Provide a default name
 
     try {
-      // Upload the image to the bucket
-      final response = await cloudApi!.save(fileName, imageBytes);
+      await cloudApi!.save(fileName, imageBytes);
       final downloadUrl = await cloudApi!.getDownloadUrl(fileName);
-      print(downloadUrl);
 
       // Store the image bytes to display it
       setState(() {
@@ -126,7 +118,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         _uploading = false; // Upload finished, hide progress indicator
       });
     } catch (e) {
-      print("Error uploading image: $e");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
       );
@@ -148,7 +140,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     final picker = ImagePicker();
     final pickedImages = await picker.pickMultiImage();
     setState(() {
-      selectedImages = pickedImages ?? [];
+      selectedImages = pickedImages;
     });
   }
 
@@ -156,8 +148,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     if (selectedMainServices.isNotEmpty && selectedSubServices.isNotEmpty) {
       setState(() {
         selectedServices.add(
-            'Main: ${selectedMainServices.join(',')} - Sub: ${selectedSubServices.join(',')} - Rate: ${rateController.text} - Quantity: ${quantityController.text} - Unit: ${unitController.text}'
-        );
+            'Main: ${selectedMainServices.join(',')} - Sub: ${selectedSubServices.join(',')} - Rate: ${rateController.text} - Quantity: ${quantityController.text} - Unit: ${unitController.text}');
         selectedMainServices.clear();
         selectedSubServices.clear();
         rateController.clear();
@@ -167,17 +158,15 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    List<String> mainServices = masterServices.map((e) => e.service)
-        .toSet()
-        .toList();
+    List<String> mainServices =
+        masterServices.map((e) => e.service).toSet().toList();
     List<String> subServices = selectedMainServices.isNotEmpty
         ? masterServices
-        .where((e) => selectedMainServices.contains(e.service))
-        .map((e) => e.subService)
-        .toList()
+            .where((e) => selectedMainServices.contains(e.service))
+            .map((e) => e.subService)
+            .toList()
         : [];
 
     return Scaffold(
@@ -199,53 +188,76 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 ),
               ),
               const SizedBox(height: 10),
+              Center(
+                child: Text(
+                  widget.name,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: null,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedMainServices.add(value!);
-                          });
-                        },
-                        items: mainServices
-                            .map((service) =>
-                            DropdownMenuItem(
-                              value: service,
-                              child: Text(service),
-                            ))
-                            .toList(),
-                        decoration: const InputDecoration(
-                          labelText: 'Select Main Service',
-                          border: OutlineInputBorder(),
-                          contentPadding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                        ),
-                      ),
+                child: GestureDetector(
+                  onTap: _pickAndUploadImage,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: addService,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.grey,
-                              offset: Offset(2, 2),
-                              blurRadius: 3,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.add),
+                    child: _uploading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Upload Image',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (_downloadUrl != null)
+                Center(
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Uploaded Image:',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+                      Image.network(
+                        _downloadUrl!,
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: DropdownButtonFormField<String>(
+                  value: null,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedMainServices.add(value!);
+                    });
+                  },
+                  items: mainServices
+                      .map((service) => DropdownMenuItem(
+                            value: service,
+                            child: Text(service),
+                          ))
+                      .toList(),
+                  decoration: const InputDecoration(
+                    labelText: 'Select Main Service',
+                    border: OutlineInputBorder(),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -259,17 +271,16 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                     });
                   },
                   items: subServices
-                      .map((subService) =>
-                      DropdownMenuItem(
-                        value: subService,
-                        child: Text(subService),
-                      ))
+                      .map((subService) => DropdownMenuItem(
+                            value: subService,
+                            child: Text(subService),
+                          ))
                       .toList(),
                   decoration: const InputDecoration(
                     labelText: 'Select Sub Service',
                     border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 5),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                   ),
                 ),
               ),
@@ -329,46 +340,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: GestureDetector(
-                  onTap: _pickAndUploadImage,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: _uploading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                      'Upload Image',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (_downloadUrl != null)
-                Center(
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Uploaded Image:',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 10),
-                      Image.network(
-                        _downloadUrl!,
-                        width: 150,
-                        height: 150,
-                        fit: BoxFit.cover,
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
                   onPressed: addService,
                   child: const Text('Add Service'),
@@ -386,8 +357,8 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
-                  children: selectedServices.map((service) => Text(service))
-                      .toList(),
+                  children:
+                      selectedServices.map((service) => Text(service)).toList(),
                 ),
               ),
               const SizedBox(height: 20),
@@ -395,8 +366,8 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
                   onPressed: () async {
-                   // if (_formKey.currentState?.validate() ?? false) {
-                        registerShopDetails();
+                    // if (_formKey.currentState?.validate() ?? false) {
+                    registerShopDetails();
                     //}
                   },
                   child: const Text('Register'),
@@ -409,6 +380,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       ),
     );
   }
+
   void registerShopDetails() async {
     late Connection connection;
 
@@ -453,14 +425,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       }
 
       final shopId = result.first[0];
-      print('Shop ID: $shopId');
 
       // Insert service details into service table
       for (String service in selectedServices) {
         List<String> parts = service.split(' - ');
 
         if (parts.length != 5) {
-          print('Invalid service string: $service');
           continue; // Skip this invalid service string
         }
 
@@ -469,8 +439,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         String rate = parts[2].split(': ').last.trim();
         String quantity = parts[3].split(': ').last.trim();
         String unit = parts[4].split(': ').last.trim();
-
-        print('Inserting service: $mainService, $subService, $rate, $quantity, $unit');
 
         await connection.execute(Sql.named('''
         INSERT INTO ai.service_details (
@@ -488,11 +456,11 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         });
       }
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Shop details registered successfully')),
       );
     } catch (e) {
-      print("Error registering shop details: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to register shop details: $e')),
       );

@@ -32,7 +32,7 @@ class _DetailPageState extends State<DetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Details'),
+        title: const Text('Details'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -43,7 +43,7 @@ class _DetailPageState extends State<DetailPage> {
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10.0),
-                child: widget.masterDetails.imageURL != null
+                child: widget.masterDetails.imageURL.isNotEmpty
                     ? Image.network(widget.masterDetails.imageURL, height: 200, width: 200, fit: BoxFit.cover)
                     : Container(height: 200, width: 200, color: Colors.grey),
               ),
@@ -84,7 +84,7 @@ class _DetailPageState extends State<DetailPage> {
             _buildTimeSlotsSection(timeSlots),
             const SizedBox(height: 16.0),
             // Services
-            _buildServicesSection(services),
+            _buildServicesTable(services),
           ],
         ),
       ),
@@ -108,9 +108,9 @@ class _DetailPageState extends State<DetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4.0),
-                Text(value, style: TextStyle(fontSize: 16)),
+                Text(value, style: const TextStyle(fontSize: 16)),
               ],
             ),
           ),
@@ -123,7 +123,7 @@ class _DetailPageState extends State<DetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Working Days:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Working Days:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
         Table(
           border: TableBorder.all(),
@@ -133,11 +133,11 @@ class _DetailPageState extends State<DetailPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(day, style: TextStyle(fontSize: 16)),
+                  child: Text(day, style: const TextStyle(fontSize: 16)),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(workingDaysList[index] ? 'Open' : 'Closed', style: TextStyle(fontSize: 16)),
+                  child: Text(workingDaysList[index] ? 'Open' : 'Closed', style: const TextStyle(fontSize: 16)),
                 ),
               ],
             );
@@ -151,7 +151,7 @@ class _DetailPageState extends State<DetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Time Slots:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Time Slots:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
         Column(
           children: timeSlots.asMap().entries.map((entry) {
@@ -166,27 +166,73 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  Widget _buildServicesSection(List<MentorService> services) {
+  Widget _buildServicesTable(List<MentorService> services) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Services:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Services:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: services.map((service) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        Table(
+          border: TableBorder.all(),
+          columnWidths: const {
+            0: FlexColumnWidth(2),
+            1: FlexColumnWidth(2),
+            2: FlexColumnWidth(1),
+            3: FlexColumnWidth(1),
+            4: FlexColumnWidth(1),
+          },
+          children: [
+            const TableRow(
               children: [
-                Text('${service.mainService} - ${service.subService}', style: TextStyle(fontSize: 18)),
-                SizedBox(height: 4),
-                Text('Rate: ${service.rate}', style: TextStyle(fontSize: 16)),
-                Text('Quantity: ${service.quantity}', style: TextStyle(fontSize: 16)),
-                Text('Unit: ${service.unitMeasurement}', style: TextStyle(fontSize: 16)),
-                SizedBox(height: 8),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Main Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Sub Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Quantity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Rate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Session', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
               ],
-            );
-          }).toList(),
+            ),
+            ...services.map((service) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.mainService, style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.subService, style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.quantity.toString(), style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.rate.toString(), style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.unitMeasurement, style: const TextStyle(fontSize: 16)),
+                  ),
+                ],
+              );
+            }).toList(),
+          ],
         ),
       ],
     );

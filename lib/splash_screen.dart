@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:saloon/HomeScreen/HomePage.dart';
+import 'package:saloon/HomeScreen/home_page.dart';
 
 class SplashScreen extends StatefulWidget {
   @override

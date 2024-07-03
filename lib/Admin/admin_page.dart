@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -22,7 +20,6 @@ class _AdminPageState extends State<AdminPage> {
   final TextEditingController _rateController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
 
-  Uint8List? _uploadedImageBytes;
   String? _downloadUrl;
   final ImagePicker _picker = ImagePicker();
   CloudApi? cloudApi;
@@ -58,6 +55,7 @@ class _AdminPageState extends State<AdminPage> {
 
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile == null) {
+      if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No file picked')),
       );
@@ -68,6 +66,7 @@ class _AdminPageState extends State<AdminPage> {
     }
 
     if (cloudApi == null) {
+      if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cloud API not initialized')),
       );
@@ -82,18 +81,18 @@ class _AdminPageState extends State<AdminPage> {
 
     try {
       // Upload the image to the bucket
-      final response = await cloudApi!.save(fileName, imageBytes);
+       await cloudApi!.save(fileName, imageBytes);
       final downloadUrl = await cloudApi!.getDownloadUrl(fileName);
       print(downloadUrl);
 
       // Store the image bytes to display it
       setState(() {
-        _uploadedImageBytes = imageBytes;
         _downloadUrl = downloadUrl;
         _uploading = false; // Upload finished, hide progress indicator
       });
     } catch (e) {
       print("Error uploading image: $e");
+      if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
       );
@@ -208,13 +207,11 @@ class _AdminPageState extends State<AdminPage> {
       );
 
       // Insert into database
-      await connection.execute(Sql.named('INSERT INTO ai.service_master(service, sub_service, rate, quantity, icon_url) '
-          'VALUES (@service, @subService, @rate, @quantity, @imageUrl)'),
+      await connection.execute(Sql.named('INSERT INTO ai.service_master(service, sub_service, icon_url) '
+          'VALUES (@service, @subService, @imageUrl)'),
         parameters: {
           'service': service,
           'subService': subService,
-          'rate': rate,
-          'quantity': quantity,
           'imageUrl': imageUrl,
         },
       );

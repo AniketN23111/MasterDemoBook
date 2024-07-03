@@ -1,13 +1,12 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:saloon/HomeScreen/MyHomePage.dart';
-import 'package:saloon/HomeScreen/ProfilePage.dart'; // Import the ProfilePage
-import 'package:flutter/cupertino.dart';
+import 'package:saloon/HomeScreen/my_home_page.dart';
+import 'package:saloon/HomeScreen/profile_page.dart'; // Import the ProfilePage
 
 class HomePage extends StatefulWidget {
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
