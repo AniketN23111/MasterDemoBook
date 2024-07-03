@@ -205,7 +205,6 @@ class _AdminPageState extends State<AdminPage> {
         ),
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
-
       // Insert into database
       await connection.execute(Sql.named('INSERT INTO ai.service_master(service, sub_service, icon_url) '
           'VALUES (@service, @subService, @imageUrl)'),
