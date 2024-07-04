@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
+import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:saloon/Models/mentor_details.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -38,7 +40,17 @@ class _MyHomePageState extends State<MyHomePage> {
       masterServiceList = details;
     });
   }
-
+  void logout() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+    Navigator.push(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,6 +122,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   );
                 },
               ),
+            ),
+            ElevatedButton(
+              onPressed: logout,
+              child: const Text("Logout"),
             ),
           ],
         ),

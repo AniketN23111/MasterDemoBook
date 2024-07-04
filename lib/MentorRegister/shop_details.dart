@@ -22,6 +22,11 @@ class _ShopDetailsState extends State<ShopDetails> {
   final TextEditingController _email = TextEditingController();
   final TextEditingController _area = TextEditingController();
 
+  final TextEditingController _companyName = TextEditingController();
+  final TextEditingController _designation = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
+  String? _gender;
+
   bool isEleveted = false;
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> autoCompleteKey =
@@ -68,6 +73,54 @@ class _ShopDetailsState extends State<ShopDetails> {
       String formattedSlot = '${_formatTime(startTime)} - ${_formatTime(endTime)}';
       timeSlots.add(formattedSlot);
     });
+  }
+  void _addTimeSlot() {
+    final timeSlotController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Time Slot'),
+          content: TextField(
+            controller: timeSlotController,
+            decoration: const InputDecoration(
+              labelText: 'Time Slot (e.g., 9:00 AM - 10:00 AM)',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  timeSlots.add(timeSlotController.text);
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _removeTimeSlot(int index) {
+    setState(() {
+      timeSlots.removeAt(index);
+    });
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
   }
 
   @override
@@ -242,6 +295,191 @@ class _ShopDetailsState extends State<ShopDetails> {
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Company Name
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xff1D1617).withOpacity(0.11),
+                        blurRadius: 40,
+                        spreadRadius: 0.0,
+                      )
+                    ],
+                    color: const Color.fromRGBO(247, 247, 249, 1),
+                    borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  child: TextFormField(
+                    keyboardType: TextInputType.text,
+                    controller: _companyName,
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return "Company Name is Empty";
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.all(15),
+                      hintText: 'Company Name',
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset('assets/icons/company.svg'),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Designation
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xff1D1617).withOpacity(0.11),
+                        blurRadius: 40,
+                        spreadRadius: 0.0,
+                      )
+                    ],
+                    color: const Color.fromRGBO(247, 247, 249, 1),
+                    borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  child: TextFormField(
+                    keyboardType: TextInputType.text,
+                    controller: _designation,
+                    validator: (text) {
+                      if (text == null || text.isEmpty) {
+                        return "Designation is Empty";
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.all(15),
+                      hintText: 'Designation',
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset('assets/icons/designation.svg'),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Gender
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xff1D1617).withOpacity(0.11),
+                        blurRadius: 40,
+                        spreadRadius: 0.0,
+                      )
+                    ],
+                    color: const Color.fromRGBO(247, 247, 249, 1),
+                    borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: _gender,
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _gender = newValue;
+                      });
+                    },
+                    items: ['Male', 'Female', 'Other']
+                        .map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.all(15),
+                      hintText: 'Gender',
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: SvgPicture.asset('assets/icons/gender.svg'),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Date of Birth
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Container(
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xff1D1617).withOpacity(0.11),
+                        blurRadius: 40,
+                        spreadRadius: 0.0,
+                      )
+                    ],
+                    color: const Color.fromRGBO(247, 247, 249, 1),
+                    borderRadius: BorderRadius.circular(32.0),
+                  ),
+                  child: InkWell(
+                    onTap: () => _selectDate(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.all(15),
+                        hintText: 'Date of Birth',
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: SvgPicture.asset('assets/icons/birthdate.svg'),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "${_selectedDate.toLocal()}".split(' ')[0],
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          Icon(
+                            Icons.calendar_today,
+                            color: Colors.black54,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -486,19 +724,19 @@ class _ShopDetailsState extends State<ShopDetails> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: timeSlots.length,
-                  itemBuilder: (context, index) {
-                    String slot = timeSlots[index];
-                    return ListTile(
-                      title: Text(slot),
-                      // Add more ListTile customization as needed
-                    );
-                  },
-                ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: timeSlots.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(timeSlots[index]),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _removeTimeSlot(index),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 10),
               Padding(
@@ -529,7 +767,7 @@ class _ShopDetailsState extends State<ShopDetails> {
                    // if (_formKey.currentState!.validate()) {
                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) =>  ServiceDetails(_shopname.text,_address.text,_mNumber.text,_email.text,_pincode.text,countryValue.toString(),stateValue.toString(),cityValue.toString(),_area.text,_licence.text,workingDays.toString(),timeSlots.toString())),
+                        MaterialPageRoute(builder: (context) =>  ServiceDetails(_shopname.text,_address.text,_mNumber.text,_email.text,_pincode.text,countryValue.toString(),stateValue.toString(),cityValue.toString(),_area.text,_licence.text,workingDays.toString(),timeSlots.toString(),_companyName.text,_designation.text,_gender.toString(),_selectedDate)),
                       );
                  //   }
                   },

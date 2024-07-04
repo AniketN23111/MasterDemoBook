@@ -69,26 +69,37 @@ class _SplashScreen extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Container(
-          color: Colors.black,
-          child: Column(
-            children: [
-              const SizedBox(height: 300),
-              Center(
-                child: Image.asset('assets/salon-s.gif'),
-              ),
-              const SizedBox(height: 20),
-              DefaultTextStyle(
-                style: const TextStyle(fontSize: 40.0, fontFamily: 'Horizon'),
-                child: AnimatedTextKit(
-                  animatedTexts: [
-                    WavyAnimatedText('Salon'),
-                  ],
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [Color(0xD80CFFD2), Color(0xD8317766)],
+          ),
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text(
+                "BlackOX Experts Connect",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 36.0,
+                  fontFamily: 'Roboto', // Customize font family if needed
                 ),
               ),
-            ],
-          ),
+            ),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+          ],
         ),
       ),
     );

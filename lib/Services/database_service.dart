@@ -51,7 +51,11 @@ class DatabaseService {
           workingDays: row[10] as String,
           timeSlots: row[11] as String,
           imageURL: row[12] as String,
-          shopID: row[13] as int,
+          companyName: row[13] as String,
+          designation: row[14] as String,
+          gender: row[15] as String,
+          dateOfBirth: row[16] as DateTime,
+          shopID: row[17] as int,
         ));
       }
 
@@ -117,12 +121,12 @@ class DatabaseService {
 
       for (var row in results) {
         mentorServiceList.add(MentorService(
-          shopId: row[1] as int,
-          mainService: row[2] as String,
-          subService: row[3] as String,
-          rate: row[4] as int,
-          quantity: row[5] as int,
-          unitMeasurement: row[6] as String,
+          shopId: row[0] as int,
+          mainService: row[1] as String,
+          subService: row[2] as String,
+          rate: row[3] as int,
+          quantity: row[4] as int,
+          unitMeasurement: row[5] as String,
         ));
       }
 

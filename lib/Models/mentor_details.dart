@@ -13,6 +13,10 @@ class MentorDetails {
   final String timeSlots;
   final String imageURL;
   final int shopID;
+  final String companyName;
+  final String designation;
+  final String gender;
+  final DateTime dateOfBirth;
 
   MentorDetails({
     required this.name,
@@ -29,5 +33,9 @@ class MentorDetails {
     required this.timeSlots,
     required this.imageURL,
     required this.shopID,
+    required this.companyName,
+    required this.gender,
+    required this.designation,
+    required this.dateOfBirth,
   });
 }

@@ -14,8 +14,24 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
+  List<bool> parseWorkingDays(String workingDays) {
+    List<dynamic> parsedList = jsonDecode(workingDays);
+    return parsedList.map((e) => e as bool).toList();
+  }
+
   List<String> parseTimeSlots(String timeSlots) {
     return timeSlots.substring(1, timeSlots.length - 1).split(',').map((s) => s.trim()).toList();
+  }
+
+  Map<MentorService, bool> selectedServices = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize selected services map with false
+    for (var service in widget.masterServices) {
+      selectedServices[service] = false;
+    }
   }
 
   @override
@@ -85,15 +101,18 @@ class _DetailPageState extends State<DetailPage> {
             const SizedBox(height: 16.0),
             // Services
             _buildServicesTable(services),
+            const SizedBox(height: 16.0),
+            // Calculate Button
+            Center(
+              child: ElevatedButton(
+                onPressed: () => _showTotalAmountDialog(context),
+                child: const Text('Book Appointment'),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  List<bool> parseWorkingDays(String workingDays) {
-    List<dynamic> parsedList = jsonDecode(workingDays);
-    return parsedList.map((e) => e as bool).toList();
   }
 
   Widget _buildDetailItem(IconData icon, String title, String value) {
@@ -175,15 +194,20 @@ class _DetailPageState extends State<DetailPage> {
         Table(
           border: TableBorder.all(),
           columnWidths: const {
-            0: FlexColumnWidth(2),
+            0: FlexColumnWidth(1),
             1: FlexColumnWidth(2),
-            2: FlexColumnWidth(1),
+            2: FlexColumnWidth(2),
             3: FlexColumnWidth(1),
             4: FlexColumnWidth(1),
+            5: FlexColumnWidth(1),
           },
           children: [
             const TableRow(
               children: [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Select', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text('Main Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -211,6 +235,17 @@ class _DetailPageState extends State<DetailPage> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8.0),
+                    child: Checkbox(
+                      value: selectedServices[service],
+                      onChanged: (bool? value) {
+                        setState(() {
+                          selectedServices[service] = value ?? false;
+                        });
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
                     child: Text(service.mainService, style: const TextStyle(fontSize: 16)),
                   ),
                   Padding(
@@ -235,6 +270,50 @@ class _DetailPageState extends State<DetailPage> {
           ],
         ),
       ],
+    );
+  }
+
+  void _showTotalAmountDialog(BuildContext context) {
+    double totalAmount = 0;
+    selectedServices.forEach((service, isSelected) {
+      if (isSelected) {
+        totalAmount += service.rate * service.quantity;
+      }
+    });
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Total Amount'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ...selectedServices.entries.where((entry) => entry.value).map((entry) {
+                MentorService service = entry.key;
+                return ListTile(
+                  title: Text('${service.mainService} - ${service.subService}'),
+                  subtitle: Text('Rate: ${service.rate}, Quantity: ${service.quantity}'),
+                  trailing: Text('Total: ${service.rate * service.quantity}'),
+                );
+              }).toList(),
+              const Divider(),
+              ListTile(
+                title: const Text('Total Amount'),
+                trailing: Text(totalAmount.toString()),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

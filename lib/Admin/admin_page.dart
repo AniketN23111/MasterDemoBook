@@ -34,7 +34,7 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _loadCloudApi() async {
     String jsonCredentials =
-    await rootBundle.loadString('assets/GoogleJson/clean-emblem-394910-905637ad42b3.json');
+    await rootBundle.loadString('assets/GoogleJson/clean-emblem-394910-8dd84a4022c3.json');
     setState(() {
       cloudApi = CloudApi(jsonCredentials);
     });

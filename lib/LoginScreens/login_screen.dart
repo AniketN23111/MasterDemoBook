@@ -50,10 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final isValid = await fetchUserCredentials(enteredEmail, enteredPassword);
 
         if (isValid) {
-          // Fetch user data after successful login
           userData = await fetchUserData(enteredEmail);
           await _storeDetailsInPrefs();
-          // Navigate to the page where the user can choose a Device
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const MyHomePage()),

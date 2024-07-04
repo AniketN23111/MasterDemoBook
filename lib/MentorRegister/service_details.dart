@@ -20,6 +20,10 @@ class ServiceDetails extends StatefulWidget {
   final String license;
   final String workingDays;
   final String timeslot;
+  final String companyName;
+  final String designation;
+  final String gender;
+  final DateTime dateOfBirth;
 
   const ServiceDetails(
     this.name,
@@ -33,7 +37,11 @@ class ServiceDetails extends StatefulWidget {
     this.area,
     this.license,
     this.workingDays,
-    this.timeslot, {
+    this.timeslot,
+    this.companyName,
+    this.designation,
+    this.gender,
+    this.dateOfBirth,  {
     Key? key,
   }) : super(key: key);
 
@@ -65,7 +73,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
   Future<void> _loadCloudApi() async {
     String jsonCredentials = await rootBundle
-        .loadString('assets/GoogleJson/clean-emblem-394910-905637ad42b3.json');
+        .loadString('assets/GoogleJson/clean-emblem-394910-8dd84a4022c3.json');
     setState(() {
       cloudApi = CloudApi(jsonCredentials);
     });
@@ -119,6 +127,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       });
     } catch (e) {
       if (!mounted) return;
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
       );
@@ -400,9 +409,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       // Insert into public.master_details table and get the generated shop_id
       final result = await connection.execute(Sql.named('''
       INSERT INTO public.master_details (
-        name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url
+        name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url ,company_name,designation,gender,date_of_birth
       ) VALUES (
-        @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl
+        @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl, @company_name, @designation, @gender,@date_of_birth
       ) RETURNING shop_id;
     '''), parameters: {
         'name': widget.name,
@@ -418,6 +427,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         'workingDays': widget.workingDays,
         'timeslot': widget.timeslot,
         'imageUrl': _downloadUrl,
+        'company_name':widget.companyName,
+        'designation':widget.designation,
+        'gender':widget.gender,
+        'date_of_birth':widget.dateOfBirth
       });
       if (result.isEmpty) {
         throw Exception("Failed to retrieve shop ID.");
@@ -460,6 +473,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         const SnackBar(content: Text('Shop details registered successfully')),
       );
     } catch (e) {
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to register shop details: $e')),
       );
