@@ -388,7 +388,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Endpoint(
           host: '34.71.87.187',
           port: 5432,
-          database: 'airegulation_dev',
+          database: 'datagovernance',
           username: 'postgres',
           password: 'India@5555',
         ),
@@ -396,7 +396,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       connection.execute(
-        'INSERT INTO ai.master_demo_user(name, password, email, number) '
+        'INSERT INTO public.master_demo_user(name, password, email, number) '
             'VALUES (\$1, \$2, \$3, \$4)',
         parameters: [name, password, email, number],
       );
@@ -412,7 +412,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Endpoint(
           host: '34.71.87.187',
           port: 5432,
-          database: 'airegulation_dev',
+          database: 'datagovernance',
           username: 'postgres',
           password: 'India@5555',
         ),
@@ -420,7 +420,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       final result = await connection.execute(
-        'SELECT COUNT(*) FROM ai.master_demo_user WHERE email = \$1',
+        'SELECT COUNT(*) FROM public.master_demo_user WHERE email = \$1',
         parameters: [email],
       );
 

@@ -199,14 +199,14 @@ class _AdminPageState extends State<AdminPage> {
         Endpoint(
           host: '34.71.87.187',
           port: 5432,
-          database: 'airegulation_dev',
+          database: 'datagovernance',
           username: 'postgres',
           password: 'India@5555',
         ),
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
       // Insert into database
-      await connection.execute(Sql.named('INSERT INTO ai.service_master(service, sub_service, icon_url) '
+      await connection.execute(Sql.named('INSERT INTO public.service_master(service, sub_service, icon_url) '
           'VALUES (@service, @subService, @imageUrl)'),
         parameters: {
           'service': service,

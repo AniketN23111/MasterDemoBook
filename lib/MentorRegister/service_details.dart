@@ -390,16 +390,16 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         Endpoint(
           host: '34.71.87.187',
           port: 5432,
-          database: 'airegulation_dev',
+          database: 'datagovernance',
           username: 'postgres',
           password: 'India@5555',
         ),
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      // Insert into ai.master_details table and get the generated shop_id
+      // Insert into public.master_details table and get the generated shop_id
       final result = await connection.execute(Sql.named('''
-      INSERT INTO ai.master_details (
+      INSERT INTO public.master_details (
         name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url
       ) VALUES (
         @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl
@@ -440,7 +440,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         String unit = parts[4].split(': ').last.trim();
 
         await connection.execute(Sql.named('''
-        INSERT INTO ai.service_details (
+        INSERT INTO public.service_details (
           shop_id, main_service, sub_service, rate, quantity, unit_of_measurement
         ) VALUES (
           @shopId, @mainService, @subService, @rate, @quantity, @unit
