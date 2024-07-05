@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
       },
       debugShowCheckedModeBanner: false,
       routes: {
-        '/': (context) => SplashScreen(),
+        '/': (context) => const SplashScreen(),
         'loginScreen':(context) => const LoginScreen(),
         'signupScreen':(context)=> const SignUpScreen(),
         'shopDetails':(context)=> const ShopDetails(),

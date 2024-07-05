@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => SearchPage(), // Navigate to the SearchPage
+                              builder: (context) => const SearchPage(), // Navigate to the SearchPage
                             ),
                           );
                         },
