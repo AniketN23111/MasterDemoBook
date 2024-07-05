@@ -34,10 +34,10 @@ class DatabaseService {
 
       await connection.close();
 
-      List<MentorDetails> MentorDetailsList = [];
+      List<MentorDetails> mentorDetailsList = [];
 
       for (var row in results) {
-        MentorDetailsList.add(MentorDetails(
+        mentorDetailsList.add(MentorDetails(
           name: row[0] as String,
           address: row[1] as String,
           mobile: row[2] as String,
@@ -59,7 +59,7 @@ class DatabaseService {
         ));
       }
 
-      return MentorDetailsList;
+      return mentorDetailsList;
     } catch (e) {
       return [];
     }
@@ -83,17 +83,17 @@ class DatabaseService {
 
       await connection.close();
 
-      List<AdminService> AdminServiceList = [];
+      List<AdminService> adminServiceList = [];
 
       for (var row in results) {
-        AdminServiceList.add(AdminService(
+        adminServiceList.add(AdminService(
           service: row[0] as String,
           subService: row[1] as String,
           imageIcon: row[2] as String,
         ));
       }
 
-      return AdminServiceList;
+      return adminServiceList;
     } catch (e) {
       return [];
     }
@@ -132,7 +132,6 @@ class DatabaseService {
 
       return mentorServiceList;
     } catch (e) {
-      print('Error fetching Mentor Services: $e');
       return [];
     }
   }

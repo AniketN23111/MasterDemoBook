@@ -5,6 +5,8 @@ import 'package:saloon/HomeScreen/my_home_page.dart';
 import 'package:saloon/HomeScreen/profile_page.dart'; // Import the ProfilePage
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -14,13 +16,13 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _tabs = [
     // Home Tab
-    MyHomePage(),
+    const MyHomePage(),
     // Appointments Tab
-    Center(
+    const Center(
       child: Text('Appointments Content'),
     ),
     // Profile Tab
-    ProfilePage(),
+    const ProfilePage(),
   ];
 
   @override
@@ -32,7 +34,7 @@ class _HomePageState extends State<HomePage> {
         color: Colors.grey.shade200, // Background color of the navigation bar
         buttonBackgroundColor: Colors.grey.shade200, // Background color of the active tab
         height: 70,
-        animationDuration: Duration(milliseconds: 300),// Height of the navigation bar
+        animationDuration: const Duration(milliseconds: 300),// Height of the navigation bar
         index: _currentIndex,
         items: <Widget>[
           SvgPicture.asset('assets/icons/home-angle-svgrepo-com.svg', width: 30, height: 30),

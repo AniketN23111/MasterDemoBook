@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 class SearchPage extends StatefulWidget {
+  const SearchPage({super.key});
+
   @override
-  _SearchPageState createState() => _SearchPageState();
+  State<SearchPage> createState() => _SearchPageState();
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -18,14 +20,14 @@ class _SearchPageState extends State<SearchPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(shops['shopName'],
-          style: TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
+          style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
           ),
           Text(shops['address'],
-            style: TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
+            style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
           ),Text(shops['license'],
-            style: TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
+            style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
           ),Text(shops['pincode'],
-            style: TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
+            style: const TextStyle(fontSize: 16,fontWeight: FontWeight.w400),
           ),
         ],
       ),
@@ -36,7 +38,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Shop Search'),
+        title: const Text('Shop Search'),
       ),
     );
   }

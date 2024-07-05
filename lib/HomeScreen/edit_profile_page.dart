@@ -1,28 +1,25 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String profileImageURL; // Receive the profile image URL from ProfilePage
-  EditProfilePage(this.profileImageURL);
+  const EditProfilePage(this.profileImageURL, {super.key});
 
   @override
-  _EditProfilePageState createState() => _EditProfilePageState();
+  State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _firstNameController = TextEditingController();
-  TextEditingController _lastNameController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _mobileNumberController = TextEditingController();
-  TextEditingController _dateOfBirthController = TextEditingController();
-  String _imageUrl = ''; // Added variable to hold the image URL
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _mobileNumberController = TextEditingController();
+  final TextEditingController _dateOfBirthController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _imageUrl = widget.profileImageURL;
     }
 
   void _updateUserProfile() {
@@ -32,7 +29,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Edit Profile'),
+        middle: const Text('Edit Profile'),
         leading: CupertinoNavigationBarBackButton(
           onPressed: () {
             // Return to the previous page (ProfilePage) without saving changes
@@ -44,7 +41,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: Form(
           key: _formKey,
           child: ListView(
-            padding: EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16.0),
             children: [
               CupertinoTextField(
                 controller: _firstNameController,
@@ -58,7 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               CupertinoTextField(
                 controller: _lastNameController,
                 placeholder: 'Last Name',
@@ -71,7 +68,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               CupertinoTextField(
                 controller: _emailController,
                 placeholder: 'Email',
@@ -83,7 +80,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               CupertinoTextField(
                 controller: _mobileNumberController,
                 placeholder: 'Mobile Number',
@@ -95,7 +92,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               CupertinoTextField(
                 controller: _dateOfBirthController,
                 placeholder: 'Date of Birth',
@@ -107,14 +104,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              SizedBox(height: 20.0),
+              const SizedBox(height: 20.0),
               CupertinoButton.filled(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _updateUserProfile();
                   }
                 },
-                child: Text('Save Changes'),
+                child: const Text('Save Changes'),
               ),
             ],
           ),

@@ -74,34 +74,6 @@ class _ShopDetailsState extends State<ShopDetails> {
       timeSlots.add(formattedSlot);
     });
   }
-  void _addTimeSlot() {
-    final timeSlotController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Add Time Slot'),
-          content: TextField(
-            controller: timeSlotController,
-            decoration: const InputDecoration(
-              labelText: 'Time Slot (e.g., 9:00 AM - 10:00 AM)',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  timeSlots.add(timeSlotController.text);
-                });
-                Navigator.of(context).pop();
-              },
-              child: const Text('Add'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   void _removeTimeSlot(int index) {
     setState(() {
@@ -471,9 +443,9 @@ class _ShopDetailsState extends State<ShopDetails> {
                         children: [
                           Text(
                             "${_selectedDate.toLocal()}".split(' ')[0],
-                            style: TextStyle(color: Colors.black54),
+                            style: const TextStyle(color: Colors.black54),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.calendar_today,
                             color: Colors.black54,
                           ),

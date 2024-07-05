@@ -1,27 +1,25 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:saloon/HomeScreen/home_page.dart';
 import 'package:saloon/HomeScreen/my_home_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreen createState() => _SplashScreen();
+  State<SplashScreen> createState() => _SplashScreen();
 }
 
 class _SplashScreen extends State<SplashScreen> {
   var isLogin = false;
 
-  checkIfLogin() async {
-  }
-
+  @override
   void initState() {
     super.initState();
     startTimer();
-    checkIfLogin();
     _navigateToNextScreen();
   }
 
@@ -58,7 +56,7 @@ class _SplashScreen extends State<SplashScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => HomePage(), // Use user!
+          builder: (context) => const HomePage(), // Use user!
         ),
       );
     } else {

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:postgres/postgres.dart';
-import 'package:saloon/GoogleApi/cloudApi.dart'; // Replace with your import paths
+import 'package:saloon/GoogleApi/cloud_api.dart'; // Replace with your import paths
 import 'package:saloon/Models/admin_service.dart'; // Replace with your import paths
 import 'package:saloon/Services/database_service.dart'; // Replace with your import paths
 
@@ -127,7 +127,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       });
     } catch (e) {
       if (!mounted) return;
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
       );
@@ -473,7 +472,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         const SnackBar(content: Text('Shop details registered successfully')),
       );
     } catch (e) {
-      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to register shop details: $e')),
       );

@@ -38,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Directly check for admin credentials
         if (enteredEmail == 'admin@gmail.com' && enteredPassword == 'admin@123') {
           await _storeDetailsInPrefs();
+          if(!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const AdminPage()),
@@ -52,17 +53,20 @@ class _LoginScreenState extends State<LoginScreen> {
         if (isValid) {
           userData = await fetchUserData(enteredEmail);
           await _storeDetailsInPrefs();
+          if(!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const MyHomePage()),
           );
         } else {
           // Show error message for invalid credentials
+          if(!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Invalid username or password')),
           );
         }
       } catch (e) {
+        if(!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login failed. Please try again.')),
         );

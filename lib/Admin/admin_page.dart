@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Constants/screen_utility.dart';
-import 'package:saloon/GoogleApi/cloudApi.dart';
+import 'package:saloon/GoogleApi/cloud_api.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -42,9 +42,15 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _requestPermissions() async {
     if (await Permission.photos.request().isGranted) {
-      print("Gallery access granted");
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gallery access granted')),
+      );
     } else {
-      print("Gallery access denied");
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gallery access denied')),
+      );
     }
   }
 
@@ -83,7 +89,7 @@ class _AdminPageState extends State<AdminPage> {
       // Upload the image to the bucket
        await cloudApi!.save(fileName, imageBytes);
       final downloadUrl = await cloudApi!.getDownloadUrl(fileName);
-      print(downloadUrl);
+      //print(downloadUrl);
 
       // Store the image bytes to display it
       setState(() {
@@ -91,7 +97,7 @@ class _AdminPageState extends State<AdminPage> {
         _uploading = false; // Upload finished, hide progress indicator
       });
     } catch (e) {
-      print("Error uploading image: $e");
+      //print("Error uploading image: $e");
       if(!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
@@ -220,7 +226,9 @@ class _AdminPageState extends State<AdminPage> {
 
       return true;
     } catch (e) {
-      print("Error registering service: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error registering service')),
+      );
       return false;
     }
   }
