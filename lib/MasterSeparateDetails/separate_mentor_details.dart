@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
 
@@ -14,15 +15,8 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
-  List<bool> parseWorkingDays(String workingDays) {
-    List<dynamic> parsedList = jsonDecode(workingDays);
-    return parsedList.map((e) => e as bool).toList();
-  }
-
-  List<String> parseTimeSlots(String timeSlots) {
-    return timeSlots.substring(1, timeSlots.length - 1).split(',').map((s) => s.trim()).toList();
-  }
-
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
   Map<MentorService, bool> selectedServices = {};
 
   @override
@@ -36,6 +30,15 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<String> parseTimeSlots(String timeSlots) {
+      return timeSlots.substring(1, timeSlots.length - 1).split(',').map((s) => s.trim()).toList();
+    }
+
+    List<bool> parseWorkingDays(String workingDays) {
+      List<dynamic> parsedList = jsonDecode(workingDays);
+      return parsedList.map((e) => e as bool).toList();
+    }
+
     List<bool> workingDaysList = parseWorkingDays(widget.masterDetails.workingDays);
     List<String> daysOfWeek = [
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
@@ -97,15 +100,15 @@ class _DetailPageState extends State<DetailPage> {
             _buildWorkingDaysTable(workingDaysList, daysOfWeek),
             const SizedBox(height: 16.0),
             // Time Slots
-            _buildTimeSlotsSection(timeSlots),
+            if (selectedDate != null) _buildTimeSlotSelection(timeSlots),
             const SizedBox(height: 16.0),
             // Services
             _buildServicesTable(services),
             const SizedBox(height: 16.0),
-            // Calculate Button
+            // Book Appointment Button
             Center(
               child: ElevatedButton(
-                onPressed: () => _showTotalAmountDialog(context),
+                onPressed: () => _showDateTimePicker(context, workingDaysList),
                 child: const Text('Book Appointment'),
               ),
             ),
@@ -166,18 +169,25 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  Widget _buildTimeSlotsSection(List<String> timeSlots) {
+  Widget _buildTimeSlotSelection(List<String> timeSlots) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Time Slots:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Available Time Slots:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
         Column(
-          children: timeSlots.asMap().entries.map((entry) {
-            int index = entry.key;
-            String slot = entry.value;
+          children: timeSlots.map((slot) {
             return ListTile(
-              title: Text('Slot ${index + 1}: $slot'),
+              title: Text(slot),
+              leading: Radio(
+                value: slot,
+                groupValue: selectedTime,
+                onChanged: (value) {
+                  setState(() {
+                    selectedTime = value as TimeOfDay?;
+                  });
+                },
+              ),
             );
           }).toList(),
         ),
@@ -236,7 +246,7 @@ class _DetailPageState extends State<DetailPage> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Checkbox(
-                      value: selectedServices[service],
+                      value: selectedServices[service] ?? false,
                       onChanged: (bool? value) {
                         setState(() {
                           selectedServices[service] = value ?? false;
@@ -273,47 +283,92 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  void _showTotalAmountDialog(BuildContext context) {
-    double totalAmount = 0;
-    selectedServices.forEach((service, isSelected) {
-      if (isSelected) {
-        totalAmount += service.rate * service.quantity;
-      }
-    });
+  void _showDateTimePicker(BuildContext context, List<bool> workingDaysList) async {
+    DateTime initialDate = DateTime.now();
 
-    showDialog(
+    // Find the next selectable date if initialDate is not selectable
+    while (!workingDaysList[initialDate.weekday - 1]) {
+      initialDate = initialDate.add(Duration(days: 1));
+    }
+
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Total Amount'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ...selectedServices.entries.where((entry) => entry.value).map((entry) {
-                MentorService service = entry.key;
-                return ListTile(
-                  title: Text('${service.mainService} - ${service.subService}'),
-                  subtitle: Text('Rate: ${service.rate}, Quantity: ${service.quantity}'),
-                  trailing: Text('Total: ${service.rate * service.quantity}'),
-                );
-              }).toList(),
-              const Divider(),
-              ListTile(
-                title: const Text('Total Amount'),
-                trailing: Text(totalAmount.toString()),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
-        );
+      initialDate: initialDate,
+      firstDate: initialDate,
+      lastDate: DateTime(initialDate.year + 1),
+      selectableDayPredicate: (DateTime date) {
+        int dayOfWeek = date.weekday;
+        if (dayOfWeek == DateTime.saturday || dayOfWeek == DateTime.sunday) {
+          return workingDaysList[dayOfWeek - 1];
+        }
+        return true;
       },
     );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        setState(() {
+          selectedDate = pickedDate;
+          selectedTime = pickedTime;
+        });
+
+        _saveAppointment(selectedDate!, selectedTime!);
+      }
+    }
+  }
+
+
+  Future<void> _saveAppointment(DateTime date, TimeOfDay time) async {
+    late Connection connection;
+    connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+
+    final formattedDate = '${date.year}-${date.month}-${date.day}';
+    final formattedTime = '${time.hour}:${time.minute}:00';
+
+    try {
+      // Insert appointment into database
+      for (var service in selectedServices.keys) {
+        if (selectedServices[service]!) {
+          await connection.execute(Sql.named(
+              'INSERT INTO appointments (date, time, shop_id, main_service, sub_service) VALUES (@date, @time, @shopId, @mainService, @subService)'),
+            parameters: {
+              'date': formattedDate,
+              'time': formattedTime,
+              'shopId': widget.masterDetails.shopID,
+              'mainService': service.mainService,
+              'subService': service.subService,
+            },
+          );
+        }
+      }
+
+      await connection.close();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Appointment booked successfully!'),
+        duration: Duration(seconds: 2),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Failed to book appointment. Please try again later.'),
+        duration: Duration(seconds: 2),
+      ));
+    }
   }
 }
