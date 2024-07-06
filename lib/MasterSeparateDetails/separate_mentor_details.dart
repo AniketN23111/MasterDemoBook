@@ -16,7 +16,7 @@ class DetailPage extends StatefulWidget {
 
 class _DetailPageState extends State<DetailPage> {
   DateTime? selectedDate;
-  TimeOfDay? selectedTime;
+  String? selectedTimeSlot;
   Map<MentorService, bool> selectedServices = {};
 
   @override
@@ -28,17 +28,17 @@ class _DetailPageState extends State<DetailPage> {
     }
   }
 
+  List<bool> parseWorkingDays(String workingDays) {
+    List<dynamic> parsedList = jsonDecode(workingDays);
+    return parsedList.map((e) => e as bool).toList();
+  }
+
+  List<String> parseTimeSlots(String timeSlots) {
+    return timeSlots.substring(1, timeSlots.length - 1).split(',').map((s) => s.trim()).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<String> parseTimeSlots(String timeSlots) {
-      return timeSlots.substring(1, timeSlots.length - 1).split(',').map((s) => s.trim()).toList();
-    }
-
-    List<bool> parseWorkingDays(String workingDays) {
-      List<dynamic> parsedList = jsonDecode(workingDays);
-      return parsedList.map((e) => e as bool).toList();
-    }
-
     List<bool> workingDaysList = parseWorkingDays(widget.masterDetails.workingDays);
     List<String> daysOfWeek = [
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
@@ -99,19 +99,18 @@ class _DetailPageState extends State<DetailPage> {
             // Working Days
             _buildWorkingDaysTable(workingDaysList, daysOfWeek),
             const SizedBox(height: 16.0),
-            // Time Slots
-            if (selectedDate != null) _buildTimeSlotSelection(timeSlots),
-            const SizedBox(height: 16.0),
             // Services
             _buildServicesTable(services),
             const SizedBox(height: 16.0),
             // Book Appointment Button
             Center(
               child: ElevatedButton(
-                onPressed: () => _showDateTimePicker(context, workingDaysList),
+                onPressed: () => _showDateTimePicker(context, workingDaysList, timeSlots),
                 child: const Text('Book Appointment'),
               ),
             ),
+            const SizedBox(height: 16.0),
+
           ],
         ),
       ),
@@ -162,32 +161,6 @@ class _DetailPageState extends State<DetailPage> {
                   child: Text(workingDaysList[index] ? 'Open' : 'Closed', style: const TextStyle(fontSize: 16)),
                 ),
               ],
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTimeSlotSelection(List<String> timeSlots) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Available Time Slots:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8.0),
-        Column(
-          children: timeSlots.map((slot) {
-            return ListTile(
-              title: Text(slot),
-              leading: Radio(
-                value: slot,
-                groupValue: selectedTime,
-                onChanged: (value) {
-                  setState(() {
-                    selectedTime = value as TimeOfDay?;
-                  });
-                },
-              ),
             );
           }).toList(),
         ),
@@ -283,8 +256,19 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  void _showDateTimePicker(BuildContext context, List<bool> workingDaysList) async {
-    DateTime initialDate = DateTime.now();
+  Future<void> _showDateTimePicker(BuildContext context, List<bool> workingDaysList, List<String> timeSlots) async {
+
+    if (selectedServices.values.every((isSelected) => !isSelected)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select at least one service first.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+      List<bool> workingDaysList = parseWorkingDays(widget.masterDetails.workingDays);
+      DateTime initialDate = DateTime.now();
 
     // Find the next selectable date if initialDate is not selectable
     while (!workingDaysList[initialDate.weekday - 1]) {
@@ -298,32 +282,164 @@ class _DetailPageState extends State<DetailPage> {
       lastDate: DateTime(initialDate.year + 1),
       selectableDayPredicate: (DateTime date) {
         int dayOfWeek = date.weekday;
-        if (dayOfWeek == DateTime.saturday || dayOfWeek == DateTime.sunday) {
           return workingDaysList[dayOfWeek - 1];
-        }
-        return true;
       },
     );
 
     if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
+      String? timeSlot = await showDialog<String>(
         context: context,
-        initialTime: TimeOfDay.now(),
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Select Time Slot'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: timeSlots.map((timeSlot) {
+                  return RadioListTile<String>(
+                    title: Text(timeSlot),
+                    value: timeSlot,
+                    groupValue: selectedTimeSlot,
+                    onChanged: (String? value) {
+                      Navigator.pop(context, value);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+          );
+        },
       );
 
-      if (pickedTime != null) {
+      if (timeSlot != null) {
         setState(() {
+          print(pickedDate);
           selectedDate = pickedDate;
-          selectedTime = pickedTime;
+          selectedTimeSlot = timeSlot;
         });
-
-        _saveAppointment(selectedDate!, selectedTime!);
+        _showConfirmationDialog(context);
       }
     }
   }
 
+  void _showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Appointment'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Date: ${selectedDate!.toLocal().toString().split(' ')[0]}', style: const TextStyle(fontSize: 16)),
+                Text('Time Slot: $selectedTimeSlot', style: const TextStyle(fontSize: 16)),
+                const SizedBox(height: 16.0),
+                _buildSelectedAppointmentDetails(), // Display selected services
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Confirm'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _saveAppointment(selectedDate!,selectedTimeSlot!); // Call the function to save the appointment
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Widget _buildSelectedAppointmentDetails() {
+    List<MentorService> selectedServicesList = selectedServices.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
 
-  Future<void> _saveAppointment(DateTime date, TimeOfDay time) async {
+    double totalCost = selectedServicesList.fold(0.0, (sum, service) => sum + service.rate * service.quantity);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16.0),
+        const Text('Selected Services:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8.0),
+        Table(
+          border: TableBorder.all(),
+          columnWidths: const {
+            0: FlexColumnWidth(2),
+            1: FlexColumnWidth(2),
+            2: FlexColumnWidth(1),
+            3: FlexColumnWidth(1),
+            4: FlexColumnWidth(1),
+          },
+          children: [
+            const TableRow(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Main Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Sub Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Quantity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Rate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text('Session', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            ...selectedServicesList.map((service) {
+              return TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.mainService, style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.subService, style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.quantity.toString(), style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.rate.toString(), style: const TextStyle(fontSize: 16)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(service.unitMeasurement, style: const TextStyle(fontSize: 16)),
+                  ),
+                ],
+              );
+            }).toList(),
+          ],
+        ),
+        const SizedBox(height: 16.0),
+        Text('Total Cost: ${totalCost.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+Future<void> _saveAppointment(DateTime date, String time) async {
     late Connection connection;
     connection = await Connection.open(
       Endpoint(
@@ -337,7 +453,6 @@ class _DetailPageState extends State<DetailPage> {
     );
 
     final formattedDate = '${date.year}-${date.month}-${date.day}';
-    final formattedTime = '${time.hour}:${time.minute}:00';
 
     try {
       // Insert appointment into database
@@ -347,7 +462,7 @@ class _DetailPageState extends State<DetailPage> {
               'INSERT INTO appointments (date, time, shop_id, main_service, sub_service) VALUES (@date, @time, @shopId, @mainService, @subService)'),
             parameters: {
               'date': formattedDate,
-              'time': formattedTime,
+              'time': time,
               'shopId': widget.masterDetails.shopID,
               'mainService': service.mainService,
               'subService': service.subService,
