@@ -405,13 +405,13 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      // Insert into public.master_details table and get the generated shop_id
+      // Insert into public.master_details table and get the generated advisor_id
       final result = await connection.execute(Sql.named('''
       INSERT INTO public.master_details (
         name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url ,company_name,designation,gender,date_of_birth
       ) VALUES (
         @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl, @company_name, @designation, @gender,@date_of_birth
-      ) RETURNING shop_id;
+      ) RETURNING advisor_id;
     '''), parameters: {
         'name': widget.name,
         'address': widget.address,
@@ -453,7 +453,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
         await connection.execute(Sql.named('''
         INSERT INTO public.service_details (
-          shop_id, main_service, sub_service, rate, quantity, unit_of_measurement
+          advisor_id, main_service, sub_service, rate, quantity, unit_of_measurement
         ) VALUES (
           @shopId, @mainService, @subService, @rate, @quantity, @unit
         );

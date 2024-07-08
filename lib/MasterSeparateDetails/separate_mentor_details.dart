@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
+import 'package:saloon/MasterSeparateDetails/mentor_meeting_page.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
 
@@ -349,7 +350,8 @@ class _DetailPageState extends State<DetailPage> {
               child: const Text('Confirm'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _saveAppointment(selectedDate!,selectedTimeSlot!); // Call the function to save the appointment
+                _saveAppointment(selectedDate!,selectedTimeSlot!);
+
               },
             ),
           ],
@@ -440,6 +442,7 @@ class _DetailPageState extends State<DetailPage> {
   }
 
 Future<void> _saveAppointment(DateTime date, String time) async {
+  // Your database saving logic here...
     late Connection connection;
     connection = await Connection.open(
       Endpoint(
@@ -459,7 +462,7 @@ Future<void> _saveAppointment(DateTime date, String time) async {
       for (var service in selectedServices.keys) {
         if (selectedServices[service]!) {
           await connection.execute(Sql.named(
-              'INSERT INTO appointments (date, time, shop_id, main_service, sub_service) VALUES (@date, @time, @shopId, @mainService, @subService)'),
+              'INSERT INTO appointments (date, time, advisor_id, main_service, sub_service) VALUES (@date, @time, @shopId, @mainService, @subService)'),
             parameters: {
               'date': formattedDate,
               'time': time,
@@ -478,6 +481,21 @@ Future<void> _saveAppointment(DateTime date, String time) async {
         content: Text('Appointment booked successfully!'),
         duration: Duration(seconds: 2),
       ));
+      for (var service in selectedServices.keys) {
+        if (selectedServices[service]!) {
+          Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => MentorMeetingPage(
+                title: widget.masterDetails.name,
+                date: date,
+                timeSlot: time,
+                mainService:service.mainService,
+                subService :service.subService,
+            ),
+          ));
+
+        }
+      }
+
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
