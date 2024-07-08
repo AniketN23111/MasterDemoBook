@@ -375,7 +375,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 child: ElevatedButton(
                   onPressed: () async {
                     // if (_formKey.currentState?.validate() ?? false) {
-                    registerShopDetails();
+                    registerMentorDetailsRegister();
                     //}
                   },
                   child: const Text('Register'),
@@ -389,7 +389,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     );
   }
 
-  void registerShopDetails() async {
+  void registerMentorDetailsRegister() async {
     late Connection connection;
 
     try {

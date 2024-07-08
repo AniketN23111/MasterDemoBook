@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
 
 class MentorMeetingPage extends StatefulWidget {
@@ -64,6 +65,45 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
     final format = DateFormat.jm();  // 'jm' for AM/PM format
     return format.format(dt);
+  }
+
+  void _saveMeetingDetails() async {
+    // Save meeting details to database
+    //saveToDatabase();
+
+    // Send notifications to mentor and user
+    await sendNotification('primesolus2311@gmail.com', 'New Meeting Scheduled'); // Mentor's email
+    await sendNotification('aniketnarayankar3@gmail.com', 'New Meeting Scheduled'); // User's email
+
+    _createGoogleMeetLink();
+  }
+
+  Future<void> sendNotification(String recipientEmail, String subject) async {
+    final Email email = Email(
+      body: '''
+    <h1>New Meeting Scheduled</h1>
+    <p>Title: ${widget.title}</p>
+    <p>Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}</p>
+    <p>Time: ${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}</p>
+    <p>Location: TBD</p>
+    <p>Notification Time: $notificationTime</p>
+    <p>Details: ${widget.mainService} - ${widget.subService}</p>
+    ''',
+      subject: subject,
+      recipients: [recipientEmail],
+      isHTML: true,
+    );
+
+    try {
+      await FlutterEmailSender.send(email);
+    } catch (error) {
+      print('Failed to send email: $error');
+    }
+  }
+
+  void _createGoogleMeetLink() {
+    // Implement your logic here to create a Google Meet link.
+
   }
 
   @override
@@ -148,13 +188,6 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
               ),
               const Text('Event Details',style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold),),
               Text('${widget.mainService} - ${widget.subService}',style: const TextStyle(fontSize: 21),),
-             // const SizedBox(height: 16.0),
-              /*const TextField(
-                decoration: InputDecoration(
-                  labelText: 'Event details',
-                  border: OutlineInputBorder(),
-                ),
-              ),*/
               const SizedBox(height: 16.0),
               Row(
                 children: [
@@ -244,6 +277,21 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 16.0),
+              const TextField(
+                maxLines: 5,
+                decoration: InputDecoration(
+                  labelText: 'Meeting Link',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _saveMeetingDetails,
+                  child: const Text('Save Meeting'),
+                ),
+              ),
             ],
           ),
         ),
@@ -251,4 +299,3 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     );
   }
 }
-

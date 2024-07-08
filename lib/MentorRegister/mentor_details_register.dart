@@ -7,13 +7,13 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:saloon/MentorRegister/service_details.dart';
 
-class ShopDetails extends StatefulWidget {
-  const ShopDetails({super.key});
+class MentorDetailsRegister extends StatefulWidget {
+  const MentorDetailsRegister({super.key});
   @override
-  State<ShopDetails> createState() => _ShopDetailsState();
+  State<MentorDetailsRegister> createState() => _MentorDetailsRegisterState();
 }
 
-class _ShopDetailsState extends State<ShopDetails> {
+class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
   final TextEditingController _shopname = TextEditingController();
   final TextEditingController _address = TextEditingController();
   final TextEditingController _pincode = TextEditingController();

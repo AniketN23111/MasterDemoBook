@@ -19,6 +19,7 @@ class _DetailPageState extends State<DetailPage> {
   DateTime? selectedDate;
   String? selectedTimeSlot;
   Map<MentorService, bool> selectedServices = {};
+  List<String> bookedTimeSlots = [];
 
   @override
   void initState() {
@@ -26,6 +27,41 @@ class _DetailPageState extends State<DetailPage> {
     // Initialize selected services map with false
     for (var service in widget.masterServices) {
       selectedServices[service] = false;
+    }
+    // Fetch existing appointments
+    _fetchBookedTimeSlots();
+  }
+
+  Future<void> _fetchBookedTimeSlots() async {
+    try {
+     Connection connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('SELECT date, time FROM appointments WHERE advisor_id = @advisorId'),
+        parameters: {
+          'advisorId': widget.masterDetails.shopID,
+        },
+      );
+
+      await connection.close();
+
+      setState(() {
+        bookedTimeSlots = results.map((row) {
+          final date = row[0] as DateTime;
+          final time = row[1] as String;
+          return '${date.toLocal().toString().split(' ')[0]} $time';
+        }).toList();
+      });
+    } catch (e) {
+      print('Failed to fetch booked time slots: $e');
     }
   }
 
@@ -220,10 +256,10 @@ class _DetailPageState extends State<DetailPage> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Checkbox(
-                      value: selectedServices[service] ?? false,
+                      value: selectedServices[service],
                       onChanged: (bool? value) {
                         setState(() {
-                          selectedServices[service] = value ?? false;
+                          selectedServices[service] = value!;
                         });
                       },
                     ),
@@ -257,251 +293,177 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  Future<void> _showDateTimePicker(BuildContext context, List<bool> workingDaysList, List<String> timeSlots) async {
-
-    if (selectedServices.values.every((isSelected) => !isSelected)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select at least one service first.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
-      List<bool> workingDaysList = parseWorkingDays(widget.masterDetails.workingDays);
-      DateTime initialDate = DateTime.now();
-
-    // Find the next selectable date if initialDate is not selectable
-    while (!workingDaysList[initialDate.weekday - 1]) {
-      initialDate = initialDate.add(Duration(days: 1));
-    }
-
-    final DateTime? pickedDate = await showDatePicker(
+  void _showDateTimePicker(BuildContext context, List<bool> workingDaysList, List<String> timeSlots) async {
+    DateTime now = DateTime.now();
+    DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate,
-      firstDate: initialDate,
-      lastDate: DateTime(initialDate.year + 1),
+      initialDate: now,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 30)),
       selectableDayPredicate: (DateTime date) {
-        int dayOfWeek = date.weekday;
-          return workingDaysList[dayOfWeek - 1];
+        int dayIndex = date.weekday - 1; // Weekday starts from Monday as 1
+        return workingDaysList[dayIndex];
       },
     );
 
     if (pickedDate != null) {
-      String? timeSlot = await showDialog<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Select Time Slot'),
-            content: SingleChildScrollView(
-              child: Column(
-                children: timeSlots.map((timeSlot) {
-                  return RadioListTile<String>(
-                    title: Text(timeSlot),
-                    value: timeSlot,
-                    groupValue: selectedTimeSlot,
-                    onChanged: (String? value) {
-                      Navigator.pop(context, value);
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-          );
-        },
-      );
+      setState(() {
+        selectedDate = pickedDate;
+      });
 
-      if (timeSlot != null) {
-        setState(() {
-          print(pickedDate);
-          selectedDate = pickedDate;
-          selectedTimeSlot = timeSlot;
-        });
-        _showConfirmationDialog(context);
+      // Fetch booked time slots for the selected date
+      List<String> bookedTimeSlotsForDate = bookedTimeSlots
+          .where((slot) => slot.startsWith('${pickedDate.toLocal().toString().split(' ')[0]}'))
+          .toList();
+
+      // Check if all time slots are booked for the selected date
+      bool allBookedForDate = bookedTimeSlotsForDate.length == timeSlots.length;
+
+      if (allBookedForDate) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Date Unavailable'),
+              content: const Text('All time slots for this date are booked. Please select another date.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // Enable picking a time slot
+        String? pickedTimeSlot = await showDialog<String>(
+          context: context,
+          builder: (BuildContext context) {
+            return SimpleDialog(
+              title: const Text('Select a Time Slot'),
+              children: timeSlots.map((timeSlot) {
+                String dateTimeString = '${pickedDate.toLocal().toString().split(' ')[0]} $timeSlot';
+                bool isBooked = bookedTimeSlots.contains(dateTimeString);
+
+                return SimpleDialogOption(
+                  onPressed: isBooked ? null : () {
+                    Navigator.pop(context, timeSlot);
+                  },
+                  child: Text(
+                    timeSlot,
+                    style: TextStyle(
+                      color: isBooked ? Colors.grey : Colors.black,
+                      decoration: isBooked ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        );
+
+        if (pickedTimeSlot != null) {
+          setState(() {
+            selectedTimeSlot = pickedTimeSlot;
+          });
+
+          _confirmAppointment(context);
+        }
       }
     }
   }
 
-  void _showConfirmationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Appointment'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Date: ${selectedDate!.toLocal().toString().split(' ')[0]}', style: const TextStyle(fontSize: 16)),
-                Text('Time Slot: $selectedTimeSlot', style: const TextStyle(fontSize: 16)),
-                const SizedBox(height: 16.0),
-                _buildSelectedAppointmentDetails(), // Display selected services
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Confirm'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _saveAppointment(selectedDate!,selectedTimeSlot!);
-
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-  Widget _buildSelectedAppointmentDetails() {
+  Future<void> _confirmAppointment(BuildContext context) async {
     List<MentorService> selectedServicesList = selectedServices.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toList();
 
-    double totalCost = selectedServicesList.fold(0.0, (sum, service) => sum + service.rate * service.quantity);
+    if (selectedDate != null && selectedTimeSlot != null && selectedServicesList.isNotEmpty) {
+      try {
+        Connection connection = await Connection.open(
+          Endpoint(
+            host: '34.71.87.187',
+            port: 5432,
+            database: 'datagovernance',
+            username: 'postgres',
+            password: 'India@5555',
+          ),
+          settings: const ConnectionSettings(sslMode: SslMode.disable),
+        );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16.0),
-        const Text('Selected Services:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8.0),
-        Table(
-          border: TableBorder.all(),
-          columnWidths: const {
-            0: FlexColumnWidth(2),
-            1: FlexColumnWidth(2),
-            2: FlexColumnWidth(1),
-            3: FlexColumnWidth(1),
-            4: FlexColumnWidth(1),
-          },
-          children: [
-            const TableRow(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Main Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Sub Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Quantity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Rate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('Session', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-            ...selectedServicesList.map((service) {
-              return TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(service.mainService, style: const TextStyle(fontSize: 16)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(service.subService, style: const TextStyle(fontSize: 16)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(service.quantity.toString(), style: const TextStyle(fontSize: 16)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(service.rate.toString(), style: const TextStyle(fontSize: 16)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(service.unitMeasurement, style: const TextStyle(fontSize: 16)),
-                  ),
-                ],
-              );
-            }).toList(),
-          ],
-        ),
-        const SizedBox(height: 16.0),
-        Text('Total Cost: ${totalCost.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-
-Future<void> _saveAppointment(DateTime date, String time) async {
-  // Your database saving logic here...
-    late Connection connection;
-    connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-
-    final formattedDate = '${date.year}-${date.month}-${date.day}';
-
-    try {
-      // Insert appointment into database
-      for (var service in selectedServices.keys) {
-        if (selectedServices[service]!) {
-          await connection.execute(Sql.named(
-              'INSERT INTO appointments (date, time, advisor_id, main_service, sub_service) VALUES (@date, @time, @shopId, @mainService, @subService)'),
+        for (var service in selectedServicesList) {
+          await connection.execute(Sql.named('INSERT INTO appointments (advisor_id, service_id, date, time) VALUES (@advisorId, @serviceId, @date, @time)'),
             parameters: {
-              'date': formattedDate,
-              'time': time,
-              'shopId': widget.masterDetails.shopID,
-              'mainService': service.mainService,
-              'subService': service.subService,
+              'advisorId': widget.masterDetails.shopID,
+              'serviceId': service.shopId,
+              'date': selectedDate,
+              'time': selectedTimeSlot,
             },
           );
         }
+
+        await connection.close();
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Appointment Confirmed'),
+              content: Text('Your appointment is confirmed for ${selectedDate!.toLocal().toString().split(' ')[0]} at $selectedTimeSlot.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Go back to the previous screen
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      } catch (e) {
+        print('Failed to confirm appointment: $e');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Error'),
+              content: const Text('Failed to confirm appointment. Please try again.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
       }
-
-      await connection.close();
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Appointment booked successfully!'),
-        duration: Duration(seconds: 2),
-      ));
-      for (var service in selectedServices.keys) {
-        if (selectedServices[service]!) {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => MentorMeetingPage(
-                title: widget.masterDetails.name,
-                date: date,
-                timeSlot: time,
-                mainService:service.mainService,
-                subService :service.subService,
-            ),
-          ));
-
-        }
-      }
-
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Failed to book appointment. Please try again later.'),
-        duration: Duration(seconds: 2),
-      ));
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Incomplete Selection'),
+            content: const Text('Please select a date, time slot, and at least one service.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 }

@@ -187,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Text("Want to be a partner? "),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, 'shopDetails');
+                        Navigator.pushNamed(context, 'MentorDetailsRegister');
                       },
                       child: const Text('Click here'),
                     ),
