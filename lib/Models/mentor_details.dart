@@ -12,7 +12,7 @@ class MentorDetails {
   final String workingDays;
   final String timeSlots;
   final String imageURL;
-  final int shopID;
+  final int advisorID;
   final String companyName;
   final String designation;
   final String gender;
@@ -32,7 +32,7 @@ class MentorDetails {
     required this.workingDays,
     required this.timeSlots,
     required this.imageURL,
-    required this.shopID,
+    required this.advisorID,
     required this.companyName,
     required this.gender,
     required this.designation,

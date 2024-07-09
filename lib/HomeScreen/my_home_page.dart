@@ -1,38 +1,72 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
+import 'package:saloon/Models/user_details.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:saloon/Models/appointments_details.dart'; // Import your AppointmentsDetails model
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String userFirstName = ''; // Variable to hold the user's first name
-  List<MentorDetails> masterDetailsList = [];
-  List<MentorService> masterServiceList=[];
+  String userFirstName = '';
+  String userEmail = '';
+  String userPass = '';
+  List<MentorDetails> mentorDetailsList = [];
+  UserDetails? userDetails;
+  List<MentorService> masterServiceList = [];
+  List<AppointmentsDetails> userAppointments = [];
+
 
   @override
   void initState() {
     super.initState();
-    _fetchMasterDetails();
+    _fetchMentorDetails();
     _fetchMasterService();
+    _getDetailsInPrefs();
+      _fetchUserAppointments();
   }
 
-  void _fetchMasterDetails() async {
+
+  Future<void> _getDetailsInPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    userEmail = prefs.getString('Email')!;
+    userPass = prefs.getString('Password')!;
+    _fetchUserDetails(userEmail, userPass);
+  }
+
+  void _fetchUserDetails(String email, String password) async {
+    DatabaseService dbService = DatabaseService();
+    UserDetails? details = await dbService.getUserDetails(email, password);
+    if (details != null) {
+      setState(() {
+        userDetails = details;
+        userFirstName = userDetails!.name;
+      });
+      _fetchUserAppointments();
+    } else {
+      print('User not found');
+    }
+  }
+
+  void _fetchMentorDetails() async {
     DatabaseService dbService = DatabaseService();
     List<MentorDetails> details = await dbService.getMentorDetails();
     setState(() {
-      masterDetailsList = details;
+      mentorDetailsList = details;
     });
   }
+
   void _fetchMasterService() async {
     DatabaseService dbService = DatabaseService();
     List<MentorService> details = await dbService.getMentorServices();
@@ -40,17 +74,28 @@ class _MyHomePageState extends State<MyHomePage> {
       masterServiceList = details;
     });
   }
-  void logout() async{
+
+  void _fetchUserAppointments() async {
+    if (userDetails != null) {
+      DatabaseService dbService = DatabaseService();
+      List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsDetails(userDetails!.userID);
+      setState(() {
+        userAppointments = appointments;
+      });
+    }
+  }
+
+  void logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
-    Navigator.push(
-      // ignore: use_build_context_synchronously
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => const LoginScreen(),
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const SearchPage(), // Navigate to the SearchPage
+                              builder: (context) => const SearchPage(),
                             ),
                           );
                         },
@@ -94,9 +139,9 @@ class _MyHomePageState extends State<MyHomePage> {
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: masterDetailsList.length,
+                itemCount: mentorDetailsList.length,
                 itemBuilder: (BuildContext context, int index) {
-                  final masterDetails = masterDetailsList[index];
+                  final mentorDetails = mentorDetailsList[index];
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: GestureDetector(
@@ -104,18 +149,23 @@ class _MyHomePageState extends State<MyHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => DetailPage(masterDetails: masterDetails,masterServices: masterServiceList,),
+                            builder: (context) => DetailPage(
+                              mentorDetails: mentorDetails,
+                              masterServices: masterServiceList,
+                              userDetails: userDetails,
+                            ),
                           ),
                         );
                       },
                       child: Column(
                         children: [
-                          Image.network(masterDetails.imageURL, // Replace with your image URLs
+                          Image.network(
+                            mentorDetails.imageURL, // Replace with your image URLs
                             width: 100,
                             height: 100,
                             fit: BoxFit.cover,
                           ),
-                          Text(masterDetails.name),
+                          Text(mentorDetails.name),
                         ],
                       ),
                     ),
@@ -123,6 +173,44 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
+            const SizedBox(height: 16.0),
+            const Divider(), // Divider for separating appointments
+            const SizedBox(height: 16.0),
+            // Display User Appointments
+            if (userAppointments.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Your Appointments:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8.0),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: userAppointments.length,
+                    itemBuilder: (context, index) {
+                      final appointment = userAppointments[index];
+                      // Format date to show only date part
+                      String formattedDate = '${appointment.date.day}-${appointment.date.month}-${appointment.date.year}';
+                      return ListTile(
+                        title: Text('Date: $formattedDate'),
+                        leading: Text('${index + 1}.'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Main Service: ${appointment.mainService}'),
+                            Text('Sub Service: ${appointment.subService}'),
+                            Text('Time: ${appointment.time}'),
+                          ],
+                        ),
+                        // Add more details as needed
+                      );
+                    },
+                  ),
+                ],
+              ),
             ElevatedButton(
               onPressed: logout,
               child: const Text("Logout"),

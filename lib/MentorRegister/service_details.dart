@@ -435,7 +435,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         throw Exception("Failed to retrieve shop ID.");
       }
 
-      final shopId = result.first[0];
+      final advisorID = result.first[0];
 
       // Insert service details into service table
       for (String service in selectedServices) {
@@ -455,10 +455,10 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         INSERT INTO public.service_details (
           advisor_id, main_service, sub_service, rate, quantity, unit_of_measurement
         ) VALUES (
-          @shopId, @mainService, @subService, @rate, @quantity, @unit
+          @advisorID, @mainService, @subService, @rate, @quantity, @unit
         );
       '''), parameters: {
-          'shopId': shopId,
+          'advisorID': advisorID,
           'mainService': mainService,
           'subService': subService,
           'rate': rate,

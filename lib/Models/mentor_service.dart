@@ -1,5 +1,5 @@
 class MentorService {
-  final int shopId;
+  final int advisorID;
   final String mainService;
   final String subService;
   final int rate;
@@ -7,7 +7,7 @@ class MentorService {
   final String unitMeasurement;
 
   MentorService({
-    required this.shopId,
+    required this.advisorID,
     required this.mainService,
     required this.subService,
     required this.rate,

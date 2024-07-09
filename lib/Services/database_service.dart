@@ -1,20 +1,11 @@
 import 'package:postgres/postgres.dart';
+import 'package:saloon/Models/appointments_details.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/admin_service.dart';
 import 'package:saloon/Models/mentor_service.dart';
+import 'package:saloon/Models/user_details.dart';
 
 class DatabaseService {
-  final connection = Connection.open(
-    Endpoint(
-      host: '34.71.87.187',
-      port: 5432,
-      database: 'datagovernance',
-      username: 'postgres',
-      password: 'India@5555',
-    ),
-    settings: const ConnectionSettings(sslMode: SslMode.disable),
-  );
-
   Future<List<MentorDetails>> getMentorDetails() async {
     try {
       final connection = await Connection.open(
@@ -29,7 +20,7 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        'SELECT * FROM public.master_details',
+        'SELECT * FROM public.advisor_details',
       );
 
       await connection.close();
@@ -55,7 +46,7 @@ class DatabaseService {
           designation: row[14] as String,
           gender: row[15] as String,
           dateOfBirth: row[16] as DateTime,
-          shopID: row[17] as int,
+          advisorID: row[17] as int,
         ));
       }
 
@@ -112,7 +103,7 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        'SELECT * FROM public.service_details',
+        'SELECT * FROM public.advisor_service_details',
       );
 
       await connection.close();
@@ -121,7 +112,7 @@ class DatabaseService {
 
       for (var row in results) {
         mentorServiceList.add(MentorService(
-          shopId: row[0] as int,
+          advisorID: row[0] as int,
           mainService: row[1] as String,
           subService: row[2] as String,
           rate: row[3] as int,
@@ -131,6 +122,84 @@ class DatabaseService {
       }
 
       return mentorServiceList;
+    } catch (e) {
+      return [];
+    }
+  }
+  Future<UserDetails?> getUserDetails(String email, String password) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('SELECT * FROM master_demo_user WHERE email = @email AND password = @password'),
+        parameters: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      await connection.close();
+
+      if (results.isNotEmpty) {
+        var row = results.first;
+        return UserDetails(
+          name: row[0] as String,
+          password: row[1] as String,
+          email: row[2] as String,
+          number: row[3] as String,
+          userID: row[4] as int,
+        );
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+  Future<List<AppointmentsDetails>> getUserAppointmentsDetails(int userID) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('SELECT * FROM appointments WHERE user_id = @userId'),
+        parameters : {
+        'userId': userID,
+        },
+      );
+
+      await connection.close();
+
+      List<AppointmentsDetails> AppointmentsDetailsList = [];
+
+
+      for (var row in results) {
+        AppointmentsDetailsList.add(AppointmentsDetails(
+          appointmentID: row[0] as int,
+          date: row[1] as DateTime,
+          time: row[2] as String,
+          advisorID: row[3] as int,
+          mainService: row[4] as String,
+          subService: row[5] as String,
+          userID: row[6] as int,
+        ));
+      }
+
+      return AppointmentsDetailsList;
     } catch (e) {
       return [];
     }

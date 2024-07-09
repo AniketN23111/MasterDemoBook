@@ -4,12 +4,15 @@ import 'package:postgres/postgres.dart';
 import 'package:saloon/MasterSeparateDetails/mentor_meeting_page.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
+import 'package:saloon/Models/user_details.dart';
 
 class DetailPage extends StatefulWidget {
-  final MentorDetails masterDetails;
+  final MentorDetails mentorDetails;
   final List<MentorService> masterServices;
+ final UserDetails? userDetails;
 
-  const DetailPage({Key? key, required this.masterDetails, required this.masterServices}) : super(key: key);
+
+  const DetailPage({Key? key, required this.mentorDetails, required this.masterServices,required this.userDetails}) : super(key: key);
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -20,6 +23,7 @@ class _DetailPageState extends State<DetailPage> {
   String? selectedTimeSlot;
   Map<MentorService, bool> selectedServices = {};
   List<String> bookedTimeSlots = [];
+  bool isLoading =false;
 
   @override
   void initState() {
@@ -47,7 +51,7 @@ class _DetailPageState extends State<DetailPage> {
 
       final results = await connection.execute(Sql.named('SELECT date, time FROM appointments WHERE advisor_id = @advisorId'),
         parameters: {
-          'advisorId': widget.masterDetails.shopID,
+          'advisorId': widget.mentorDetails.advisorID,
         },
       );
 
@@ -76,80 +80,90 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<bool> workingDaysList = parseWorkingDays(widget.masterDetails.workingDays);
+    List<bool> workingDaysList = parseWorkingDays(widget.mentorDetails.workingDays);
     List<String> daysOfWeek = [
       'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
     ];
 
-    List<String> timeSlots = parseTimeSlots(widget.masterDetails.timeSlots);
+    List<String> timeSlots = parseTimeSlots(widget.mentorDetails.timeSlots);
 
-    // Filter MentorService data by shopId
-    List<MentorService> services = widget.masterServices.where((service) => service.shopId == widget.masterDetails.shopID).toList();
+    // Filter MentorService data by advisorID
+    List<MentorService> services = widget.masterServices.where((service) => service.advisorID == widget.mentorDetails.advisorID).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Details'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Shop Image
-            Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: widget.masterDetails.imageURL.isNotEmpty
-                    ? Image.network(widget.masterDetails.imageURL, height: 200, width: 200, fit: BoxFit.cover)
-                    : Container(height: 200, width: 200, color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            // Shop Basic Details in two columns
-            Row(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildDetailItem(Icons.person, 'Name', widget.masterDetails.name),
-                      _buildDetailItem(Icons.phone, 'Mobile', widget.masterDetails.mobile),
-                      _buildDetailItem(Icons.pin_drop, 'Pincode', widget.masterDetails.pincode),
-                      _buildDetailItem(Icons.location_city, 'City', widget.masterDetails.city),
-                      _buildDetailItem(Icons.lock, 'License', widget.masterDetails.license),
-                    ],
+                // Shop Image
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: widget.mentorDetails.imageURL.isNotEmpty
+                        ? Image.network(widget.mentorDetails.imageURL, height: 200, width: 200, fit: BoxFit.cover)
+                        : Container(height: 200, width: 200, color: Colors.grey),
                   ),
                 ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildDetailItem(Icons.location_on, 'Address', widget.masterDetails.address),
-                      _buildDetailItem(Icons.email, 'Email', widget.masterDetails.email),
-                      _buildDetailItem(Icons.flag, 'Country', widget.masterDetails.country),
-                      _buildDetailItem(Icons.map, 'State', widget.masterDetails.state),
-                      _buildDetailItem(Icons.location_on, 'Area', widget.masterDetails.area),
-                    ],
+                const SizedBox(height: 16.0),
+                // Shop Basic Details in two columns
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildDetailItem(Icons.person, 'Name', widget.mentorDetails.name),
+                          _buildDetailItem(Icons.phone, 'Mobile', widget.mentorDetails.mobile),
+                          _buildDetailItem(Icons.pin_drop, 'Pincode', widget.mentorDetails.pincode),
+                          _buildDetailItem(Icons.location_city, 'City', widget.mentorDetails.city),
+                          _buildDetailItem(Icons.lock, 'License', widget.mentorDetails.license),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          _buildDetailItem(Icons.location_on, 'Address', widget.mentorDetails.address),
+                          _buildDetailItem(Icons.email, 'Email', widget.mentorDetails.email),
+                          _buildDetailItem(Icons.flag, 'Country', widget.mentorDetails.country),
+                          _buildDetailItem(Icons.map, 'State', widget.mentorDetails.state),
+                          _buildDetailItem(Icons.location_on, 'Area', widget.mentorDetails.area),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16.0),
+                // Working Days
+                _buildWorkingDaysTable(workingDaysList, daysOfWeek),
+                const SizedBox(height: 16.0),
+                // Services
+                _buildServicesTable(services),
+                const SizedBox(height: 16.0),
+                // Book Appointment Button
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () => _showDateTimePicker(context, workingDaysList, timeSlots),
+                    child: const Text('Book Appointment'),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16.0),
-            // Working Days
-            _buildWorkingDaysTable(workingDaysList, daysOfWeek),
-            const SizedBox(height: 16.0),
-            // Services
-            _buildServicesTable(services),
-            const SizedBox(height: 16.0),
-            // Book Appointment Button
-            Center(
-              child: ElevatedButton(
-                onPressed: () => _showDateTimePicker(context, workingDaysList, timeSlots),
-                child: const Text('Book Appointment'),
+          ),
+          // Circular Progress Indicator covering the entire screen
+          if (isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-            const SizedBox(height: 16.0),
-
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -295,9 +309,13 @@ class _DetailPageState extends State<DetailPage> {
 
   void _showDateTimePicker(BuildContext context, List<bool> workingDaysList, List<String> timeSlots) async {
     DateTime now = DateTime.now();
+    DateTime? initialDate = now;
+    while (initialDate != null && !workingDaysList[initialDate.weekday - 1]) {
+      initialDate = initialDate.add(const Duration(days: 1)); // Move to the next day
+    }
     DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: initialDate ?? now,
       firstDate: now,
       lastDate: now.add(const Duration(days: 30)),
       selectableDayPredicate: (DateTime date) {
@@ -377,9 +395,22 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   Future<void> _confirmAppointment(BuildContext context) async {
+    setState(() {
+      isLoading = true; // Start showing progress indicator
+    });
+
     List<MentorService> selectedServicesList = selectedServices.entries
         .where((entry) => entry.value)
         .map((entry) => entry.key)
+        .toList();
+    final selectedMainServices = selectedServices.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key.mainService)
+        .toList();
+
+    final selectedSubServices = selectedServices.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key.subService)
         .toList();
 
     if (selectedDate != null && selectedTimeSlot != null && selectedServicesList.isNotEmpty) {
@@ -396,35 +427,35 @@ class _DetailPageState extends State<DetailPage> {
         );
 
         for (var service in selectedServicesList) {
-          await connection.execute(Sql.named('INSERT INTO appointments (advisor_id, service_id, date, time) VALUES (@advisorId, @serviceId, @date, @time)'),
+          await connection.execute(Sql.named('INSERT INTO appointments (advisor_id, user_id, date, time,main_service,sub_service) VALUES (@advisorId, @userId, @date, @time,@mainService,@subService)'),
             parameters: {
-              'advisorId': widget.masterDetails.shopID,
-              'serviceId': service.shopId,
+              'advisorId': widget.mentorDetails.advisorID,
+              'userId': widget.userDetails!.userID,
               'date': selectedDate,
               'time': selectedTimeSlot,
+              'mainService': service.mainService,
+              'subService': service.subService,
             },
           );
         }
 
         await connection.close();
 
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Appointment Confirmed'),
-              content: Text('Your appointment is confirmed for ${selectedDate!.toLocal().toString().split(' ')[0]} at $selectedTimeSlot.'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop(); // Go back to the previous screen
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            );
-          },
+        setState(() {
+          isLoading = false; // Stop showing progress indicator
+        });
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MentorMeetingPage(
+              title: '',
+              date: selectedDate!,
+              timeSlot: selectedTimeSlot!,
+              mainService: selectedMainServices.join(', '),
+              subService: selectedSubServices.join(', '),
+            ),
+          ),
         );
       } catch (e) {
         print('Failed to confirm appointment: $e');
@@ -445,6 +476,9 @@ class _DetailPageState extends State<DetailPage> {
             );
           },
         );
+        setState(() {
+          isLoading = false; // Stop showing progress indicator on error
+        });
       }
     } else {
       showDialog(
@@ -464,6 +498,10 @@ class _DetailPageState extends State<DetailPage> {
           );
         },
       );
+      setState(() {
+        isLoading = false; // Stop showing progress indicator on incomplete selection
+      });
     }
   }
+
 }
