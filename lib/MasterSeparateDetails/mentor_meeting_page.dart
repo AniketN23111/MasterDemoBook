@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
+import 'package:saloon/Services/database_service.dart';
 
 class MentorMeetingPage extends StatefulWidget {
   final String title;
@@ -8,6 +9,8 @@ class MentorMeetingPage extends StatefulWidget {
   final String timeSlot;
   final String mainService;
   final String subService;
+  final int userID;
+  final int advisorID;
 
   const MentorMeetingPage({
     Key? key,
@@ -16,6 +19,8 @@ class MentorMeetingPage extends StatefulWidget {
     required this.timeSlot,
     required this.mainService,
     required this.subService,
+    required this.userID,
+    required this.advisorID,
   }) : super(key: key);
 
   @override
@@ -29,6 +34,13 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
   String? timeZone = 'Time zone';
   bool doesNotRepeat = true;
   String notificationTime = '30 minutes';
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _notificationController = TextEditingController();
+  final TextEditingController _guestsController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _meetingLinkController = TextEditingController();
+  DatabaseService databaseService =DatabaseService();
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -67,25 +79,35 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     return format.format(dt);
   }
 
-  void _saveMeetingDetails() async {
+  Future<void> _saveMeetingDetails() async {
     // Save meeting details to database
-    //saveToDatabase();
+    await databaseService.insertMentorMeeting(
+      userId: widget.userID,
+      advisorId: widget.advisorID,
+      title: _titleController.text,
+      meetingDate: selectedDate,
+      startTime: startTime!,
+      endTime: endTime!,
+      location: _locationController.text,
+      eventDetails: '${widget.mainService} - ${widget.subService}',
+      description: _descriptionController.text,
+      meetingLink: _meetingLinkController.text,
+    );
 
     // Send notifications to mentor and user
-    await sendNotification('primesolus2311@gmail.com', 'New Meeting Scheduled'); // Mentor's email
-    await sendNotification('aniketnarayankar3@gmail.com', 'New Meeting Scheduled'); // User's email
+    await sendNotification('mentor@example.com', 'New Meeting Scheduled'); // Mentor's email
+    await sendNotification('user@example.com', 'New Meeting Scheduled'); // User's email
 
-    _createGoogleMeetLink();
   }
 
   Future<void> sendNotification(String recipientEmail, String subject) async {
     final Email email = Email(
       body: '''
     <h1>New Meeting Scheduled</h1>
-    <p>Title: ${widget.title}</p>
+    <p>Title: ${_titleController.text}</p>
     <p>Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}</p>
     <p>Time: ${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}</p>
-    <p>Location: TBD</p>
+    <p>Location: ${_locationController.text}</p>
     <p>Notification Time: $notificationTime</p>
     <p>Details: ${widget.mainService} - ${widget.subService}</p>
     ''',
@@ -101,10 +123,6 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     }
   }
 
-  void _createGoogleMeetLink() {
-    // Implement your logic here to create a Google Meet link.
-
-  }
 
   @override
   void initState() {
@@ -131,8 +149,9 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
                   labelText: 'Add title',
                   border: OutlineInputBorder(),
                 ),
@@ -203,14 +222,11 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                 ],
               ),
               const SizedBox(height: 16.0),
-              InkWell(
-                onTap: () {},
-                child: const InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Add location',
-                    border: OutlineInputBorder(),
-                  ),
-                  child: Text(''),
+              TextField(
+                controller: _locationController,
+                decoration: const InputDecoration(
+                  labelText: 'Add location',
+                  border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16.0),
@@ -236,15 +252,17 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                 ],
               ),
               const SizedBox(height: 16.0),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _notificationController,
+                decoration: const InputDecoration(
                   labelText: 'Add notification',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16.0),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _guestsController,
+                decoration: const InputDecoration(
                   labelText: 'Guests',
                   border: OutlineInputBorder(),
                 ),
@@ -271,16 +289,18 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                 ],
               ),
               const SizedBox(height: 16.0),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
                   labelText: 'Add description',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16.0),
-              const TextField(
+              TextField(
+                controller: _meetingLinkController,
                 maxLines: 5,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Meeting Link',
                   border: OutlineInputBorder(),
                 ),

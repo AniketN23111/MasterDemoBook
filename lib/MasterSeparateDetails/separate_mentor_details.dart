@@ -9,10 +9,14 @@ import 'package:saloon/Models/user_details.dart';
 class DetailPage extends StatefulWidget {
   final MentorDetails mentorDetails;
   final List<MentorService> masterServices;
- final UserDetails? userDetails;
+  final UserDetails? userDetails;
 
-
-  const DetailPage({Key? key, required this.mentorDetails, required this.masterServices,required this.userDetails}) : super(key: key);
+  const DetailPage(
+      {Key? key,
+      required this.mentorDetails,
+      required this.masterServices,
+      required this.userDetails})
+      : super(key: key);
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -23,7 +27,7 @@ class _DetailPageState extends State<DetailPage> {
   String? selectedTimeSlot;
   Map<MentorService, bool> selectedServices = {};
   List<String> bookedTimeSlots = [];
-  bool isLoading =false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -38,7 +42,7 @@ class _DetailPageState extends State<DetailPage> {
 
   Future<void> _fetchBookedTimeSlots() async {
     try {
-     Connection connection = await Connection.open(
+      Connection connection = await Connection.open(
         Endpoint(
           host: '34.71.87.187',
           port: 5432,
@@ -49,7 +53,9 @@ class _DetailPageState extends State<DetailPage> {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute(Sql.named('SELECT date, time FROM appointments WHERE advisor_id = @advisorId'),
+      final results = await connection.execute(
+        Sql.named(
+            'SELECT date, time FROM appointments WHERE advisor_id = @advisorId'),
         parameters: {
           'advisorId': widget.mentorDetails.advisorID,
         },
@@ -75,20 +81,33 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   List<String> parseTimeSlots(String timeSlots) {
-    return timeSlots.substring(1, timeSlots.length - 1).split(',').map((s) => s.trim()).toList();
+    return timeSlots
+        .substring(1, timeSlots.length - 1)
+        .split(',')
+        .map((s) => s.trim())
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<bool> workingDaysList = parseWorkingDays(widget.mentorDetails.workingDays);
+    List<bool> workingDaysList =
+        parseWorkingDays(widget.mentorDetails.workingDays);
     List<String> daysOfWeek = [
-      'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
     ];
 
     List<String> timeSlots = parseTimeSlots(widget.mentorDetails.timeSlots);
 
     // Filter MentorService data by advisorID
-    List<MentorService> services = widget.masterServices.where((service) => service.advisorID == widget.mentorDetails.advisorID).toList();
+    List<MentorService> services = widget.masterServices
+        .where((service) => service.advisorID == widget.mentorDetails.advisorID)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -106,8 +125,10 @@ class _DetailPageState extends State<DetailPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10.0),
                     child: widget.mentorDetails.imageURL.isNotEmpty
-                        ? Image.network(widget.mentorDetails.imageURL, height: 200, width: 200, fit: BoxFit.cover)
-                        : Container(height: 200, width: 200, color: Colors.grey),
+                        ? Image.network(widget.mentorDetails.imageURL,
+                            height: 200, width: 200, fit: BoxFit.cover)
+                        : Container(
+                            height: 200, width: 200, color: Colors.grey),
                   ),
                 ),
                 const SizedBox(height: 16.0),
@@ -117,22 +138,32 @@ class _DetailPageState extends State<DetailPage> {
                     Expanded(
                       child: Column(
                         children: [
-                          _buildDetailItem(Icons.person, 'Name', widget.mentorDetails.name),
-                          _buildDetailItem(Icons.phone, 'Mobile', widget.mentorDetails.mobile),
-                          _buildDetailItem(Icons.pin_drop, 'Pincode', widget.mentorDetails.pincode),
-                          _buildDetailItem(Icons.location_city, 'City', widget.mentorDetails.city),
-                          _buildDetailItem(Icons.lock, 'License', widget.mentorDetails.license),
+                          _buildDetailItem(
+                              Icons.person, 'Name', widget.mentorDetails.name),
+                          _buildDetailItem(Icons.phone, 'Mobile',
+                              widget.mentorDetails.mobile),
+                          _buildDetailItem(Icons.pin_drop, 'Pincode',
+                              widget.mentorDetails.pincode),
+                          _buildDetailItem(Icons.location_city, 'City',
+                              widget.mentorDetails.city),
+                          _buildDetailItem(Icons.lock, 'License',
+                              widget.mentorDetails.license),
                         ],
                       ),
                     ),
                     Expanded(
                       child: Column(
                         children: [
-                          _buildDetailItem(Icons.location_on, 'Address', widget.mentorDetails.address),
-                          _buildDetailItem(Icons.email, 'Email', widget.mentorDetails.email),
-                          _buildDetailItem(Icons.flag, 'Country', widget.mentorDetails.country),
-                          _buildDetailItem(Icons.map, 'State', widget.mentorDetails.state),
-                          _buildDetailItem(Icons.location_on, 'Area', widget.mentorDetails.area),
+                          _buildDetailItem(Icons.location_on, 'Address',
+                              widget.mentorDetails.address),
+                          _buildDetailItem(
+                              Icons.email, 'Email', widget.mentorDetails.email),
+                          _buildDetailItem(Icons.flag, 'Country',
+                              widget.mentorDetails.country),
+                          _buildDetailItem(
+                              Icons.map, 'State', widget.mentorDetails.state),
+                          _buildDetailItem(Icons.location_on, 'Area',
+                              widget.mentorDetails.area),
                         ],
                       ),
                     ),
@@ -148,7 +179,8 @@ class _DetailPageState extends State<DetailPage> {
                 // Book Appointment Button
                 Center(
                   child: ElevatedButton(
-                    onPressed: () => _showDateTimePicker(context, workingDaysList, timeSlots),
+                    onPressed: () => _showDateTimePicker(
+                        context, workingDaysList, timeSlots),
                     child: const Text('Book Appointment'),
                   ),
                 ),
@@ -180,7 +212,9 @@ class _DetailPageState extends State<DetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4.0),
                 Text(value, style: const TextStyle(fontSize: 16)),
               ],
@@ -191,11 +225,13 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  Widget _buildWorkingDaysTable(List<bool> workingDaysList, List<String> daysOfWeek) {
+  Widget _buildWorkingDaysTable(
+      List<bool> workingDaysList, List<String> daysOfWeek) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Working Days:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Working Days:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
         Table(
           border: TableBorder.all(),
@@ -209,7 +245,8 @@ class _DetailPageState extends State<DetailPage> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Text(workingDaysList[index] ? 'Open' : 'Closed', style: const TextStyle(fontSize: 16)),
+                  child: Text(workingDaysList[index] ? 'Open' : 'Closed',
+                      style: const TextStyle(fontSize: 16)),
                 ),
               ],
             );
@@ -223,7 +260,8 @@ class _DetailPageState extends State<DetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Services:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Services:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
         Table(
           border: TableBorder.all(),
@@ -240,27 +278,39 @@ class _DetailPageState extends State<DetailPage> {
               children: [
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Select', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Select',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Main Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Main Service',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Sub Service', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Sub Service',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Quantity', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Quantity',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Rate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Rate',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Session', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Session',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -280,23 +330,28 @@ class _DetailPageState extends State<DetailPage> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(service.mainService, style: const TextStyle(fontSize: 16)),
+                    child: Text(service.mainService,
+                        style: const TextStyle(fontSize: 16)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(service.subService, style: const TextStyle(fontSize: 16)),
+                    child: Text(service.subService,
+                        style: const TextStyle(fontSize: 16)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(service.quantity.toString(), style: const TextStyle(fontSize: 16)),
+                    child: Text(service.quantity.toString(),
+                        style: const TextStyle(fontSize: 16)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(service.rate.toString(), style: const TextStyle(fontSize: 16)),
+                    child: Text(service.rate.toString(),
+                        style: const TextStyle(fontSize: 16)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text(service.unitMeasurement, style: const TextStyle(fontSize: 16)),
+                    child: Text(service.unitMeasurement,
+                        style: const TextStyle(fontSize: 16)),
                   ),
                 ],
               );
@@ -307,11 +362,13 @@ class _DetailPageState extends State<DetailPage> {
     );
   }
 
-  void _showDateTimePicker(BuildContext context, List<bool> workingDaysList, List<String> timeSlots) async {
+  void _showDateTimePicker(BuildContext context, List<bool> workingDaysList,
+      List<String> timeSlots) async {
     DateTime now = DateTime.now();
     DateTime? initialDate = now;
     while (initialDate != null && !workingDaysList[initialDate.weekday - 1]) {
-      initialDate = initialDate.add(const Duration(days: 1)); // Move to the next day
+      initialDate =
+          initialDate.add(const Duration(days: 1)); // Move to the next day
     }
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -331,7 +388,8 @@ class _DetailPageState extends State<DetailPage> {
 
       // Fetch booked time slots for the selected date
       List<String> bookedTimeSlotsForDate = bookedTimeSlots
-          .where((slot) => slot.startsWith('${pickedDate.toLocal().toString().split(' ')[0]}'))
+          .where((slot) => slot
+              .startsWith('${pickedDate.toLocal().toString().split(' ')[0]}'))
           .toList();
 
       // Check if all time slots are booked for the selected date
@@ -343,7 +401,8 @@ class _DetailPageState extends State<DetailPage> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Date Unavailable'),
-              content: const Text('All time slots for this date are booked. Please select another date.'),
+              content: const Text(
+                  'All time slots for this date are booked. Please select another date.'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -363,13 +422,16 @@ class _DetailPageState extends State<DetailPage> {
             return SimpleDialog(
               title: const Text('Select a Time Slot'),
               children: timeSlots.map((timeSlot) {
-                String dateTimeString = '${pickedDate.toLocal().toString().split(' ')[0]} $timeSlot';
+                String dateTimeString =
+                    '${pickedDate.toLocal().toString().split(' ')[0]} $timeSlot';
                 bool isBooked = bookedTimeSlots.contains(dateTimeString);
 
                 return SimpleDialogOption(
-                  onPressed: isBooked ? null : () {
-                    Navigator.pop(context, timeSlot);
-                  },
+                  onPressed: isBooked
+                      ? null
+                      : () {
+                          Navigator.pop(context, timeSlot);
+                        },
                   child: Text(
                     timeSlot,
                     style: TextStyle(
@@ -413,7 +475,9 @@ class _DetailPageState extends State<DetailPage> {
         .map((entry) => entry.key.subService)
         .toList();
 
-    if (selectedDate != null && selectedTimeSlot != null && selectedServicesList.isNotEmpty) {
+    if (selectedDate != null &&
+        selectedTimeSlot != null &&
+        selectedServicesList.isNotEmpty) {
       try {
         Connection connection = await Connection.open(
           Endpoint(
@@ -427,7 +491,9 @@ class _DetailPageState extends State<DetailPage> {
         );
 
         for (var service in selectedServicesList) {
-          await connection.execute(Sql.named('INSERT INTO appointments (advisor_id, user_id, date, time,main_service,sub_service) VALUES (@advisorId, @userId, @date, @time,@mainService,@subService)'),
+          await connection.execute(
+            Sql.named(
+                'INSERT INTO appointments (advisor_id, user_id, date, time,main_service,sub_service) VALUES (@advisorId, @userId, @date, @time,@mainService,@subService)'),
             parameters: {
               'advisorId': widget.mentorDetails.advisorID,
               'userId': widget.userDetails!.userID,
@@ -454,17 +520,19 @@ class _DetailPageState extends State<DetailPage> {
               timeSlot: selectedTimeSlot!,
               mainService: selectedMainServices.join(', '),
               subService: selectedSubServices.join(', '),
+              userID: widget.userDetails!.userID,
+              advisorID: widget.mentorDetails.advisorID,
             ),
           ),
         );
       } catch (e) {
-        print('Failed to confirm appointment: $e');
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Error'),
-              content: const Text('Failed to confirm appointment. Please try again.'),
+              content: const Text(
+                  'Failed to confirm appointment. Please try again.'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -486,7 +554,8 @@ class _DetailPageState extends State<DetailPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Incomplete Selection'),
-            content: const Text('Please select a date, time slot, and at least one service.'),
+            content: const Text(
+                'Please select a date, time slot, and at least one service.'),
             actions: [
               TextButton(
                 onPressed: () {
@@ -499,9 +568,9 @@ class _DetailPageState extends State<DetailPage> {
         },
       );
       setState(() {
-        isLoading = false; // Stop showing progress indicator on incomplete selection
+        isLoading =
+            false; // Stop showing progress indicator on incomplete selection
       });
     }
   }
-
 }

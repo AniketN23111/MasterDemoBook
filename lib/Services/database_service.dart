@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/appointments_details.dart';
 import 'package:saloon/Models/mentor_details.dart';
@@ -204,4 +205,43 @@ class DatabaseService {
       return [];
     }
   }
+  Future<void> insertMentorMeeting({
+    required int userId,
+    required int advisorId,
+    required String title,
+    required DateTime meetingDate,
+    required TimeOfDay startTime,
+    required TimeOfDay endTime,
+    required String location,
+    required String eventDetails,
+    required String description,
+    required String meetingLink,
+  }) async {
+
+
+    final connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+     connection.execute(Sql.named('INSERT INTO mentor_meetings (user_id, advisor_id, title, meeting_date, start_time, end_time, location,  event_details, description, meeting_link) VALUES (@userId, @advisorId, @title, @meetingDate, @startTime, @endTime, @location, @eventDetails, @description, @meetingLink)'),
+        parameters: {
+          'userId': userId,
+          'advisorId': advisorId,
+          'title': title,
+          'meetingDate': meetingDate,
+          'startTime': '${startTime.hour}:${startTime.minute}:00',
+          'endTime': '${endTime.hour}:${endTime.minute}:00',
+          'location': location,
+          'eventDetails': eventDetails,
+          'description': description,
+          'meetingLink': meetingLink,
+        },
+      );
+    }
 }
