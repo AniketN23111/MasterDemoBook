@@ -9,7 +9,7 @@ import 'package:saloon/Models/user_details.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:saloon/Models/appointments_details.dart'; // Import your AppointmentsDetails model
+import 'package:saloon/Models/appointments_details.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -205,7 +205,6 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text('Time: ${appointment.time}'),
                           ],
                         ),
-                        // Add more details as needed
                       );
                     },
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/appointments_details.dart';
+import 'package:saloon/Models/edit_appointment_meeting.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/admin_service.dart';
 import 'package:saloon/Models/mentor_service.dart';
@@ -185,11 +186,11 @@ class DatabaseService {
 
       await connection.close();
 
-      List<AppointmentsDetails> AppointmentsDetailsList = [];
+      List<AppointmentsDetails> appointmentsDetailsList = [];
 
 
       for (var row in results) {
-        AppointmentsDetailsList.add(AppointmentsDetails(
+        appointmentsDetailsList.add(AppointmentsDetails(
           appointmentID: row[0] as int,
           date: row[1] as DateTime,
           time: row[2] as String,
@@ -200,7 +201,7 @@ class DatabaseService {
         ));
       }
 
-      return AppointmentsDetailsList;
+      return appointmentsDetailsList;
     } catch (e) {
       return [];
     }
@@ -244,4 +245,47 @@ class DatabaseService {
         },
       );
     }
+  Future<EditAppointmentMeeting?> getUserMeetingDetails(DateTime date, TimeOfDay startTime) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+        List<List<dynamic>> results = await connection.execute(Sql.named('SELECT * FROM mentor_meetings WHERE meetingDate = @meetingDate AND startTime = @startTime'),
+          parameters: {
+            'meetingDate': date.toIso8601String(),
+            'startTime': startTime,
+          },
+        );
+
+      await connection.close();
+
+      if (results.isNotEmpty) {
+        var row = results.first;
+        return EditAppointmentMeeting(
+          mentorID: row[0] as int,
+          userID: row[1] as int,
+          advisorID: row[2] as int,
+          title: row[3] as String,
+          meetDate: row[4] as DateTime,
+          startTime: row[5] as TimeOfDay,
+          endTime: row[6] as TimeOfDay,
+          location:row[7] as String,
+          eventDetails: [8] as String,
+          description: [9] as String,
+          meetLink: row[10] as String
+        );
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
+import 'package:saloon/HomeScreen/my_home_page.dart';
 import 'package:saloon/Services/database_service.dart';
 
 class MentorMeetingPage extends StatefulWidget {
@@ -80,23 +81,29 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
   }
 
   Future<void> _saveMeetingDetails() async {
+
+    List<String> mainServices = widget.mainService.split(', ');
+    List<String> subServices = widget.subService.split(', ');
     // Save meeting details to database
-    await databaseService.insertMentorMeeting(
-      userId: widget.userID,
-      advisorId: widget.advisorID,
-      title: _titleController.text,
-      meetingDate: selectedDate,
-      startTime: startTime!,
-      endTime: endTime!,
-      location: _locationController.text,
-      eventDetails: '${widget.mainService} - ${widget.subService}',
-      description: _descriptionController.text,
-      meetingLink: _meetingLinkController.text,
-    );
+    for (int i = 0; i < mainServices.length; i++) {
+      await databaseService.insertMentorMeeting(
+        userId: widget.userID,
+        advisorId: widget.advisorID,
+        title: _titleController.text,
+        meetingDate: selectedDate,
+        startTime: startTime!,
+        endTime: endTime!,
+        location: _locationController.text,
+        eventDetails: '${mainServices[i]} - ${subServices[i]}',
+        description: _descriptionController.text,
+        meetingLink: _meetingLinkController.text,
+      );
+    }
+    Navigator.push(context,MaterialPageRoute(builder: (context)=> const MyHomePage()));
 
     // Send notifications to mentor and user
-    await sendNotification('mentor@example.com', 'New Meeting Scheduled'); // Mentor's email
-    await sendNotification('user@example.com', 'New Meeting Scheduled'); // User's email
+    //await sendNotification('mentor@example.com', 'New Meeting Scheduled');
+    //await sendNotification('user@example.com', 'New Meeting Scheduled'); // User's email
 
   }
 
@@ -119,7 +126,7 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     try {
       await FlutterEmailSender.send(email);
     } catch (error) {
-      print('Failed to send email: $error');
+      //print('Failed to send email: $error');
     }
   }
 
