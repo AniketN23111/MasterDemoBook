@@ -204,7 +204,6 @@ class DatabaseService {
       return appointmentsDetailsList;
     } catch (e) {
       return [];
-
     }
   }
   Future<void> insertMentorMeeting({
