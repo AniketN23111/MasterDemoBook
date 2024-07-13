@@ -84,7 +84,35 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
 
     List<String> mainServices = widget.mainService.split(', ');
     List<String> subServices = widget.subService.split(', ');
+
+    String? userName = await databaseService.getUserName(widget.userID);
+    String? advisorName = await databaseService.getAdvisorName(widget.advisorID);
+    int? appointmentID = await databaseService.getAppointmentID( widget.date,widget.timeSlot,widget.advisorID,widget.mainService,widget.subService,widget.userID);
+
     // Save meeting details to database
+    for (int i = 0; i < mainServices.length; i++) {
+      await databaseService.insertProgressTracking(
+        advisorId: widget.advisorID,
+        advisorName: advisorName!,
+        userId: widget.userID,
+        userName: userName!,
+        date: selectedDate,
+        goalType: 'Meeting',
+        goal: _titleController.text,
+        actionSteps: '${mainServices[i]} - ${subServices[i]}',
+        timeline: '${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}',
+        progressDate: selectedDate,
+        progressMade: '',
+        effectivenessDate: selectedDate,
+        outcome: '',
+        nextSteps: '',
+        meetingDate: selectedDate,
+        agenda: _descriptionController.text,
+        additionalNotes: _meetingLinkController.text,
+        appointmentId: appointmentID!,
+      );
+    }
+
     for (int i = 0; i < mainServices.length; i++) {
       await databaseService.insertMentorMeeting(
         userId: widget.userID,
@@ -97,8 +125,10 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
         eventDetails: '${mainServices[i]} - ${subServices[i]}',
         description: _descriptionController.text,
         meetingLink: _meetingLinkController.text,
+        appointmentId :appointmentID!,
       );
     }
+    if(!mounted) return;
     Navigator.push(context,MaterialPageRoute(builder: (context)=> const MyHomePage()));
 
     // Send notifications to mentor and user

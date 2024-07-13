@@ -192,7 +192,7 @@ class _DetailPageState extends State<DetailPage> {
             Container(
               color: Colors.black.withOpacity(0.5),
               child: const Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(color: Colors.blue,),
               ),
             ),
         ],

@@ -5,7 +5,9 @@ import 'package:saloon/HomeScreen/search_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
+import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Models/user_details.dart';
+import 'package:saloon/ProgressTracking/progress_tracking_details.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,16 +29,14 @@ class _MyHomePageState extends State<MyHomePage> {
   List<MentorService> masterServiceList = [];
   List<AppointmentsDetails> userAppointments = [];
 
-
   @override
   void initState() {
     super.initState();
     _fetchMentorDetails();
     _fetchMasterService();
     _getDetailsInPrefs();
-      _fetchUserAppointments();
+    _fetchUserAppointments();
   }
-
 
   Future<void> _getDetailsInPrefs() async {
     final prefs = await SharedPreferences.getInstance();
@@ -78,10 +78,41 @@ class _MyHomePageState extends State<MyHomePage> {
   void _fetchUserAppointments() async {
     if (userDetails != null) {
       DatabaseService dbService = DatabaseService();
-      List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsDetails(userDetails!.userID);
+      List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
       setState(() {
         userAppointments = appointments;
       });
+    }
+  }
+
+  void _showProgressTrackingDetails(ProgressTracking progressTracking) {
+    Navigator.pop(context); // Close the loading dialog
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProgressTrackingDetailsPage(progressTracking: progressTracking),
+      ),
+    );
+  }
+
+  void _onAppointmentTap(int appointmentId) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.blue,),
+        );
+      },
+    );
+
+    DatabaseService dbService = DatabaseService();
+    ProgressTracking? progressTracking = await dbService.getProgressTrackingByAppointmentId(appointmentId);
+    if (progressTracking != null) {
+      _showProgressTrackingDetails(progressTracking);
+    } else {
+      Navigator.pop(context); // Close the loading dialog if no progress tracking found
+      print("No progress tracking found for this appointment");
     }
   }
 
@@ -205,17 +236,21 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text('Time: ${appointment.time}'),
                           ],
                         ),
+                        onTap: () {
+                          _onAppointmentTap(appointment.appointmentID);
+                        },
                       );
                     },
                   ),
                 ],
               ),
-            ElevatedButton(
-              onPressed: logout,
-              child: const Text("Logout"),
-            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: logout,
+        tooltip: 'Logout',
+        child: const Icon(Icons.logout),
       ),
     );
   }

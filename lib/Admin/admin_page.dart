@@ -174,14 +174,14 @@ class _AdminPageState extends State<AdminPage> {
                     : _uploading
                     ? const Padding(
                   padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(color: Colors.blue,),
                 )
                     : Container(),
               ),
               ElevatedButton(
                 onPressed: _uploading ? null : _pickAndUploadImage,
                 child: _uploading
-                    ? const CircularProgressIndicator()
+                    ? const CircularProgressIndicator(color: Colors.blue,)
                     : const Text("Upload Icon"),
               ),
               ElevatedButton(
