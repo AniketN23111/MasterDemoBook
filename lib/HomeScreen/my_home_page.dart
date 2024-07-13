@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
@@ -28,24 +29,32 @@ class _MyHomePageState extends State<MyHomePage> {
   UserDetails? userDetails;
   List<MentorService> masterServiceList = [];
   List<AppointmentsDetails> userAppointments = [];
+  bool isLoading = true; // Add a boolean variable to track loading state
 
   @override
   void initState() {
     super.initState();
-    _fetchMentorDetails();
-    _fetchMasterService();
-    _getDetailsInPrefs();
-    _fetchUserAppointments();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _getDetailsInPrefs();
+    await _fetchMentorDetails();
+    await _fetchMasterService();
+    await _fetchUserAppointments();
+    setState(() {
+      isLoading = false; // Set loading to false when data fetching is complete
+    });
   }
 
   Future<void> _getDetailsInPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     userEmail = prefs.getString('Email')!;
     userPass = prefs.getString('Password')!;
-    _fetchUserDetails(userEmail, userPass);
+    await _fetchUserDetails(userEmail, userPass);
   }
 
-  void _fetchUserDetails(String email, String password) async {
+  Future<void> _fetchUserDetails(String email, String password) async {
     DatabaseService dbService = DatabaseService();
     UserDetails? details = await dbService.getUserDetails(email, password);
     if (details != null) {
@@ -53,13 +62,14 @@ class _MyHomePageState extends State<MyHomePage> {
         userDetails = details;
         userFirstName = userDetails!.name;
       });
-      _fetchUserAppointments();
     } else {
-      print('User not found');
+      if (kDebugMode) {
+        print('User not found');
+      }
     }
   }
 
-  void _fetchMentorDetails() async {
+  Future<void> _fetchMentorDetails() async {
     DatabaseService dbService = DatabaseService();
     List<MentorDetails> details = await dbService.getMentorDetails();
     setState(() {
@@ -67,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _fetchMasterService() async {
+  Future<void> _fetchMasterService() async {
     DatabaseService dbService = DatabaseService();
     List<MentorService> details = await dbService.getMentorServices();
     setState(() {
@@ -75,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _fetchUserAppointments() async {
+  Future<void> _fetchUserAppointments() async {
     if (userDetails != null) {
       DatabaseService dbService = DatabaseService();
       List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
@@ -111,14 +121,18 @@ class _MyHomePageState extends State<MyHomePage> {
     if (progressTracking != null) {
       _showProgressTrackingDetails(progressTracking);
     } else {
+      if (!mounted) return;
       Navigator.pop(context); // Close the loading dialog if no progress tracking found
-      print("No progress tracking found for this appointment");
+      if (kDebugMode) {
+        print("No progress tracking found for this appointment");
+      }
     }
   }
 
   void logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -131,7 +145,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: SingleChildScrollView(
+      body: isLoading // Show CircularProgressIndicator if isLoading is true
+          ? const Center(
+        child: CircularProgressIndicator(color: Colors.blue,),
+      )
+          : SingleChildScrollView(
         child: Column(
           children: [
             Container(
