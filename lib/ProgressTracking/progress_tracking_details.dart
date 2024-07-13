@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/Models/progress_tracking.dart';
-import 'package:intl/intl.dart'; // Add this import for date formatting
 
 class ProgressTrackingDetailsPage extends StatefulWidget {
   final ProgressTracking progressTracking;
@@ -33,17 +32,17 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
     super.initState();
     _advisorNameController = TextEditingController(text: widget.progressTracking.advisorName);
     _userNameController = TextEditingController(text: widget.progressTracking.userName);
-    _dateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(widget.progressTracking.date));
+    _dateController = TextEditingController(text: widget.progressTracking.date.toIso8601String());
     _goalTypeController = TextEditingController(text: widget.progressTracking.goalType);
     _goalController = TextEditingController(text: widget.progressTracking.goal);
     _actionStepsController = TextEditingController(text: widget.progressTracking.actionSteps);
     _timelineController = TextEditingController(text: widget.progressTracking.timeline);
-    _progressDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(widget.progressTracking.progressDate));
+    _progressDateController = TextEditingController(text: widget.progressTracking.progressDate.toIso8601String());
     _progressMadeController = TextEditingController(text: widget.progressTracking.progressMade);
-    _effectivenessDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(widget.progressTracking.effectivenessDate));
+    _effectivenessDateController = TextEditingController(text: widget.progressTracking.effectivenessDate.toIso8601String());
     _outcomeController = TextEditingController(text: widget.progressTracking.outcome);
     _nextStepsController = TextEditingController(text: widget.progressTracking.nextSteps);
-    _meetingDateController = TextEditingController(text: DateFormat('yyyy-MM-dd').format(widget.progressTracking.meetingDate));
+    _meetingDateController = TextEditingController(text: widget.progressTracking.meetingDate.toIso8601String());
     _agendaController = TextEditingController(text: widget.progressTracking.agenda);
     _additionalNotesController = TextEditingController(text: widget.progressTracking.additionalNotes);
   }
@@ -68,21 +67,6 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
-    DateTime initialDate = DateTime.parse(controller.text);
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (picked != null && picked != initialDate) {
-      setState(() {
-        controller.text = DateFormat('yyyy-MM-dd').format(picked);
-      });
-    }
-  }
-
   void _saveProgressTrackingDetails() async {
     ProgressTracking updatedProgressTracking = ProgressTracking(
       advisorId: widget.progressTracking.advisorId,
@@ -105,7 +89,7 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
       appointmentId: widget.progressTracking.appointmentId,
     );
 
-   // await DatabaseService().updateProgressTracking(updatedProgressTracking);
+  //  await DatabaseService().updateProgressTracking(updatedProgressTracking);
 
     // Optionally, show a confirmation message or navigate back
     Navigator.pop(context);
@@ -123,96 +107,28 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Advisor Name')),
-                    DataColumn(label: Text('User Name')),
-                    DataColumn(label: Text('Date')),
-                    DataColumn(label: Text('Goal Type')),
-                    DataColumn(label: Text('Goal')),
-                    DataColumn(label: Text('Action Steps')),
-                    DataColumn(label: Text('Timeline')),
-                    DataColumn(label: Text('Progress Date')),
-                    DataColumn(label: Text('Progress Made')),
-                    DataColumn(label: Text('Effectiveness Date')),
-                    DataColumn(label: Text('Outcome')),
-                    DataColumn(label: Text('Next Steps')),
-                    DataColumn(label: Text('Meeting Date')),
-                    DataColumn(label: Text('Agenda')),
-                    DataColumn(label: Text('Additional Notes')),
-                  ],
-                  rows: [
-                    DataRow(
-                      cells: [
-                        DataCell(TextField(controller: _advisorNameController)),
-                        DataCell(TextField(controller: _userNameController)),
-                        DataCell(
-                          GestureDetector(
-                            onTap: () => _selectDate(context, _dateController),
-                            child: AbsorbPointer(
-                              child: TextField(
-                                controller: _dateController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select Date',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(TextField(controller: _goalTypeController)),
-                        DataCell(TextField(controller: _goalController)),
-                        DataCell(TextField(controller: _actionStepsController)),
-                        DataCell(TextField(controller: _timelineController)),
-                        DataCell(
-                          GestureDetector(
-                            onTap: () => _selectDate(context, _progressDateController),
-                            child: AbsorbPointer(
-                              child: TextField(
-                                controller: _progressDateController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select Date',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(TextField(controller: _progressMadeController)),
-                        DataCell(
-                          GestureDetector(
-                            onTap: () => _selectDate(context, _effectivenessDateController),
-                            child: AbsorbPointer(
-                              child: TextField(
-                                controller: _effectivenessDateController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select Date',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(TextField(controller: _outcomeController)),
-                        DataCell(TextField(controller: _nextStepsController)),
-                        DataCell(
-                          GestureDetector(
-                            onTap: () => _selectDate(context, _meetingDateController),
-                            child: AbsorbPointer(
-                              child: TextField(
-                                controller: _meetingDateController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Select Date',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        DataCell(TextField(controller: _agendaController)),
-                        DataCell(TextField(controller: _additionalNotesController)),
-                      ],
-                    ),
-                  ],
-                ),
+              DataTable(
+                columns: const [
+                  DataColumn(label: Text('Field')),
+                  DataColumn(label: Text('Value')),
+                ],
+                rows: [
+                  _buildDataRow('Mentor Name', _advisorNameController),
+                  _buildDataRow('Mentee Name', _userNameController),
+                  _buildDataRow('Date', _dateController),
+                  _buildDataRow('Goal Type', _goalTypeController),
+                  _buildDataRow('Goal', _goalController),
+                  _buildDataRow('Action Steps', _actionStepsController),
+                  _buildDataRow('Timeline', _timelineController),
+                  _buildDataRow('Progress Date', _progressDateController),
+                  _buildDataRow('Progress Made', _progressMadeController),
+                  _buildDataRow('Effectiveness Date', _effectivenessDateController),
+                  _buildDataRow('Outcome', _outcomeController),
+                  _buildDataRow('Next Steps', _nextStepsController),
+                  _buildDataRow('Meeting Date', _meetingDateController),
+                  _buildDataRow('Agenda', _agendaController),
+                  _buildDataRow('Additional Notes', _additionalNotesController),
+                ],
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
@@ -224,5 +140,26 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
         ),
       ),
     );
+  }
+
+  DataRow _buildDataRow(String label, TextEditingController controller) {
+    return DataRow(cells: [
+      DataCell(Text(label)),
+      DataCell(
+        TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(
+              borderSide: const BorderSide(
+
+                width: 0,
+                style: BorderStyle.none,
+              ),
+            ),
+            isDense: true,
+          ),
+        ),
+      ),
+    ]);
   }
 }
