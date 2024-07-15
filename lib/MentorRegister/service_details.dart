@@ -24,6 +24,7 @@ class ServiceDetails extends StatefulWidget {
   final String designation;
   final String gender;
   final DateTime dateOfBirth;
+  final String password;
 
   const ServiceDetails(
     this.name,
@@ -41,7 +42,8 @@ class ServiceDetails extends StatefulWidget {
     this.companyName,
     this.designation,
     this.gender,
-    this.dateOfBirth,  {
+    this.dateOfBirth,
+    this.password, {
     Key? key,
   }) : super(key: key);
 
@@ -408,9 +410,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       // Insert into public.master_details table and get the generated advisor_id
       final result = await connection.execute(Sql.named('''
       INSERT INTO public.master_details (
-        name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url ,company_name,designation,gender,date_of_birth
+        name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url ,company_name,designation,gender,date_of_birth,password
       ) VALUES (
-        @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl, @company_name, @designation, @gender,@date_of_birth
+        @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl, @company_name, @designation, @gender,@date_of_birth, @password
       ) RETURNING advisor_id;
     '''), parameters: {
         'name': widget.name,
@@ -426,10 +428,11 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         'workingDays': widget.workingDays,
         'timeslot': widget.timeslot,
         'imageUrl': _downloadUrl,
-        'company_name':widget.companyName,
-        'designation':widget.designation,
-        'gender':widget.gender,
-        'date_of_birth':widget.dateOfBirth
+        'company_name': widget.companyName,
+        'designation': widget.designation,
+        'gender': widget.gender,
+        'date_of_birth': widget.dateOfBirth,
+        'password':widget.password,
       });
       if (result.isEmpty) {
         throw Exception("Failed to retrieve shop ID.");

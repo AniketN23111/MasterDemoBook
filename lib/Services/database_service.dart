@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/appointments_details.dart';
@@ -50,6 +51,7 @@ class DatabaseService {
           gender: row[15] as String,
           dateOfBirth: row[16] as DateTime,
           advisorID: row[17] as int,
+          password: row[18] as String,
         ));
       }
 
@@ -166,6 +168,57 @@ class DatabaseService {
       return null;
     }
   }
+  Future<MentorDetails?> getMentorByEmailDetails(String email, String password) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('SELECT * FROM advisor_details WHERE email = @email AND password = @password'),
+        parameters: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      await connection.close();
+
+      if (results.isNotEmpty) {
+        var row = results.first;
+        return MentorDetails(
+          name: row[0] as String,
+          address: row[1] as String,
+          mobile: row[2] as String,
+          email: row[3] as String,
+          pincode: row[4] as String,
+          country: row[5] as String,
+          state: row[6] as String,
+          city: row[7] as String,
+          area: row[8] as String,
+          license: row[9] as String,
+          workingDays: row[10] as String,
+          timeSlots: row[11] as String,
+          imageURL: row[12] as String,
+          companyName: row[13] as String,
+          designation: row[14] as String,
+          gender: row[15] as String,
+          dateOfBirth: row[16] as DateTime,
+          advisorID: row[17] as int,
+          password: row[18] as String,
+        );
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
   Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(int userID) async {
     try {
       final connection = await Connection.open(
@@ -182,6 +235,47 @@ class DatabaseService {
       final results = await connection.execute(Sql.named('SELECT * FROM appointments WHERE user_id = @userId'),
         parameters : {
         'userId': userID,
+        },
+      );
+
+      await connection.close();
+
+      List<AppointmentsDetails> appointmentsDetailsList = [];
+
+
+      for (var row in results) {
+        appointmentsDetailsList.add(AppointmentsDetails(
+          appointmentID: row[0] as int,
+          date: row[1] as DateTime,
+          time: row[2] as String,
+          advisorID: row[3] as int,
+          mainService: row[4] as String,
+          subService: row[5] as String,
+          userID: row[6] as int,
+        ));
+      }
+
+      return appointmentsDetailsList;
+    } catch (e) {
+      return [];
+    }
+  }
+  Future<List<AppointmentsDetails>> getMentorAppointmentsAllDetails(int advisorID) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('SELECT * FROM appointments WHERE advisor_id = @advisorID'),
+        parameters : {
+          'advisorID': advisorID,
         },
       );
 
@@ -454,7 +548,9 @@ class DatabaseService {
       }
       return null;
     } catch (e) {
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
       return null;
     }
   }

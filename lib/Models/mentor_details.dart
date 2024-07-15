@@ -17,6 +17,7 @@ class MentorDetails {
   final String designation;
   final String gender;
   final DateTime dateOfBirth;
+  final String password;
 
   MentorDetails({
     required this.name,
@@ -37,5 +38,6 @@ class MentorDetails {
     required this.gender,
     required this.designation,
     required this.dateOfBirth,
+    required this.password,
   });
 }

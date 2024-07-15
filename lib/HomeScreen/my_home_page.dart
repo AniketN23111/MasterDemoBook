@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
@@ -27,9 +26,11 @@ class _MyHomePageState extends State<MyHomePage> {
   String userPass = '';
   List<MentorDetails> mentorDetailsList = [];
   UserDetails? userDetails;
+  MentorDetails? mentorDetails;
   List<MentorService> masterServiceList = [];
-  List<AppointmentsDetails> userAppointments = [];
+  List<AppointmentsDetails> appointmentsList = []; // Generalize the appointments list
   bool isLoading = true; // Add a boolean variable to track loading state
+  bool isUser = true; // Add a boolean variable to track user type
 
   @override
   void initState() {
@@ -41,7 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await _getDetailsInPrefs();
     await _fetchMentorDetails();
     await _fetchMasterService();
-    await _fetchUserAppointments();
+    await _fetchAppointments(); // Fetch appointments for both users and mentors
     setState(() {
       isLoading = false; // Set loading to false when data fetching is complete
     });
@@ -51,20 +52,35 @@ class _MyHomePageState extends State<MyHomePage> {
     final prefs = await SharedPreferences.getInstance();
     userEmail = prefs.getString('Email')!;
     userPass = prefs.getString('Password')!;
+    isUser = prefs.getBool('isUser') ?? true; // Get the user type flag
     await _fetchUserDetails(userEmail, userPass);
   }
 
   Future<void> _fetchUserDetails(String email, String password) async {
     DatabaseService dbService = DatabaseService();
-    UserDetails? details = await dbService.getUserDetails(email, password);
-    if (details != null) {
-      setState(() {
-        userDetails = details;
-        userFirstName = userDetails!.name;
-      });
+    if (isUser) {
+      UserDetails? details = await dbService.getUserDetails(email, password);
+      if (details != null) {
+        setState(() {
+          userDetails = details;
+          userFirstName = userDetails!.name;
+        });
+      } else {
+        if (kDebugMode) {
+          print('User not found');
+        }
+      }
     } else {
-      if (kDebugMode) {
-        print('User not found');
+      MentorDetails? details = await dbService.getMentorByEmailDetails(email, password);
+      if (details != null) {
+        setState(() {
+          mentorDetails = details;
+          userFirstName = mentorDetails!.name;
+        });
+      } else {
+        if (kDebugMode) {
+          print('Mentor not found');
+        }
       }
     }
   }
@@ -85,12 +101,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> _fetchUserAppointments() async {
-    if (userDetails != null) {
-      DatabaseService dbService = DatabaseService();
+  Future<void> _fetchAppointments() async {
+    DatabaseService dbService = DatabaseService();
+    if (isUser && userDetails != null) {
       List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
       setState(() {
-        userAppointments = appointments;
+        appointmentsList = appointments;
+      });
+    } else if (!isUser && mentorDetails != null) {
+      List<AppointmentsDetails> appointments = await dbService.getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
+      setState(() {
+        appointmentsList = appointments;
       });
     }
   }
@@ -162,85 +183,91 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: const TextStyle(fontSize: 28),
                   ),
                   const SizedBox(height: 16.0),
-                  TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search for a Service',
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SearchPage(),
-                            ),
-                          );
-                        },
+                  if (isUser)
+                    TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search for a Service',
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SearchPage(),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 16.0),
                 ],
               ),
             ),
             const SizedBox(height: 16.0),
-            SizedBox(
-              // Container for the list view of images
-              height: 200,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: mentorDetailsList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final mentorDetails = mentorDetailsList[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailPage(
-                              mentorDetails: mentorDetails,
-                              masterServices: masterServiceList,
-                              userDetails: userDetails,
+            if (isUser)
+              SizedBox(
+                // Container for the list view of images
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: mentorDetailsList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    final mentorDetails = mentorDetailsList[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DetailPage(
+                                mentorDetails: mentorDetails,
+                                masterServices: masterServiceList,
+                                userDetails: userDetails,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                      child: Column(
-                        children: [
-                          Image.network(
-                            mentorDetails.imageURL, // Replace with your image URLs
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
-                          ),
-                          Text(mentorDetails.name),
-                        ],
+                          );
+                        },
+                        child: Column(
+                          children: [
+                            Image.network(
+                              mentorDetails.imageURL, // Replace with your image URLs
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                            Text(mentorDetails.name),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
             const SizedBox(height: 16.0),
-            const Divider(), // Divider for separating appointments
-            const SizedBox(height: 16.0),
-            // Display User Appointments
-            if (userAppointments.isNotEmpty)
+            if (isUser)
+              const Divider(), // Divider for separating appointments
+            if (isUser)
+              const SizedBox(height: 16.0),
+            // Display Appointments
+            if (appointmentsList.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Your Appointments:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Center(
+                    child: Text(
+                      isUser ? 'Your Appointments:' : 'Mentor Appointments:',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   const SizedBox(height: 8.0),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: userAppointments.length,
+                    itemCount: appointmentsList.length,
                     itemBuilder: (context, index) {
-                      final appointment = userAppointments[index];
+                      final appointment = appointmentsList[index];
                       // Format date to show only date part
                       String formattedDate = '${appointment.date.day}-${appointment.date.month}-${appointment.date.year}';
                       return ListTile(
@@ -259,6 +286,21 @@ class _MyHomePageState extends State<MyHomePage> {
                         },
                       );
                     },
+                  ),
+                ],
+              ),
+            if (!isUser && mentorDetails != null) // Only show for mentors
+              Column(
+                children: [
+                  const SizedBox(height: 16.0),
+                  const Text(
+                    'Mentor Details:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8.0),
+                  ListTile(
+                    title: Text('Mentor ID: ${mentorDetails!.advisorID}'),
+                    subtitle: Text('Mentor Name: ${mentorDetails!.name}'),
                   ),
                 ],
               ),

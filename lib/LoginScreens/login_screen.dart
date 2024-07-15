@@ -3,7 +3,6 @@ import 'package:form_field_validator/form_field_validator.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Admin/admin_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../Constants/screen_utility.dart';
 import '../HomeScreen/my_home_page.dart';
 
@@ -22,10 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
   List<List<dynamic>>? userData;
 
   bool _isLoggingIn = false;
+
   @override
   void initState() {
     super.initState();
   }
+
   Future<void> _login() async {
     if (formkey.currentState!.validate()) {
       setState(() {
@@ -37,8 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Directly check for admin credentials
         if (enteredEmail == 'admin@gmail.com' && enteredPassword == 'admin@123') {
-          await _storeDetailsInPrefs();
-          if(!mounted) return;
+          await _storeDetailsInPrefs(true, true); // Store details with isAdmin flag
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const AdminPage()),
@@ -47,26 +48,37 @@ class _LoginScreenState extends State<LoginScreen> {
           return; // Exit function early if admin credentials match
         }
 
-        // Check credentials in the database
-        final isValid = await fetchUserCredentials(enteredEmail, enteredPassword);
-
-        if (isValid) {
+        // Check credentials in the user database
+        final isValidUser = await fetchUserCredentials(enteredEmail, enteredPassword);
+        if (isValidUser) {
           userData = await fetchUserData(enteredEmail);
-          await _storeDetailsInPrefs();
-          if(!mounted) return;
+          await _storeDetailsInPrefs(true, false); // Store details as user
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const MyHomePage()),
           );
         } else {
-          // Show error message for invalid credentials
-          if(!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Invalid username or password')),
-          );
+          // Check credentials in the mentor database
+          final isValidMentor = await fetchMentorCredentials(enteredEmail, enteredPassword);
+          if (isValidMentor) {
+            userData = await fetchMentorData(enteredEmail);
+            await _storeDetailsInPrefs(false, false); // Store details as mentor
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MyHomePage()),
+            );
+          } else {
+            // Show error message for invalid credentials
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Invalid username or password')),
+            );
+          }
         }
       } catch (e) {
-        if(!mounted) return;
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login failed. Please try again.')),
         );
@@ -78,12 +90,124 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
-  Future<void> _storeDetailsInPrefs() async {
+  Future<void> _storeDetailsInPrefs(bool isUser, bool isAdmin) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.setBool('isLoggedIn', true);
     prefs.setString('Email', emailController.text.toString());
-    prefs.setString('Password',passwordController.text.toString());
+    prefs.setString('Password', passwordController.text.toString());
+    prefs.setBool('isUser', isUser); // Store whether the user is a user
+    prefs.setBool('isAdmin', isAdmin); // Store whether the user is an admin
+  }
+
+  Future<bool> fetchUserCredentials(String email, String password) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final result = await connection.execute(
+        'SELECT * FROM public.master_demo_user WHERE email = \$1 AND password = \$2',
+        parameters: [email, password],
+      );
+
+      await connection.close();
+
+      return result.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> fetchMentorCredentials(String email, String password) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final result = await connection.execute(
+        'SELECT * FROM public.advisor_details WHERE email = \$1 AND password = \$2',
+        parameters: [email, password],
+      );
+
+      await connection.close();
+
+      return result.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<List<List<dynamic>>> fetchUserData(String email) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final result = await connection.execute(
+        'SELECT * FROM public.master_demo_user WHERE email = \$1',
+        parameters: [email],
+      );
+
+      await connection.close();
+
+      return result;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<List<dynamic>>> fetchMentorData(String email) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final result = await connection.execute(
+        'SELECT * FROM public.master_demo_mentor WHERE email = \$1',
+        parameters: [email],
+      );
+
+      await connection.close();
+
+      return result;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  bool _validatePassword(String password) {
+    // Regular expression to check if password contains at least one letter, one number, and one special character
+    final RegExp regex =
+    RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+    return regex.hasMatch(password);
   }
 
   @override
@@ -199,64 +323,5 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
-  }
-  Future<bool> fetchUserCredentials(String email, String password) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT * FROM public.master_demo_user WHERE email = \$1 AND password = \$2',
-        parameters: [email, password],
-      );
-
-      await connection.close();
-
-
-      return result.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<List<List<dynamic>>> fetchUserData(String email) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT * FROM public.master_demo_user WHERE email = \$1',
-        parameters: [email],
-      );
-
-      await connection.close();
-
-      return result;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  bool _validatePassword(String password) {
-    // Regular expression to check if password contains at least one letter, one number, and one special character
-    final RegExp regex =
-    RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
-    return regex.hasMatch(password);
   }
 }

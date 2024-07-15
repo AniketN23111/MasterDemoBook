@@ -20,6 +20,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
   final TextEditingController _licence = TextEditingController();
   final TextEditingController _mNumber = TextEditingController();
   final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
   final TextEditingController _area = TextEditingController();
 
   final TextEditingController _companyName = TextEditingController();
@@ -271,7 +272,36 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                 ),
               ),
               const SizedBox(height: 10),
-
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: _password,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Enter Password';
+                    }
+                    // Check if password meets the criteria
+                    bool isValidPassword = _validatePassword(value);
+                    if (!isValidPassword) {
+                      return 'Password must have a minimum of 8 characters and include letters, numbers, and special characters.';
+                    }
+                    return null; // Validation passed
+                  },
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                      hintText: 'Password',
+                      labelText: 'Password',
+                      prefixIcon: Icon(
+                        Icons.password,
+                        color: Colors.lightBlue,
+                      ),
+                      contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                          borderRadius: BorderRadius.all(Radius.circular(9.0)))),
+                ),
+              ),
+              const SizedBox(height: 10),
               // Company Name
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -739,7 +769,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                    // if (_formKey.currentState!.validate()) {
                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) =>  ServiceDetails(_shopname.text,_address.text,_mNumber.text,_email.text,_pincode.text,countryValue.toString(),stateValue.toString(),cityValue.toString(),_area.text,_licence.text,workingDays.toString(),timeSlots.toString(),_companyName.text,_designation.text,_gender.toString(),_selectedDate)),
+                        MaterialPageRoute(builder: (context) =>  ServiceDetails(_shopname.text,_address.text,_mNumber.text,_email.text,_pincode.text,countryValue.toString(),stateValue.toString(),cityValue.toString(),_area.text,_licence.text,workingDays.toString(),timeSlots.toString(),_companyName.text,_designation.text,_gender.toString(),_selectedDate,_password.text)),
                       );
                  //   }
                   },
@@ -773,6 +803,12 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
       ),
     );
   }
+}
+bool _validatePassword(String password) {
+  // Regular expression to check if password contains at least one letter, one number, and one special character
+  final RegExp regex =
+  RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+  return regex.hasMatch(password);
 }
 
 String getDayName(int index) {

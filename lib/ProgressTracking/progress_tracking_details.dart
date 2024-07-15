@@ -150,8 +150,7 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
           controller: controller,
           decoration: const InputDecoration(
             border: OutlineInputBorder(
-              borderSide: const BorderSide(
-
+              borderSide: BorderSide(
                 width: 0,
                 style: BorderStyle.none,
               ),
