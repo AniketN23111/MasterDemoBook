@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:saloon/Models/progress_tracking.dart';
+import 'package:saloon/Services/database_service.dart';
 
 class ProgressTrackingDetailsPage extends StatefulWidget {
   final ProgressTracking progressTracking;
@@ -89,7 +90,7 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
       appointmentId: widget.progressTracking.appointmentId,
     );
 
-  //  await DatabaseService().updateProgressTracking(updatedProgressTracking);
+    await DatabaseService().updateProgressTracking(updatedProgressTracking);
 
     // Optionally, show a confirmation message or navigate back
     Navigator.pop(context);

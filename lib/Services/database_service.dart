@@ -10,6 +10,7 @@ import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Models/user_details.dart';
 
 class DatabaseService {
+  //Mentor All Details
   Future<List<MentorDetails>> getMentorDetails() async {
     try {
       final connection = await Connection.open(
@@ -60,6 +61,7 @@ class DatabaseService {
       return [];
     }
   }
+  //Admin Stored Services Get
   Future<List<AdminService>> getAdminService() async {
     try {
       final connection = await Connection.open(
@@ -94,6 +96,8 @@ class DatabaseService {
       return [];
     }
   }
+
+  //Mentor Services
   Future<List<MentorService>> getMentorServices() async {
     try {
       final connection = await Connection.open(
@@ -131,6 +135,8 @@ class DatabaseService {
       return [];
     }
   }
+
+  //User Details
   Future<UserDetails?> getUserDetails(String email, String password) async {
     try {
       final connection = await Connection.open(
@@ -168,6 +174,7 @@ class DatabaseService {
       return null;
     }
   }
+  //Mentor Details Get By Email
   Future<MentorDetails?> getMentorByEmailDetails(String email, String password) async {
     try {
       final connection = await Connection.open(
@@ -219,6 +226,8 @@ class DatabaseService {
       return null;
     }
   }
+
+  //User Appointment Find by User ID
   Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(int userID) async {
     try {
       final connection = await Connection.open(
@@ -260,6 +269,47 @@ class DatabaseService {
       return [];
     }
   }
+
+  //User Find by User ID
+  Future<UserDetails?> getUserDetailsById(int userID) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('SELECT * FROM master_demo_user WHERE user_id = @userId'),
+        parameters : {
+          'userId': userID,
+        },
+      );
+
+      await connection.close();
+
+      if (results.isNotEmpty) {
+        var row = results.first;
+        return UserDetails(
+          name: row[0] as String,
+          password: row[1] as String,
+          email: row[2] as String,
+          number: row[3] as String,
+          userID: row[4] as int,
+        );
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  //Mentor Appointment Find by Mentor ID
   Future<List<AppointmentsDetails>> getMentorAppointmentsAllDetails(int advisorID) async {
     try {
       final connection = await Connection.open(
@@ -301,6 +351,8 @@ class DatabaseService {
       return [];
     }
   }
+
+  // Insert In the Mentor Meeting
   Future<void> insertMentorMeeting({
     required int userId,
     required int advisorId,
@@ -342,6 +394,8 @@ class DatabaseService {
         },
       );
     }
+
+    //Get User meeting By date and time
   Future<EditAppointmentMeeting?> getUserMeetingDetails(DateTime date, TimeOfDay startTime) async {
     try {
       final connection = await Connection.open(
@@ -386,6 +440,7 @@ class DatabaseService {
     }
   }
 
+  //Get user User ID
   Future<String?> getUserName(int userId) async {
     final connection = await Connection.open(
       Endpoint(
@@ -404,6 +459,7 @@ class DatabaseService {
     return results.isNotEmpty ? results.first[0] as String : null;
   }
 
+  //Get Advisor Name by Id
   Future<String?> getAdvisorName(int advisorId) async {
     final connection = await Connection.open(
       Endpoint(
@@ -421,6 +477,7 @@ class DatabaseService {
     return results.isNotEmpty ? results.first[0] as String : 'Unknown Advisor';
   }
 
+  //Insert in the Progress tracking
   Future<void> insertProgressTracking({
     required int advisorId,
     required String advisorName,
@@ -484,6 +541,8 @@ class DatabaseService {
       },
     );
   }
+
+  //Get Appointment by data,time,advisorID,main Service,Sub Service,UserID
   Future<int?> getAppointmentID(DateTime date,String time,int advisorID,String mainService,String subService,int userID) async {
     final connection = await Connection.open(
       Endpoint(
@@ -554,4 +613,142 @@ class DatabaseService {
       return null;
     }
   }
+  Future<List<String>> getDistinctGoalTypes(int userId, int advisorId) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(
+        Sql.named('SELECT DISTINCT goal_type FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId'),
+        parameters: {
+          'userId': userId,
+          'advisorId': advisorId,
+        },
+      );
+
+      await connection.close();
+
+      List<String> goalTypes = results.map((row) => row[0] as String).toList();
+
+      return goalTypes;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return [];
+    }
+  }
+  Future<List<ProgressTracking>> getProgressDetailsByGoalType(int userId, int advisorId, String goalType) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(
+        Sql.named('SELECT * FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId AND goal_type = @goalType'),
+        parameters: {
+          'userId': userId,
+          'advisorId': advisorId,
+          'goalType': goalType,
+        },
+      );
+
+      await connection.close();
+
+      List<ProgressTracking> progressList = [];
+
+      for (var row in results) {
+        progressList.add(ProgressTracking(
+          advisorId: row[1] as int,
+          advisorName: row[2] as String,
+          userId: row[3] as int,
+          userName: row[4] as String,
+          date: row[5] as DateTime,
+          goalType: row[6] as String,
+          goal: row[7] as String,
+          actionSteps: row[8] as String,
+          timeline: row[9] as String,
+          progressDate: row[10] as DateTime,
+          progressMade: row[11] as String,
+          effectivenessDate: row[12] as DateTime,
+          outcome: row[13] as String,
+          nextSteps: row[14] as String,
+          meetingDate: row[15] as DateTime,
+          agenda: row[16] as String,
+          additionalNotes: row[17] as String,
+          appointmentId: row[18] as int,
+        ));
+      }
+
+      return progressList;
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+      return [];
+    }
+  }
+  Future<void> updateProgressTracking(ProgressTracking progressTracking) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+      // Prepare the SQL statement
+      await connection.execute(Sql.named('UPDATE progress_tracking SET advisor_name = @advisorName, '
+          'user_name = @userName, date = @date, goal_type = @goalType, '
+          'goal = @goal, action_steps = @actionSteps, timeline = @timeline, '
+          'progress_date = @progressDate, progress_made = @progressMade, '
+          'effectiveness_date = @effectivenessDate, outcome = @outcome, '
+          'next_steps = @nextSteps, meeting_date = @meetingDate, '
+          'agenda = @agenda, additional_notes = @additionalNotes '
+          'WHERE appointment_id = @appointmentId'),
+        parameters: {
+          'advisorName': progressTracking.advisorName,
+          'userName': progressTracking.userName,
+          'date': progressTracking.date.toIso8601String(),
+          'goalType': progressTracking.goalType,
+          'goal': progressTracking.goal,
+          'actionSteps': progressTracking.actionSteps,
+          'timeline': progressTracking.timeline,
+          'progressDate': progressTracking.progressDate.toIso8601String(),
+          'progressMade': progressTracking.progressMade,
+          'effectivenessDate': progressTracking.effectivenessDate.toIso8601String(),
+          'outcome': progressTracking.outcome,
+          'nextSteps': progressTracking.nextSteps,
+          'meetingDate': progressTracking.meetingDate.toIso8601String(),
+          'agenda': progressTracking.agenda,
+          'additionalNotes': progressTracking.additionalNotes,
+          'appointmentId': progressTracking.appointmentId,
+        },
+      );
+
+      // Disconnect from the database
+    } catch (e) {
+      print('Error updating progress tracking: $e');
+      throw Exception('Failed to update progress tracking');
+    }
+  }
 }
+

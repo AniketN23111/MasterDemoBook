@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
+import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
 import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Models/user_details.dart';
 import 'package:saloon/ProgressTracking/progress_tracking_details.dart';
 import 'package:saloon/Services/database_service.dart';
-import 'package:saloon/Models/mentor_details.dart';
+import 'package:saloon/UserDetailsPage/user_details_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saloon/Models/appointments_details.dart';
 
@@ -28,9 +30,11 @@ class _MyHomePageState extends State<MyHomePage> {
   UserDetails? userDetails;
   MentorDetails? mentorDetails;
   List<MentorService> masterServiceList = [];
-  List<AppointmentsDetails> appointmentsList = []; // Generalize the appointments list
-  bool isLoading = true; // Add a boolean variable to track loading state
-  bool isUser = true; // Add a boolean variable to track user type
+  List<AppointmentsDetails> appointmentsList = [];
+  List<UserDetails> userDetailsList = [];
+  Map<int, int> usersPerMentor = {}; // Map to store user count per mentor
+  bool isLoading = true;
+  bool isUser = true;
 
   @override
   void initState() {
@@ -43,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
     await _fetchMentorDetails();
     await _fetchMasterService();
     await _fetchAppointments(); // Fetch appointments for both users and mentors
+    await _countUsersPerMentor(); // Count users per mentor
     setState(() {
       isLoading = false; // Set loading to false when data fetching is complete
     });
@@ -71,7 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
     } else {
-      MentorDetails? details = await dbService.getMentorByEmailDetails(email, password);
+      MentorDetails? details = await dbService.getMentorByEmailDetails(
+          email, password);
       if (details != null) {
         setState(() {
           mentorDetails = details;
@@ -105,14 +111,43 @@ class _MyHomePageState extends State<MyHomePage> {
     DatabaseService dbService = DatabaseService();
     if (isUser && userDetails != null) {
       List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
+      // Sort appointments by date in decreasing order
+      appointments.sort((a, b) => a.date.compareTo(b.date)); // Compare DateTime directly
       setState(() {
         appointmentsList = appointments;
       });
     } else if (!isUser && mentorDetails != null) {
       List<AppointmentsDetails> appointments = await dbService.getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
+      // Sort appointments by date in decreasing order
+      appointments.sort((a, b) => b.date.compareTo(a.date)); // Compare DateTime directly
+      // Fetch user details for each appointment
+      List<UserDetails> users = [];
+      Set<int> displayedUserIds = {}; // Track displayed user IDs
+      for (var appointment in appointments) {
+        UserDetails? user = await dbService.getUserDetailsById(appointment.userID);
+        if (user != null && !displayedUserIds.contains(user.userID)) {
+          users.add(user);
+          displayedUserIds.add(user.userID); // Add user ID to the set
+        }
+      }
       setState(() {
         appointmentsList = appointments;
+        userDetailsList = users; // Store the list of user details
       });
+    }
+  }
+
+
+  Future<void> _countUsersPerMentor() async {
+    // Count users per mentor based on appointmentsList
+    usersPerMentor.clear();
+    for (var appointment in appointmentsList) {
+      if (usersPerMentor.containsKey(appointment.advisorID)) {
+        usersPerMentor[appointment.advisorID] =
+            usersPerMentor[appointment.advisorID]! + 1;
+      } else {
+        usersPerMentor[appointment.advisorID] = 1;
+      }
     }
   }
 
@@ -121,7 +156,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProgressTrackingDetailsPage(progressTracking: progressTracking),
+        builder: (context) =>
+            ProgressTrackingDetailsPage(progressTracking: progressTracking),
       ),
     );
   }
@@ -138,17 +174,28 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     DatabaseService dbService = DatabaseService();
-    ProgressTracking? progressTracking = await dbService.getProgressTrackingByAppointmentId(appointmentId);
+    ProgressTracking? progressTracking = await dbService
+        .getProgressTrackingByAppointmentId(appointmentId);
     if (progressTracking != null) {
       _showProgressTrackingDetails(progressTracking);
     } else {
       if (!mounted) return;
-      Navigator.pop(context); // Close the loading dialog if no progress tracking found
+      Navigator.pop(
+          context); // Close the loading dialog if no progress tracking found
       if (kDebugMode) {
         print("No progress tracking found for this appointment");
       }
     }
   }
+  void _navigateToUserDetails(UserDetails user) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UserDetailsPage( userId:  user.userID, advisorId:mentorDetails!.advisorID),
+      ),
+    );
+  }
+
 
   void logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -166,20 +213,20 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: isLoading // Show CircularProgressIndicator if isLoading is true
+      body: isLoading
           ? const Center(
-        child: CircularProgressIndicator(color: Colors.blue,),
+        child: CircularProgressIndicator(color: Colors.blue),
       )
           : SingleChildScrollView(
         child: Column(
           children: [
             Container(
-              color: Colors.blue, // Blue container
+              color: Colors.blue,
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
                   Text(
-                    'Hello, $userFirstName!', // Display the user's first name
+                    'Hello, $userFirstName!',
                     style: const TextStyle(fontSize: 28),
                   ),
                   const SizedBox(height: 16.0),
@@ -207,7 +254,6 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 16.0),
             if (isUser)
               SizedBox(
-                // Container for the list view of images
                 height: 200,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
@@ -232,7 +278,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Column(
                           children: [
                             Image.network(
-                              mentorDetails.imageURL, // Replace with your image URLs
+                              mentorDetails.imageURL,
                               width: 100,
                               height: 100,
                               fit: BoxFit.cover,
@@ -246,72 +292,106 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             const SizedBox(height: 16.0),
-            if (isUser)
-              const Divider(), // Divider for separating appointments
-            if (isUser)
-              const SizedBox(height: 16.0),
-            // Display Appointments
-            if (appointmentsList.isNotEmpty)
+            if (!isUser && userDetailsList.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
-                      isUser ? 'Your Appointments:' : 'Mentor Appointments:',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      'Users who have booked appointments:',
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(height: 8.0),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: appointmentsList.length,
-                    itemBuilder: (context, index) {
-                      final appointment = appointmentsList[index];
-                      // Format date to show only date part
-                      String formattedDate = '${appointment.date.day}-${appointment.date.month}-${appointment.date.year}';
-                      return ListTile(
-                        title: Text('Date: $formattedDate'),
-                        leading: Text('${index + 1}.'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Main Service: ${appointment.mainService}'),
-                            Text('Sub Service: ${appointment.subService}'),
-                            Text('Time: ${appointment.time}'),
-                          ],
-                        ),
+                    itemCount: userDetailsList.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final user = userDetailsList[index];
+                      return GestureDetector(
                         onTap: () {
-                          _onAppointmentTap(appointment.appointmentID);
+                          _navigateToUserDetails(user); // Function to navigate to user details
                         },
+                        child: ListTile(
+                          title: Text(user.name),
+                          subtitle: Text('Email: ${user.email}'),
+                        ),
                       );
                     },
                   ),
                 ],
               ),
-            if (!isUser && mentorDetails != null) // Only show for mentors
-              Column(
-                children: [
-                  const SizedBox(height: 16.0),
-                  const Text(
-                    'Mentor Details:',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8.0),
-                  ListTile(
-                    title: Text('Mentor ID: ${mentorDetails!.advisorID}'),
-                    subtitle: Text('Mentor Name: ${mentorDetails!.name}'),
-                  ),
-                ],
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                'Appointments:',
+                style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
               ),
+            ),
+            const SizedBox(height: 16.0),
+            if (appointmentsList.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: appointmentsList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final appointment = appointmentsList[index];
+                  final user = index < userDetailsList.length ? userDetailsList[index] : null;
+                  final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse('${appointment.date}'));
+                  return ListTile(
+                    title: Text(formattedDate), // Display formatted date
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Time: ${appointment.time}'),
+                        if (isUser)
+                          Text('Mentor: ${mentorDetailsList.firstWhere((mentor) => mentor.advisorID == appointment.advisorID).name}'),
+                      ],
+                    ),
+                    onTap: () => _onAppointmentTap(appointment.appointmentID),
+                  );
+                },
+              ),
+            const SizedBox(height: 16.0),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: logout,
-        tooltip: 'Logout',
-        child: const Icon(Icons.logout),
+      drawer: Drawer(
+        child: ListView(
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.blue),
+              child: Text(
+                'Welcome, $userFirstName!',
+                style: const TextStyle(fontSize: 24, color: Colors.white),
+              ),
+            ),
+            if (isUser)
+              ListTile(
+                title: const Text('Profile'),
+                onTap: () {
+                  // Navigate to user profile screen
+                },
+              ),
+            if (!isUser)
+              ListTile(
+                title: const Text('Profile'),
+                onTap: () {
+                  // Navigate to mentor profile screen
+                },
+              ),
+            ListTile(
+              title: const Text('Logout'),
+              onTap: logout,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
