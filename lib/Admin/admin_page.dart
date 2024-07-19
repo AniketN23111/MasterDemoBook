@@ -8,7 +8,7 @@ import 'package:saloon/Constants/screen_utility.dart';
 import 'package:saloon/GoogleApi/cloud_api.dart';
 
 class AdminPage extends StatefulWidget {
-  const AdminPage({Key? key}) : super(key: key);
+  const AdminPage({super.key});
 
   @override
   State<AdminPage> createState() => _AdminPageState();
@@ -17,13 +17,20 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   final TextEditingController _serviceController = TextEditingController();
   final TextEditingController _subServiceController = TextEditingController();
-  final TextEditingController _rateController = TextEditingController();
-  final TextEditingController _quantityController = TextEditingController();
 
-  String? _downloadUrl;
+  final TextEditingController _programNameController = TextEditingController();
+  final TextEditingController _programDescriptionController = TextEditingController();
+  final TextEditingController _organizationNameController = TextEditingController();
+  final TextEditingController _coordinatorNameController = TextEditingController();
+  final TextEditingController _coordinatorEmailController = TextEditingController();
+  final TextEditingController _coordinatorNumberController = TextEditingController();
+
+  String? _serviceURl;
+  String? _programInitializerURl;
   final ImagePicker _picker = ImagePicker();
   CloudApi? cloudApi;
   bool _uploading = false;
+  bool _showServiceForm = false;
 
   @override
   void initState() {
@@ -42,12 +49,12 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _requestPermissions() async {
     if (await Permission.photos.request().isGranted) {
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gallery access granted')),
       );
     } else {
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gallery access denied')),
       );
@@ -61,7 +68,7 @@ class _AdminPageState extends State<AdminPage> {
 
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile == null) {
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No file picked')),
       );
@@ -72,7 +79,7 @@ class _AdminPageState extends State<AdminPage> {
     }
 
     if (cloudApi == null) {
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Cloud API not initialized')),
       );
@@ -87,18 +94,17 @@ class _AdminPageState extends State<AdminPage> {
 
     try {
       // Upload the image to the bucket
-       await cloudApi!.save(fileName, imageBytes);
+      await cloudApi!.save(fileName, imageBytes);
       final downloadUrl = await cloudApi!.getDownloadUrl(fileName);
-      //print(downloadUrl);
 
       // Store the image bytes to display it
       setState(() {
-        _downloadUrl = downloadUrl;
+        _serviceURl = downloadUrl;
+        _programInitializerURl = downloadUrl;
         _uploading = false; // Upload finished, hide progress indicator
       });
     } catch (e) {
-      //print("Error uploading image: $e");
-      if(!mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to upload image: $e')),
       );
@@ -112,85 +118,35 @@ class _AdminPageState extends State<AdminPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-
+        title: const Text('Admin Page'),
       ),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
             children: [
-              TextFormField(
-                keyboardType: TextInputType.text,
-                controller: _serviceController,
-                validator: (text) {
-                  if (text == null || text.isEmpty) {
-                    return "Service is Empty";
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.all(15),
-                    hintText: 'Service',
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: SvgPicture.asset('assets/icons/shop.svg'),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none)),
-              ),
-              TextFormField(
-                keyboardType: TextInputType.text,
-                controller: _subServiceController,
-                validator: (text) {
-                  if (text == null || text.isEmpty) {
-                    return "SubService is Empty";
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.all(15),
-                    hintText: 'SubService',
-                    prefixIcon: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: SvgPicture.asset('assets/icons/shop.svg'),
-                    ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                        borderSide: BorderSide.none)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showServiceForm = true;
+                      });
+                    },
+                    child: const Text('Service'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showServiceForm = false;
+                      });
+                    },
+                    child: const Text('Program Initializers'),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                height: ScreenUtility.screenHeight * 0.4,
-                width: ScreenUtility.screenWidth * 0.8,
-                child: _downloadUrl != null
-                    ? Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Image.network(_downloadUrl!),
-                )
-                    : _uploading
-                    ? const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: CircularProgressIndicator(color: Colors.blue,),
-                )
-                    : Container(),
-              ),
-              ElevatedButton(
-                onPressed: _uploading ? null : _pickAndUploadImage,
-                child: _uploading
-                    ? const CircularProgressIndicator(color: Colors.blue,)
-                    : const Text("Upload Icon"),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  registerService(_serviceController.text, _subServiceController.text,
-                      _rateController.text, _quantityController.text, _downloadUrl ?? '');
-                },
-                child: const Text("Add Services"),
-              ),
+              _showServiceForm ? _buildServiceForm() : _buildInitializerForm(),
             ],
           ),
         ),
@@ -198,8 +154,228 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-  Future<bool> registerService(String service, String subService, String rate, String quantity,
-      String imageUrl) async {
+  Widget _buildServiceForm() {
+    return Column(
+      children: [
+        TextFormField(
+          keyboardType: TextInputType.text,
+          controller: _serviceController,
+          validator: (text) {
+            if (text == null || text.isEmpty) {
+              return "Service is Empty";
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Service',
+            prefixIcon: Padding(
+              padding: const EdgeInsets.all(12),
+              child: SvgPicture.asset('assets/icons/license.svg'),
+            ),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          keyboardType: TextInputType.text,
+          controller: _subServiceController,
+          validator: (text) {
+            if (text == null || text.isEmpty) {
+              return "SubService is Empty";
+            }
+            return null;
+          },
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'SubService',
+            prefixIcon: Padding(
+              padding: const EdgeInsets.all(12),
+              child: SvgPicture.asset('assets/icons/license.svg'),
+            ),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: ScreenUtility.screenHeight * 0.4,
+          width: ScreenUtility.screenWidth * 0.8,
+          child: _serviceURl != null
+              ? Padding(
+            padding: const EdgeInsets.all(20),
+            child: Image.network(_serviceURl!),
+          )
+              : _uploading
+              ? const Padding(
+            padding: EdgeInsets.all(20),
+            child: CircularProgressIndicator(
+              color: Colors.blue,
+            ),
+          )
+              : Container(),
+        ),
+        ElevatedButton(
+          onPressed: _uploading ? null : _pickAndUploadImage,
+          child: _uploading
+              ? const CircularProgressIndicator(
+            color: Colors.blue,
+          )
+              : const Text("Upload Icon"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            registerService(
+              _serviceController.text,
+              _subServiceController.text,
+              _serviceURl ?? '',
+            );
+          },
+          child: const Text("Add Services"),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInitializerForm() {
+    return Column(
+      children: [
+        TextFormField(
+          keyboardType: TextInputType.text,
+          controller: _programNameController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Program Name',
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          keyboardType: TextInputType.text,
+          controller: _programDescriptionController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Program Description',
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          keyboardType: TextInputType.text,
+          controller: _organizationNameController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Organization Name',
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          keyboardType: TextInputType.text,
+          controller: _coordinatorNameController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Program Coordinator Name',
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          keyboardType: TextInputType.emailAddress,
+          controller: _coordinatorEmailController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Program Coordinator Email',
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          keyboardType: TextInputType.phone,
+          controller: _coordinatorNumberController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.all(15),
+            hintText: 'Program Coordinator Number',
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(15),
+                borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: ScreenUtility.screenHeight * 0.4,
+          width: ScreenUtility.screenWidth * 0.8,
+          child: _programInitializerURl != null
+              ? Padding(
+            padding: const EdgeInsets.all(20),
+            child: Image.network(_programInitializerURl!),
+          )
+              : _uploading
+              ? const Padding(
+            padding: EdgeInsets.all(20),
+            child: CircularProgressIndicator(
+              color: Colors.blue,
+            ),
+          )
+              : Container(),
+        ),
+        ElevatedButton(
+          onPressed: _uploading ? null : _pickAndUploadImage,
+          child: _uploading
+              ? const CircularProgressIndicator(
+            color: Colors.blue,
+          )
+              : const Text("Upload Icon"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            registerProgramInitializer(
+              _programNameController.text,
+              _programDescriptionController.text,
+              _organizationNameController.text,
+              _programInitializerURl ?? '',
+              _coordinatorNameController.text,
+              _coordinatorEmailController.text,
+              _coordinatorNumberController.text,
+            );
+          },
+          child: const Text("Add Program Initializer"),
+        ),
+      ],
+    );
+  }
+
+  Future<bool> registerService(
+      String service, String subService, String imageUrl) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -211,23 +387,71 @@ class _AdminPageState extends State<AdminPage> {
         ),
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
-      // Insert into database
-      await connection.execute(Sql.named('INSERT INTO public.service_master(service, sub_service, icon_url) '
-          'VALUES (@service, @subService, @imageUrl)'),
+
+      await connection.execute(
+        'INSERT INTO public.service_master(service, subservice, icon) VALUES (@service, @subService, @icon)',
         parameters: {
           'service': service,
           'subService': subService,
-          'imageUrl': imageUrl,
+          'icon': imageUrl,
         },
       );
 
-      // If successful, close the connection
       await connection.close();
-
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Service registered successfully')),
+      );
       return true;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error registering service')),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> registerProgramInitializer(
+      String programName,
+      String programDescription,
+      String organizationName,
+      String imageUrl,
+      String coordinatorName,
+      String coordinatorEmail,
+      String coordinatorNumber,
+      ) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      await connection.execute(Sql.named('INSERT INTO public.program_initializer(program_name, program_description, organization_name, icon_url, coordinator_name, coordinator_email, coordinator_number) '
+          'VALUES (@programName, @programDescription, @organizationName, @iconUrl, @coordinatorName, @coordinatorEmail, @coordinatorNumber)'),
+        parameters: {
+          'programName': programName,
+          'programDescription': programDescription,
+          'organizationName': organizationName,
+          'iconUrl': imageUrl,
+          'coordinatorName': coordinatorName,
+          'coordinatorEmail': coordinatorEmail,
+          'coordinatorNumber': coordinatorNumber,
+        },
+      );
+
+      await connection.close();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Program initializer registered successfully')),
+      );
+      return true;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error registering program initializer')),
       );
       return false;
     }
