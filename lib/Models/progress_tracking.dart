@@ -17,6 +17,7 @@ class ProgressTracking {
   final String agenda;
   final String additionalNotes;
   final int appointmentId;
+  final String progressStatus;
 
   ProgressTracking({
     required this.advisorId,
@@ -37,5 +38,6 @@ class ProgressTracking {
     required this.agenda,
     required this.additionalNotes,
     required this.appointmentId,
+    required this.progressStatus,
   });
 }

@@ -32,9 +32,15 @@ class _MyAppState extends State<MyApp> {
         'MentorDetailsRegister':(context)=> const MentorDetailsRegister(),
       },
       theme: ThemeData(
+        useMaterial3: true,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         primaryColor: const Color.fromRGBO(18, 26, 18, 1),
         scaffoldBackgroundColor: const Color.fromRGBO(255, 255, 255, 1),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        useMaterial3: true,
+        //visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
     );
   }

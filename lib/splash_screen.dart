@@ -15,7 +15,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreen extends State<SplashScreen> {
   var isLogin = false;
-
+  late Timer _timer;
   @override
   void initState() {
     super.initState();
@@ -28,7 +28,7 @@ class _SplashScreen extends State<SplashScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-    Timer(
+    _timer=Timer(
       const Duration(seconds: 3),
           () {
         if (isLoggedIn) {
@@ -62,6 +62,11 @@ class _SplashScreen extends State<SplashScreen> {
     } else {
       Navigator.pushReplacementNamed(context, 'loginScreen');
     }
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    _timer.cancel();
   }
 
   @override

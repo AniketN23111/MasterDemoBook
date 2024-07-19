@@ -400,6 +400,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             'VALUES (\$1, \$2, \$3, \$4)',
         parameters: [name, password, email, number],
       );
+      await connection.close();
       return true;
     } catch (e) {
       return false;

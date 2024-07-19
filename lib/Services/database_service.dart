@@ -603,6 +603,7 @@ class DatabaseService {
           agenda: row[16] as String,
           additionalNotes: row[17] as String,
           appointmentId: row[18] as int,
+          progressStatus: row[19] as String,
         );
       }
       return null;
@@ -660,7 +661,7 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        Sql.named('SELECT * FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId AND goal_type = @goalType'),
+        Sql.named('SELECT * FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId AND goal_type = @goalType '),
         parameters: {
           'userId': userId,
           'advisorId': advisorId,
@@ -692,6 +693,7 @@ class DatabaseService {
           agenda: row[16] as String,
           additionalNotes: row[17] as String,
           appointmentId: row[18] as int,
+          progressStatus: row[19] as String,
         ));
       }
 
@@ -722,7 +724,7 @@ class DatabaseService {
           'progress_date = @progressDate, progress_made = @progressMade, '
           'effectiveness_date = @effectivenessDate, outcome = @outcome, '
           'next_steps = @nextSteps, meeting_date = @meetingDate, '
-          'agenda = @agenda, additional_notes = @additionalNotes '
+          'agenda = @agenda, additional_notes = @additionalNotes, progress_status =@progressStatus '
           'WHERE appointment_id = @appointmentId'),
         parameters: {
           'advisorName': progressTracking.advisorName,
@@ -740,13 +742,15 @@ class DatabaseService {
           'meetingDate': progressTracking.meetingDate.toIso8601String(),
           'agenda': progressTracking.agenda,
           'additionalNotes': progressTracking.additionalNotes,
+          'progressStatus':progressTracking.progressStatus,
           'appointmentId': progressTracking.appointmentId,
         },
       );
 
+      await connection.close();
+
       // Disconnect from the database
     } catch (e) {
-      print('Error updating progress tracking: $e');
       throw Exception('Failed to update progress tracking');
     }
   }

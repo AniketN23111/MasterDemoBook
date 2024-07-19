@@ -3,11 +3,11 @@ import 'package:intl/intl.dart';
 import 'package:saloon/Models/progress_tracking.dart'; // Import your ProgressTracking model
 import 'package:saloon/Services/database_service.dart'; // Import your DatabaseService
 
-class UserDetailsPage extends StatelessWidget {
+class GoalDetailsPage extends StatelessWidget {
   final int userId; // Assuming you have userId available
   final int advisorId; // Assuming you have advisorId available
 
-  const UserDetailsPage(
+  const GoalDetailsPage(
       {Key? key, required this.userId, required this.advisorId})
       : super(key: key);
 
@@ -15,7 +15,7 @@ class UserDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Details'),
+        title: const Text('Goal Details'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -49,7 +49,7 @@ class UserDetailsPage extends StatelessWidget {
   Future<List<String>> _fetchGoalTypes() async {
     try {
       DatabaseService dbService = DatabaseService();
-      return await dbService.getDistinctGoalTypes(userId, advisorId) ?? [];
+      return await dbService.getDistinctGoalTypes(userId, advisorId) ;
     } catch (e) {
       print('Error fetching goal types: $e');
       return []; // Return an empty list on error
@@ -88,7 +88,7 @@ class UserDetailsPage extends StatelessWidget {
     try {
       DatabaseService dbService = DatabaseService();
       return await dbService.getProgressDetailsByGoalType(
-          userId, advisorId, goalType) ?? [];
+          userId, advisorId, goalType) ;
     } catch (e) {
       print('Error fetching progress tracking: $e');
       return []; // Return an empty list on error
@@ -97,9 +97,9 @@ class UserDetailsPage extends StatelessWidget {
 
   Widget _buildProgressTile(ProgressTracking progress) {
     final formattedProgressDate = DateFormat('yyyy-MM-dd').format(
-        progress.progressDate ?? DateTime.now());
+        progress.progressDate);
     return ListTile(
-      title: Text('Goal: ${progress.goal ?? "Unknown"}'),
+      title: Text('Goal: ${progress.goal}'),
       subtitle:Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

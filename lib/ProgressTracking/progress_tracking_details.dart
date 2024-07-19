@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Services/database_service.dart';
 
 class ProgressTrackingDetailsPage extends StatefulWidget {
   final ProgressTracking progressTracking;
 
-  const ProgressTrackingDetailsPage({Key? key, required this.progressTracking}) : super(key: key);
+  const ProgressTrackingDetailsPage({super.key, required this.progressTracking});
 
   @override
-  _ProgressTrackingDetailsPageState createState() => _ProgressTrackingDetailsPageState();
+  State<ProgressTrackingDetailsPage> createState() => _ProgressTrackingDetailsPageState();
 }
 
 class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPage> {
@@ -27,25 +28,30 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
   late TextEditingController _meetingDateController;
   late TextEditingController _agendaController;
   late TextEditingController _additionalNotesController;
+  late String _progressStatus;
+
+  final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
+  final List<String> _progressStatusOptions = ['Open', 'Closed', 'In Progress', 'Hold'];
 
   @override
   void initState() {
     super.initState();
     _advisorNameController = TextEditingController(text: widget.progressTracking.advisorName);
     _userNameController = TextEditingController(text: widget.progressTracking.userName);
-    _dateController = TextEditingController(text: widget.progressTracking.date.toIso8601String());
+    _dateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.date));
     _goalTypeController = TextEditingController(text: widget.progressTracking.goalType);
     _goalController = TextEditingController(text: widget.progressTracking.goal);
     _actionStepsController = TextEditingController(text: widget.progressTracking.actionSteps);
     _timelineController = TextEditingController(text: widget.progressTracking.timeline);
-    _progressDateController = TextEditingController(text: widget.progressTracking.progressDate.toIso8601String());
+    _progressDateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.progressDate));
     _progressMadeController = TextEditingController(text: widget.progressTracking.progressMade);
-    _effectivenessDateController = TextEditingController(text: widget.progressTracking.effectivenessDate.toIso8601String());
+    _effectivenessDateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.effectivenessDate));
     _outcomeController = TextEditingController(text: widget.progressTracking.outcome);
     _nextStepsController = TextEditingController(text: widget.progressTracking.nextSteps);
-    _meetingDateController = TextEditingController(text: widget.progressTracking.meetingDate.toIso8601String());
+    _meetingDateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.meetingDate));
     _agendaController = TextEditingController(text: widget.progressTracking.agenda);
     _additionalNotesController = TextEditingController(text: widget.progressTracking.additionalNotes);
+    _progressStatus = widget.progressTracking.progressStatus;
   }
 
   @override
@@ -69,6 +75,17 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
   }
 
   void _saveProgressTrackingDetails() async {
+    // Show the circular progress indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(color: Colors.blue,),
+        );
+      },
+    );
+
     ProgressTracking updatedProgressTracking = ProgressTracking(
       advisorId: widget.progressTracking.advisorId,
       advisorName: _advisorNameController.text,
@@ -88,12 +105,15 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
       agenda: _agendaController.text,
       additionalNotes: _additionalNotesController.text,
       appointmentId: widget.progressTracking.appointmentId,
+      progressStatus: _progressStatus,
     );
 
     await DatabaseService().updateProgressTracking(updatedProgressTracking);
-
-    // Optionally, show a confirmation message or navigate back
-    Navigator.pop(context);
+print(_progressStatus);
+    // Close the dialog and optionally navigate back
+    if (!mounted) return;
+    Navigator.pop(context); // Close the progress dialog
+    Navigator.pop(context); // Navigate back
   }
 
   @override
@@ -123,6 +143,7 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
                   _buildDataRow('Timeline', _timelineController),
                   _buildDataRow('Progress Date', _progressDateController),
                   _buildDataRow('Progress Made', _progressMadeController),
+                  _buildDataRowForDropdown('Progress Status', _progressStatusOptions, _progressStatus),
                   _buildDataRow('Effectiveness Date', _effectivenessDateController),
                   _buildDataRow('Outcome', _outcomeController),
                   _buildDataRow('Next Steps', _nextStepsController),
@@ -147,16 +168,56 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
     return DataRow(cells: [
       DataCell(Text(label)),
       DataCell(
-        TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(
-              borderSide: BorderSide(
-                width: 0,
-                style: BorderStyle.none,
-              ),
+        Container(
+          width: 200, // Set a fixed width for the text field
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: TextField(
+            controller: controller,
+            maxLines: 1, // Allow single line input to avoid expanding the height
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: Color(0xFFF0F0F0),
+              border: OutlineInputBorder(),
+              isDense: true,
+              contentPadding: EdgeInsets.all(8.0),
             ),
-            isDense: true,
+            style: const TextStyle(
+              overflow: TextOverflow.ellipsis, // Ellipsis for overflowed text
+            ),
+          ),
+        ),
+      ),
+    ]);
+  }
+
+  DataRow _buildDataRowForDropdown(String label, List<String> options, String selectedValue) {
+    return DataRow(cells: [
+      DataCell(Text(label)),
+      DataCell(
+        Container(
+          width: 200,
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: DropdownButtonFormField<String>(
+            value: selectedValue,
+            items: options.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                _progressStatus = newValue!;
+                print(_progressStatus);
+              });
+            },
+            decoration: const InputDecoration(
+              filled: true,
+              fillColor: Color(0xFFF0F0F0),
+              border: OutlineInputBorder(),
+              isDense: true,
+              contentPadding: EdgeInsets.all(8.0),
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 import 'package:saloon/HomeScreen/my_home_page.dart';
 import 'package:saloon/Services/database_service.dart';
 
@@ -14,7 +15,7 @@ class MentorMeetingPage extends StatefulWidget {
   final int advisorID;
 
   const MentorMeetingPage({
-    Key? key,
+    super.key,
     required this.title,
     required this.date,
     required this.timeSlot,
@@ -22,7 +23,7 @@ class MentorMeetingPage extends StatefulWidget {
     required this.subService,
     required this.userID,
     required this.advisorID,
-  }) : super(key: key);
+  });
 
   @override
   State<MentorMeetingPage> createState() => _MentorMeetingPageState();
@@ -41,7 +42,7 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
   final TextEditingController _guestsController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _meetingLinkController = TextEditingController();
-  DatabaseService databaseService =DatabaseService();
+  DatabaseService databaseService = DatabaseService();
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -81,13 +82,12 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
   }
 
   Future<void> _saveMeetingDetails() async {
-
     List<String> mainServices = widget.mainService.split(', ');
     List<String> subServices = widget.subService.split(', ');
 
     String? userName = await databaseService.getUserName(widget.userID);
     String? advisorName = await databaseService.getAdvisorName(widget.advisorID);
-    int? appointmentID = await databaseService.getAppointmentID( widget.date,widget.timeSlot,widget.advisorID,widget.mainService,widget.subService,widget.userID);
+    int? appointmentID = await databaseService.getAppointmentID(widget.date, widget.timeSlot, widget.advisorID, widget.mainService, widget.subService, widget.userID);
 
     // Save meeting details to database
     for (int i = 0; i < mainServices.length; i++) {
@@ -125,41 +125,48 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
         eventDetails: '${mainServices[i]} - ${subServices[i]}',
         description: _descriptionController.text,
         meetingLink: _meetingLinkController.text,
-        appointmentId :appointmentID!,
+        appointmentId: appointmentID!,
       );
     }
-    if(!mounted) return;
-    Navigator.push(context,MaterialPageRoute(builder: (context)=> const MyHomePage()));
+
+    if (!mounted) return;
 
     // Send notifications to mentor and user
-    //await sendNotification('mentor@example.com', 'New Meeting Scheduled');
-    //await sendNotification('user@example.com', 'New Meeting Scheduled'); // User's email
+    await sendNotification('aniketnarayankar3@gmail.com', 'New Meeting Scheduled');
+    await sendNotification('primesolus2311@gmail.com', 'New Meeting Scheduled'); // User's email
 
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyHomePage()));
   }
 
   Future<void> sendNotification(String recipientEmail, String subject) async {
-    final Email email = Email(
-      body: '''
-    <h1>New Meeting Scheduled</h1>
-    <p>Title: ${_titleController.text}</p>
-    <p>Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}</p>
-    <p>Time: ${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}</p>
-    <p>Location: ${_locationController.text}</p>
-    <p>Notification Time: $notificationTime</p>
-    <p>Details: ${widget.mainService} - ${widget.subService}</p>
-    ''',
-      subject: subject,
-      recipients: [recipientEmail],
-      isHTML: true,
-    );
+    String username = 'sakshikadam1892001@gmail.com';
+    String password = 'hjfg apya uqde svpk';
+    final smtpServer = gmail(username, password);
+
+    final message = Message()
+      ..from = Address(username, 'Mail Service')
+      ..recipients.add(recipientEmail)
+      ..subject = subject
+      ..text = '''
+      A new meeting has been scheduled.
+      
+      Title: ${_titleController.text}
+      Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}
+      Time: ${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}
+      Location: ${_locationController.text}
+      Notification Time: $notificationTime
+      Details: ${widget.mainService} - ${widget.subService}
+      Description: ${_descriptionController.text}
+      Meeting Link: ${_meetingLinkController.text}
+      ''';
 
     try {
-      await FlutterEmailSender.send(email);
+      await send(message, smtpServer);
+      print('Email sent successfully');
     } catch (error) {
-      //print('Failed to send email: $error');
+      print('Failed to send email: $error');
     }
   }
-
 
   @override
   void initState() {
@@ -242,8 +249,8 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                   ),
                 ],
               ),
-              const Text('Event Details',style: TextStyle(fontSize: 24,fontWeight: FontWeight.bold),),
-              Text('${widget.mainService} - ${widget.subService}',style: const TextStyle(fontSize: 21),),
+              const Text('Event Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text('${widget.mainService} - ${widget.subService}', style: const TextStyle(fontSize: 21)),
               const SizedBox(height: 16.0),
               Row(
                 children: [
@@ -262,31 +269,9 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
               TextField(
                 controller: _locationController,
                 decoration: const InputDecoration(
-                  labelText: 'Add location',
+                  labelText: 'Location',
                   border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  const Text('Notification'),
-                  const SizedBox(width: 16.0),
-                  DropdownButton<String>(
-                    value: notificationTime,
-                    items: <String>['10 minutes', '30 minutes', '1 hour']
-                        .map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        notificationTime = value!;
-                      });
-                    },
-                  ),
-                ],
               ),
               const SizedBox(height: 16.0),
               TextField(
@@ -300,54 +285,30 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
               TextField(
                 controller: _guestsController,
                 decoration: const InputDecoration(
-                  labelText: 'Guests',
+                  labelText: 'Add guests',
                   border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              const Text('Guest permissions'),
-              Row(
-                children: [
-                  Checkbox(
-                    value: false,
-                    onChanged: (value) {},
-                  ),
-                  const Text('Modify event'),
-                  Checkbox(
-                    value: true,
-                    onChanged: (value) {},
-                  ),
-                  const Text('Invite others'),
-                  Checkbox(
-                    value: true,
-                    onChanged: (value) {},
-                  ),
-                  const Text('See guest list'),
-                ],
               ),
               const SizedBox(height: 16.0),
               TextField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
-                  labelText: 'Add description',
+                  labelText: 'Description',
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16.0),
               TextField(
                 controller: _meetingLinkController,
-                maxLines: 5,
                 decoration: const InputDecoration(
-                  labelText: 'Meeting Link',
+                  labelText: 'Add meeting link',
                   border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 24.0),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _saveMeetingDetails,
-                  child: const Text('Save Meeting'),
-                ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _saveMeetingDetails,
+                child: const Text('Save'),
               ),
             ],
           ),

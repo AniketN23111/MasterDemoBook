@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:saloon/GoalDetailsPage/goal_details_page.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
@@ -11,7 +12,6 @@ import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Models/user_details.dart';
 import 'package:saloon/ProgressTracking/progress_tracking_details.dart';
 import 'package:saloon/Services/database_service.dart';
-import 'package:saloon/UserDetailsPage/user_details_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saloon/Models/appointments_details.dart';
 
@@ -81,7 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (details != null) {
         setState(() {
           mentorDetails = details;
-          userFirstName = mentorDetails!.name;
+          userFirstName = 'Mentor:- ${mentorDetails!.name}';
         });
       } else {
         if (kDebugMode) {
@@ -145,7 +145,8 @@ class _MyHomePageState extends State<MyHomePage> {
       if (usersPerMentor.containsKey(appointment.advisorID)) {
         usersPerMentor[appointment.advisorID] =
             usersPerMentor[appointment.advisorID]! + 1;
-      } else {
+      }
+      else {
         usersPerMentor[appointment.advisorID] = 1;
       }
     }
@@ -187,11 +188,12 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
   }
+
   void _navigateToUserDetails(UserDetails user) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UserDetailsPage( userId:  user.userID, advisorId:mentorDetails!.advisorID),
+        builder: (context) => GoalDetailsPage(userId: user.userID, advisorId: mentorDetails!.advisorID),
       ),
     );
   }
@@ -224,30 +226,49 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.blue,
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Hello, $userFirstName!',
-                    style: const TextStyle(fontSize: 28),
+                  Column(
+                    children: [
+                      Text(
+                        'Hello, $userFirstName',
+                        style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10,),
+                    ],
                   ),
                   const SizedBox(height: 16.0),
                   if (isUser)
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search for a Service',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SearchPage(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                      child: Row(
+                        children: [
+                          const Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search for a Service',
+                                border: InputBorder.none,
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.search, color: Colors.blue),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SearchPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: 16.0),
                 ],
               ),
             ),
@@ -311,13 +332,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     itemCount: userDetailsList.length,
                     itemBuilder: (BuildContext context, int index) {
                       final user = userDetailsList[index];
-                      return GestureDetector(
-                        onTap: () {
-                          _navigateToUserDetails(user); // Function to navigate to user details
-                        },
+                      return Card(
                         child: ListTile(
-                          title: Text(user.name),
+                          title: Text('Mentee:-${user.name}'),
                           subtitle: Text('Email: ${user.email}'),
+                          onTap: () {
+                            _navigateToUserDetails(user); // Function to navigate to user details
+                          },
                         ),
                       );
                     },
@@ -332,30 +353,81 @@ class _MyHomePageState extends State<MyHomePage> {
                     fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(height: 16.0),
+            if(isUser)
+              if (appointmentsList.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8.0),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: appointmentsList.length,
+                      itemBuilder: (context, index) {
+
+                        var appointment = appointmentsList[index];
+                        var mentorIndex = mentorDetailsList.indexWhere((mentor) => mentor.advisorID == appointment.advisorID);
+
+                        if (mentorIndex == -1) {
+                          return const SizedBox.shrink(); // Return an empty widget if the mentor is not found
+                        }
+
+                        var mentor = mentorDetailsList[mentorIndex];
+                        return Card(
+                          child: ListTile(
+                            onTap: () => _onAppointmentTap(appointment.appointmentID),
+                            leading: Text('${index + 1}.'),
+                            title: Text('Appointment with ${mentor.name}'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                                Text('Main Service: ${appointment.mainService}'),
+                                Text('Sub Service: ${appointment.subService}'),
+                                Text('Time: ${appointment.time}'),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
             if (appointmentsList.isNotEmpty)
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: appointmentsList.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final appointment = appointmentsList[index];
-                  final user = index < userDetailsList.length ? userDetailsList[index] : null;
-                  final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse('${appointment.date}'));
-                  return ListTile(
-                    title: Text(formattedDate), // Display formatted date
+              const SizedBox(height: 16.0),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: appointmentsList.length,
+              itemBuilder: (context, index) {
+                var appointment = appointmentsList[index];
+                var userIndex = userDetailsList.indexWhere((user) =>
+                user.userID == appointment.userID); // Find the corresponding user index
+                if (userIndex == -1) {
+                  return const SizedBox.shrink();// Return an empty widget if the user is not found
+                }
+                var user = userDetailsList[userIndex];
+                return Card(
+                  child: ListTile(
+                    onTap: () => _onAppointmentTap(appointment.appointmentID),
+                    title: Text('Appointment with ${user.name}'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                            'Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
                         Text('Time: ${appointment.time}'),
-                        if (isUser)
-                          Text('Mentor: ${mentorDetailsList.firstWhere((mentor) => mentor.advisorID == appointment.advisorID).name}'),
                       ],
                     ),
-                    onTap: () => _onAppointmentTap(appointment.appointmentID),
-                  );
-                },
-              ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.info),
+                      onPressed: () => _navigateToUserDetails(user),
+                    ),
+                  ),
+                );
+              },
+            ),
             const SizedBox(height: 16.0),
           ],
         ),
@@ -366,7 +438,7 @@ class _MyHomePageState extends State<MyHomePage> {
             DrawerHeader(
               decoration: const BoxDecoration(color: Colors.blue),
               child: Text(
-                'Welcome, $userFirstName!',
+                'Welcome, $userFirstName',
                 style: const TextStyle(fontSize: 24, color: Colors.white),
               ),
             ),
@@ -394,4 +466,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
