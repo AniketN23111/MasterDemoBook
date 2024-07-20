@@ -6,6 +6,7 @@ import 'package:saloon/Models/edit_appointment_meeting.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/admin_service.dart';
 import 'package:saloon/Models/mentor_service.dart';
+import 'package:saloon/Models/program_initializer.dart';
 import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Models/user_details.dart';
 
@@ -753,6 +754,80 @@ class DatabaseService {
     } catch (e) {
       throw Exception('Failed to update progress tracking');
     }
+  }
+  //Get Program Initializer
+  Future<ProgramInitializer?> getProgramInitializerByID(int programId) async {
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(
+        Sql.named('SELECT * FROM program_initializer WHERE program_id = @programId'),
+        parameters: {
+          'programId': programId,
+        },
+      );
+
+      await connection.close();
+
+      if (results.isNotEmpty) {
+        final row = results.first;
+        return ProgramInitializer(
+          programId: row[0] as int,
+          programName: row[1] as String,
+          programDescription: row[2] as String,
+          organizationName: row[3] as String,
+          imageUrl: row[4] as String,
+          coordinatorName: row[5] as String,
+          coordinatorEmail:row[6] as String,
+          coordinatorNumber: row[7] as String,
+
+        );
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print('Error retrieving program details: $e');
+      return null;
+    }
+  }
+  Future<List<String>> getProgramInitializerName() async {
+    List<String> programList = [];
+    try {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute('SELECT program_name FROM program_initializer');
+
+      await connection.close();
+
+      if (results.isNotEmpty) {
+        for (final row in results) {
+          programList.add(row[0] as String);
+        }
+      }
+      print(programList);
+    } catch (e) {
+      print('Error retrieving program details: $e');
+    }
+
+    return programList;
   }
 }
 

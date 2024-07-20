@@ -332,7 +332,7 @@ class _AdminPageState extends State<AdminPage> {
         ),
         const SizedBox(height: 20),
         SizedBox(
-          height: ScreenUtility.screenHeight * 0.4,
+          height: ScreenUtility.screenHeight * 0.2,
           width: ScreenUtility.screenWidth * 0.8,
           child: _programInitializerURl != null
               ? Padding(
@@ -389,7 +389,7 @@ class _AdminPageState extends State<AdminPage> {
       );
 
       await connection.execute(
-        'INSERT INTO public.service_master(service, subservice, icon) VALUES (@service, @subService, @icon)',
+        'INSERT INTO public.service_master(service, sub_service, icon_url) VALUES (@service, @subService, @icon)',
         parameters: {
           'service': service,
           'subService': subService,

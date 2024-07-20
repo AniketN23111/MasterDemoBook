@@ -39,10 +39,14 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _notificationController = TextEditingController();
-  final TextEditingController _guestsController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _meetingLinkController = TextEditingController();
+  final TextEditingController _guestEmailController = TextEditingController();
+  List<String> guests = [];
   DatabaseService databaseService = DatabaseService();
+
+  List<String> programDetails = [];
+  String? selectedProgram;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -168,6 +172,15 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     }
   }
 
+  void _addGuestEmail() {
+    if (_guestEmailController.text.isNotEmpty) {
+      setState(() {
+        guests.add(_guestEmailController.text);
+        _guestEmailController.clear();
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -179,8 +192,14 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
       startTime = TimeOfDay(hour: int.parse(startParts[0]), minute: int.parse(startParts[1].split(' ')[0]));
       endTime = TimeOfDay(hour: int.parse(endParts[0]), minute: int.parse(endParts[1].split(' ')[0]));
     }
+    _fetchProgramDetails();
   }
-
+  Future<void> _fetchProgramDetails() async {
+    List<String> programs = await databaseService.getProgramInitializerName();
+    setState(() {
+      programDetails = programs;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -274,6 +293,25 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                 ),
               ),
               const SizedBox(height: 16.0),
+              DropdownButtonFormField<String>(
+                value: selectedProgram,
+                items: programDetails.map((String program) {
+                  return DropdownMenuItem<String>(
+                    value: program,
+                    child: Text(program),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedProgram = newValue;
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Select Program',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16.0),
               TextField(
                 controller: _notificationController,
                 decoration: const InputDecoration(
@@ -283,11 +321,29 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
               ),
               const SizedBox(height: 16.0),
               TextField(
-                controller: _guestsController,
+                controller: _guestEmailController,
                 decoration: const InputDecoration(
                   labelText: 'Add guests',
                   border: OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: _addGuestEmail,
+                child: const Text('Add Guest'),
+              ),
+              Wrap(
+                spacing: 8.0,
+                children: guests.map((email) {
+                  return InputChip(
+                    label: Text(email),
+                    onDeleted: () {
+                      setState(() {
+                        guests.remove(email);
+                      });
+                    },
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 16.0),
               TextField(
