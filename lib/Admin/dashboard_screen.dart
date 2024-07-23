@@ -10,9 +10,10 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final DatabaseService _dbService = DatabaseService(/* your connection */);
+  final DatabaseService _dbService = DatabaseService();
   int _selectedYear = DateTime.now().year;
-  Map<String, Map<int, int>>? _dashboardData;
+  Map<String, Map<int, int>>? _MentorData;
+  Map<String, Map<int, int>>? _MenteeData;
   bool _isLoading = true;
 
   @override
@@ -25,9 +26,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _isLoading = true;
     });
-    final data = await _dbService.getDashboardData(_selectedYear);
+    final mentorData = await _dbService.getMentorMeetingCounts(_selectedYear);
+    final menteeData = await _dbService.getMenteeMeetingCounts(_selectedYear);
     setState(() {
-      _dashboardData = data.cast<String, Map<int, int>>();
+      _MentorData = mentorData.cast<String, Map<int, int>>();
+      _MenteeData = menteeData.cast<String, Map<int, int>>();
       _isLoading = false;
     });
   }
@@ -67,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mentor Dashboard'),
+        title: const Text('Dashboard'),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_today),
@@ -82,20 +85,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _dashboardData == null || _dashboardData!.isEmpty
+          : _MentorData == null || _MentorData!.isEmpty || _MenteeData == null || _MenteeData!.isEmpty
           ? const Center(child: Text('No meetings'))
           : SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Table header with month names
+            // Mentor Meetings Table
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Mentor Meetings',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+            ),
             Table(
               border: TableBorder.all(),
               columnWidths: {
-                0: FixedColumnWidth(150), // Width for mentor names
+                0: const FixedColumnWidth(150), // Width for mentor names
                 for (int month = 1; month <= 12; month++)
-                  month: FixedColumnWidth(70), // Width for each month
+                  month: const FixedColumnWidth(70), // Width for each month
               },
               children: [
                 TableRow(
@@ -117,7 +127,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 // Data rows for each mentor
-                for (var mentorName in _dashboardData!.keys)
+                for (var mentorName in _MentorData!.keys)
                   TableRow(
                     children: [
                       TableCell(
@@ -131,7 +141,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       for (int month = 1; month <= 12; month++)
                         TableCell(
                           child: Center(
-                            child: Text('${_dashboardData![mentorName]![month] ?? 0}'),
+                            child: Text('${_MentorData![mentorName]![month] ?? 0}'),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+            // Spacer between tables
+            const SizedBox(height: 20),
+            // Mentee Meetings Table
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Mentee Meetings',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            Table(
+              border: TableBorder.all(),
+              columnWidths: {
+                0: const FixedColumnWidth(150), // Width for mentee names
+                for (int month = 1; month <= 12; month++)
+                  month: const FixedColumnWidth(70), // Width for each month
+              },
+              children: [
+                TableRow(
+                  children: [
+                    TableCell(
+                      child: Center(
+                        child: Text(
+                          'Mentee Name',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ),
+                    for (int month = 1; month <= 12; month++)
+                      TableCell(
+                        child: Center(
+                          child: Text(DateFormat('MMM').format(DateTime(0, month))),
+                        ),
+                      ),
+                  ],
+                ),
+                // Data rows for each mentee
+                for (var menteeName in _MenteeData!.keys)
+                  TableRow(
+                    children: [
+                      TableCell(
+                        child: Center(
+                          child: Text(
+                            menteeName,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ),
+                      ),
+                      for (int month = 1; month <= 12; month++)
+                        TableCell(
+                          child: Center(
+                            child: Text('${_MenteeData![menteeName]![month] ?? 0}'),
                           ),
                         ),
                     ],

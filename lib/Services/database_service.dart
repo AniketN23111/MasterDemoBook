@@ -851,7 +851,7 @@ class DatabaseService {
       return 'Unknown'; // Default value if mentor name is not found
     }
   }
-  Future<Map<String, Map<int, int>>> getDashboardData(int year) async {
+  Future<Map<String, Map<int, int>>> getMentorMeetingCounts(int year) async {
 
     final connection = await Connection.open(
       Endpoint(
@@ -891,5 +891,68 @@ class DatabaseService {
 
     return data;
   }
+  Future<String> _getMenteeName(int userID) async {
+    final connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+
+    // Replace with your actual query to fetch mentor name
+    const query = 'SELECT name FROM master_demo_user WHERE user_id = @userId';
+    final result = await connection.execute(Sql.named(query), parameters: {'userId': userID});
+
+    if (result.isNotEmpty) {
+      return result.first.toColumnMap()['name'] as String;
+    } else {
+      return 'Unknown'; // Default value if mentor name is not found
+    }
+  }
+  Future<Map<String, Map<int, int>>> getMenteeMeetingCounts(int year) async {
+      final connection = await Connection.open(
+        Endpoint(
+          host: '34.71.87.187',
+          port: 5432,
+          database: 'datagovernance',
+          username: 'postgres',
+          password: 'India@5555',
+        ),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      );
+
+      final results = await connection.execute(Sql.named('''
+        SELECT user_id,EXTRACT(MONTH FROM date) AS month, COUNT(*) AS count
+        FROM appointments
+        WHERE EXTRACT(YEAR FROM date) = @year
+        GROUP BY user_id,EXTRACT(MONTH FROM date)
+        '''),
+        parameters: {'year': year},
+      );
+
+      await connection.close();
+
+      final data = <String, Map<int, int>>{};
+
+      for (var row in results) {
+        final userID = row[0] as int;
+        final monthString = row[1] as String;
+        int count = row[2] as int;
+        final month = int.tryParse(monthString) ?? 0;
+        final menteeName = await _getMenteeName(userID);
+
+        if (!data.containsKey(menteeName)) {
+          data[menteeName] = {};
+        }
+
+        data[menteeName]![month] = count;
+      }
+      return data;
+  }
 }
+
 
