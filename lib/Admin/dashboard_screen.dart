@@ -66,6 +66,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return year;
   }
 
+  Future<void> _showMonthlyAppointments(BuildContext context, int month) async {
+    final appointments = await _dbService.getAppointmentsForMonth(month, _selectedYear);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Appointments for ${DateFormat('MMMM').format(DateTime(0, month))}'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: appointments.isEmpty
+                  ? [const Text('No appointments')]
+                  : appointments.map((appointment) {
+                return ListTile(
+                  title: Text('Appointment ID: ${appointment.appointmentID}'),
+                  subtitle: Text('Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                  onTap: () {
+                    // Show more details if needed
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,7 +178,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       for (int month = 1; month <= 12; month++)
                         TableCell(
                           child: Center(
-                            child: Text('${_MentorData![mentorName]![month] ?? 0}'),
+                            child: InkWell(
+                              onTap: () async {
+                                await _showMonthlyAppointments(context, month);
+                              },
+                              child: Text('${_MentorData![mentorName]![month] ?? 0}'),
+                            ),
                           ),
                         ),
                     ],
@@ -155,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.all(8.0),
               child: Text(
                 'Mentee Meetings',
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
             ),
             Table(
@@ -199,7 +241,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       for (int month = 1; month <= 12; month++)
                         TableCell(
                           child: Center(
-                            child: Text('${_MenteeData![menteeName]![month] ?? 0}'),
+                            child: InkWell(
+                              onTap: () async {
+                                await _showMonthlyAppointments(context, month);
+                              },
+                              child: Text('${_MenteeData![menteeName]![month] ?? 0}'),
+                            ),
                           ),
                         ),
                     ],

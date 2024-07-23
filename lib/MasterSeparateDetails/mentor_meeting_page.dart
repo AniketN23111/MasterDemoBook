@@ -86,60 +86,93 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
   }
 
   Future<void> _saveMeetingDetails() async {
-    List<String> mainServices = widget.mainService.split(', ');
-    List<String> subServices = widget.subService.split(', ');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
 
-    String? userName = await databaseService.getUserName(widget.userID);
-    String? advisorName = await databaseService.getAdvisorName(widget.advisorID);
-    int? appointmentID = await databaseService.getAppointmentID(widget.date, widget.timeSlot, widget.advisorID, widget.mainService, widget.subService, widget.userID);
+    try {
+      List<String> mainServices = widget.mainService.split(', ');
+      List<String> subServices = widget.subService.split(', ');
 
-    // Save meeting details to database
-    for (int i = 0; i < mainServices.length; i++) {
-      await databaseService.insertProgressTracking(
-        advisorId: widget.advisorID,
-        advisorName: advisorName!,
-        userId: widget.userID,
-        userName: userName!,
-        date: selectedDate,
-        goalType: 'Meeting',
-        goal: _titleController.text,
-        actionSteps: '${mainServices[i]} - ${subServices[i]}',
-        timeline: '${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}',
-        progressDate: selectedDate,
-        progressMade: '',
-        effectivenessDate: selectedDate,
-        outcome: '',
-        nextSteps: '',
-        meetingDate: selectedDate,
-        agenda: _descriptionController.text,
-        additionalNotes: _meetingLinkController.text,
-        appointmentId: appointmentID!,
+      String? userName = await databaseService.getUserName(widget.userID);
+      String? advisorName = await databaseService.getAdvisorName(widget.advisorID);
+      int? appointmentID = await databaseService.getAppointmentID(widget.date, widget.timeSlot, widget.advisorID, widget.mainService, widget.subService, widget.userID);
+
+      // Save meeting details to database
+      for (int i = 0; i < mainServices.length; i++) {
+        await databaseService.insertProgressTracking(
+          advisorId: widget.advisorID,
+          advisorName: advisorName!,
+          userId: widget.userID,
+          userName: userName!,
+          date: selectedDate,
+          goalType: 'Meeting',
+          goal: _titleController.text,
+          actionSteps: '${mainServices[i]} - ${subServices[i]}',
+          timeline: '${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}',
+          progressDate: selectedDate,
+          progressMade: '',
+          effectivenessDate: selectedDate,
+          outcome: '',
+          nextSteps: '',
+          meetingDate: selectedDate,
+          agenda: _descriptionController.text,
+          additionalNotes: _meetingLinkController.text,
+          appointmentId: appointmentID!,
+        );
+      }
+
+      for (int i = 0; i < mainServices.length; i++) {
+        await databaseService.insertMentorMeeting(
+          userId: widget.userID,
+          advisorId: widget.advisorID,
+          title: _titleController.text,
+          meetingDate: selectedDate,
+          startTime: startTime!,
+          endTime: endTime!,
+          location: _locationController.text,
+          eventDetails: '${mainServices[i]} - ${subServices[i]}',
+          description: _descriptionController.text,
+          meetingLink: _meetingLinkController.text,
+          appointmentId: appointmentID!,
+        );
+      }
+
+      if (!mounted) return;
+
+      // Send notifications to mentor and user
+      //await sendNotification('aniketnarayankar3@gmail.com', 'New Meeting Scheduled');
+      //await sendNotification('primesolus2311@gmail.com', 'New Meeting Scheduled'); // User's email
+
+      Navigator.pop(context); // Dismiss the loading dialog
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const MyHomePage()));
+    } catch (e) {
+      Navigator.pop(context); // Dismiss the loading dialog in case of an error
+      // Handle the error (e.g., show a Snackbar or a dialog with an error message)
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Error'),
+            content: Text('Failed to save meeting details: $e'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
       );
     }
-
-    for (int i = 0; i < mainServices.length; i++) {
-      await databaseService.insertMentorMeeting(
-        userId: widget.userID,
-        advisorId: widget.advisorID,
-        title: _titleController.text,
-        meetingDate: selectedDate,
-        startTime: startTime!,
-        endTime: endTime!,
-        location: _locationController.text,
-        eventDetails: '${mainServices[i]} - ${subServices[i]}',
-        description: _descriptionController.text,
-        meetingLink: _meetingLinkController.text,
-        appointmentId: appointmentID!,
-      );
-    }
-
-    if (!mounted) return;
-
-    // Send notifications to mentor and user
-    await sendNotification('aniketnarayankar3@gmail.com', 'New Meeting Scheduled');
-    await sendNotification('primesolus2311@gmail.com', 'New Meeting Scheduled'); // User's email
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) => const MyHomePage()));
   }
 
   Future<void> sendNotification(String recipientEmail, String subject) async {
@@ -194,12 +227,14 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     }
     _fetchProgramDetails();
   }
+
   Future<void> _fetchProgramDetails() async {
     List<String> programs = await databaseService.getProgramInitializerName();
     setState(() {
       programDetails = programs;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,95 +254,59 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                   border: OutlineInputBorder(),
                 ),
               ),
+              ListTile(
+                title: const Text('Select date'),
+                subtitle: Text(DateFormat('yyyy-MM-dd').format(selectedDate)),
+                trailing: const Icon(Icons.arrow_drop_down),
+                onTap: () => _selectDate(context),
+              ),
               const SizedBox(height: 16.0),
               Row(
                 children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => _selectDate(context),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Date',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Text(
-                          '${selectedDate.toLocal()}'.split(' ')[0],
-                        ),
-                      ),
-                    ),
-                  ),
                   const SizedBox(width: 16.0),
                   Expanded(
-                    child: InkWell(
+                    child: ListTile(
+                      title: const Text('Start time'),
+                      subtitle: Text(startTime != null ? formatTimeOfDay(startTime!) : 'Select start time'),
+                      trailing: const Icon(Icons.arrow_drop_down),
                       onTap: () => _selectTime(context, true),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Start Time',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Text(
-                          startTime != null ? formatTimeOfDay(startTime!) : 'Select Start Time',
-                        ),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 16.0),
                   Expanded(
-                    child: InkWell(
+                    child: ListTile(
+                      title: const Text('End time'),
+                      subtitle: Text(endTime != null ? formatTimeOfDay(endTime!) : 'Select end time'),
+                      trailing: const Icon(Icons.arrow_drop_down),
                       onTap: () => _selectTime(context, false),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'End Time',
-                          border: OutlineInputBorder(),
-                        ),
-                        child: Text(
-                          endTime != null ? formatTimeOfDay(endTime!) : 'Select End Time',
-                        ),
-                      ),
                     ),
                   ),
                 ],
               ),
-              const Text('Event Details', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              Text('${widget.mainService} - ${widget.subService}', style: const TextStyle(fontSize: 21)),
               const SizedBox(height: 16.0),
-              Row(
-                children: [
-                  Checkbox(
-                    value: doesNotRepeat,
-                    onChanged: (value) {
-                      setState(() {
-                        doesNotRepeat = value!;
-                      });
-                    },
-                  ),
-                  const Text('Does not repeat'),
-                ],
+              DropdownButtonFormField<String>(
+                value: selectedProgram,
+                items: programDetails.map((program) {
+                  return DropdownMenuItem(
+                    value: program,
+                    child: Text(program),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedProgram = value;
+                  });
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Program',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 16.0),
               TextField(
                 controller: _locationController,
                 decoration: const InputDecoration(
-                  labelText: 'Location',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              DropdownButtonFormField<String>(
-                value: selectedProgram,
-                items: programDetails.map((String program) {
-                  return DropdownMenuItem<String>(
-                    value: program,
-                    child: Text(program),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedProgram = newValue;
-                  });
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Select Program',
+                  labelText: 'Add location',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -315,41 +314,16 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
               TextField(
                 controller: _notificationController,
                 decoration: const InputDecoration(
-                  labelText: 'Add notification',
+                  labelText: 'Notification time before',
                   border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16.0),
-              TextField(
-                controller: _guestEmailController,
-                decoration: const InputDecoration(
-                  labelText: 'Add guests',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _addGuestEmail,
-                child: const Text('Add Guest'),
-              ),
-              Wrap(
-                spacing: 8.0,
-                children: guests.map((email) {
-                  return InputChip(
-                    label: Text(email),
-                    onDeleted: () {
-                      setState(() {
-                        guests.remove(email);
-                      });
-                    },
-                  );
-                }).toList(),
               ),
               const SizedBox(height: 16.0),
               TextField(
                 controller: _descriptionController,
+                maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: 'Description',
+                  labelText: 'Add description',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -360,6 +334,32 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
                   labelText: 'Add meeting link',
                   border: OutlineInputBorder(),
                 ),
+              ),
+              const SizedBox(height: 16.0),
+              TextField(
+                controller: _guestEmailController,
+                decoration: InputDecoration(
+                  labelText: 'Add guest email',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: _addGuestEmail,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Wrap(
+                spacing: 8.0,
+                children: guests.map((guest) {
+                  return Chip(
+                    label: Text(guest),
+                    onDeleted: () {
+                      setState(() {
+                        guests.remove(guest);
+                      });
+                    },
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(

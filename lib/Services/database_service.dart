@@ -1011,4 +1011,40 @@ class DatabaseService {
       return MapEntry(uniqueKey, meetingCounts);
     });
   }
+  Future<List<AppointmentsDetails>> getAppointmentsForMonth(int month, int year) async {
+    final connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+
+    final query = '''
+    SELECT * FROM appointments
+    WHERE EXTRACT(MONTH FROM date) = @month
+    AND EXTRACT(YEAR FROM date) = @year
+  ''';
+
+    final result = await connection.execute(Sql.named(query), parameters: {'month': month, 'year': year});
+
+    // Parse the result into a list of Appointment objects
+    final appointments = result.map((row) {
+      return AppointmentsDetails(
+          appointmentID: row[0] as int,
+        date: row[1] as DateTime,
+        time: row[2] as String,
+        advisorID:  row[3] as int,
+        mainService: row[4] as String,
+          subService: row[5] as String,
+          userID: row[6] as int,
+        // Add more fields as needed
+      );
+    }).toList();
+
+    return appointments;
+  }
 }

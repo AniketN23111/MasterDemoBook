@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<int, int> usersPerMentor = {}; // Map to store user count per mentor
   bool isLoading = true;
   bool isUser = true;
+  bool isMentor =false;
 
   @override
   void initState() {
@@ -81,6 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
           email, password);
       if (details != null) {
         setState(() {
+          isMentor =true;
           mentorDetails = details;
           userFirstName = 'Mentor - ${mentorDetails!.name}';
         });
@@ -438,6 +440,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             const SizedBox(height: 16.0),
+            if(isUser)
             if (closedAppointmentsList.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,6 +474,56 @@ class _MyHomePageState extends State<MyHomePage> {
                           onTap: () => _onAppointmentTap(appointment.appointmentID),
                           leading: Text('${index + 1}.'),
                           title: Text('Appointment with ${mentor.name}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                              Text('Main Service: ${appointment.mainService}'),
+                              Text('Sub Service: ${appointment.subService}'),
+                              Text('Time: ${appointment.time}'),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            if(isMentor)
+            if (closedAppointmentsList.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Center(
+                      child: Text(
+                        'Closed Appointments:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8.0),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: closedAppointmentsList.length,
+                    itemBuilder: (context, index) {
+                      var appointment = appointmentsList[index];
+                      var userIndex = userDetailsList.indexWhere((user) =>
+                      user.userID == appointment.userID); // Find the corresponding user index
+                      if (userIndex == -1) {
+                        return const SizedBox.shrink();// Return an empty widget if the user is not found
+                      }
+
+                      var user = userDetailsList[userIndex];
+                      return Card(
+                        child: ListTile(
+                          onTap: () => _onAppointmentTap(appointment.appointmentID),
+                          leading: Text('${index + 1}.'),
+                          title: Text('Appointment with ${user.name}'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

@@ -152,7 +152,7 @@ class _AdminPageState extends State<AdminPage> {
                     Navigator.push(context,MaterialPageRoute(builder: (context) => const DashboardScreen()));
                   });
                 },
-                child: const Text('Service'),
+                child: const Text('DashBoard'),
               ),
               const SizedBox(height: 20),
               _showServiceForm ? _buildServiceForm() : _buildInitializerForm(),

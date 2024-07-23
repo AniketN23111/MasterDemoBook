@@ -409,7 +409,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
       // Insert into public.master_details table and get the generated advisor_id
       final result = await connection.execute(Sql.named('''
-      INSERT INTO public.master_details (
+      INSERT INTO public.advisor_details (
         name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url ,company_name,designation,gender,date_of_birth,password
       ) VALUES (
         @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl, @company_name, @designation, @gender,@date_of_birth, @password
@@ -455,7 +455,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         String unit = parts[4].split(': ').last.trim();
 
         await connection.execute(Sql.named('''
-        INSERT INTO public.service_details (
+        INSERT INTO public.advisor_service_details (
           advisor_id, main_service, sub_service, rate, quantity, unit_of_measurement
         ) VALUES (
           @advisorID, @mainService, @subService, @rate, @quantity, @unit
@@ -472,7 +472,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Shop details registered successfully')),
+        const SnackBar(content: Text('Details registered successfully')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
