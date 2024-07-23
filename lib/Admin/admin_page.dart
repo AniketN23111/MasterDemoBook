@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:postgres/postgres.dart';
+import 'package:saloon/Admin/dashboard_screen.dart';
 import 'package:saloon/Constants/screen_utility.dart';
 import 'package:saloon/GoogleApi/cloud_api.dart';
 
@@ -144,6 +145,14 @@ class _AdminPageState extends State<AdminPage> {
                     child: const Text('Program Initializers'),
                   ),
                 ],
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    Navigator.push(context,MaterialPageRoute(builder: (context) => const DashboardScreen()));
+                  });
+                },
+                child: const Text('Service'),
               ),
               const SizedBox(height: 20),
               _showServiceForm ? _buildServiceForm() : _buildInitializerForm(),

@@ -829,5 +829,67 @@ class DatabaseService {
 
     return programList;
   }
+  Future<String> _getMentorName(int advisorId) async {
+    final connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+
+    // Replace with your actual query to fetch mentor name
+    const query = 'SELECT name FROM advisor_details WHERE advisor_id = @advisorId';
+    final result = await connection.execute(Sql.named(query), parameters: {'advisorId': advisorId});
+
+    if (result.isNotEmpty) {
+      return result.first.toColumnMap()['name'] as String;
+    } else {
+      return 'Unknown'; // Default value if mentor name is not found
+    }
+  }
+  Future<Map<String, Map<int, int>>> getDashboardData(int year) async {
+
+    final connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+    // Replace with your actual query to fetch data
+    final query = '''
+      SELECT advisor_id, EXTRACT(MONTH FROM date) as Month, COUNT(*) AS meeting_count
+      FROM appointments
+      WHERE EXTRACT(YEAR FROM date) = $year
+      GROUP BY advisor_id, EXTRACT(MONTH FROM date)
+    ''';
+
+    final result = await connection.execute(Sql.named(query));
+
+    final data = <String, Map<int, int>>{};
+
+    for (var row in result) {
+      final advisorId = row[0] as int;
+      final monthString = row[1] as String;
+      final meetingCount = row[2] as int;
+      final month = int.tryParse(monthString) ?? 0;
+      final mentorName = await _getMentorName(advisorId); // Method to fetch mentor name from ID
+
+      if (!data.containsKey(mentorName)) {
+        data[mentorName] = {};
+      }
+
+      data[mentorName]![month] = meetingCount;
+    }
+
+    return data;
+  }
 }
 

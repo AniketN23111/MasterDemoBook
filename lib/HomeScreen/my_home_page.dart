@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saloon/Models/appointments_details.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -31,6 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
   MentorDetails? mentorDetails;
   List<MentorService> masterServiceList = [];
   List<AppointmentsDetails> appointmentsList = [];
+  List<AppointmentsDetails> closedAppointmentsList = [];
   List<UserDetails> userDetailsList = [];
   Map<int, int> usersPerMentor = {}; // Map to store user count per mentor
   bool isLoading = true;
@@ -81,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (details != null) {
         setState(() {
           mentorDetails = details;
-          userFirstName = 'Mentor:- ${mentorDetails!.name}';
+          userFirstName = 'Mentor - ${mentorDetails!.name}';
         });
       } else {
         if (kDebugMode) {
@@ -109,17 +110,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _fetchAppointments() async {
     DatabaseService dbService = DatabaseService();
+    DateTime now = DateTime.now();
     if (isUser && userDetails != null) {
       List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
-      // Sort appointments by date in decreasing order
-      appointments.sort((a, b) => a.date.compareTo(b.date)); // Compare DateTime directly
       setState(() {
-        appointmentsList = appointments;
+        // Separate future and past appointments
+        appointmentsList = appointments.where((appointment) => appointment.date.isAfter(now)).toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
+        closedAppointmentsList = appointments.where((appointment) => appointment.date.isBefore(now)).toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
       });
     } else if (!isUser && mentorDetails != null) {
       List<AppointmentsDetails> appointments = await dbService.getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
-      // Sort appointments by date in decreasing order
-      appointments.sort((a, b) => b.date.compareTo(a.date)); // Compare DateTime directly
       // Fetch user details for each appointment
       List<UserDetails> users = [];
       Set<int> displayedUserIds = {}; // Track displayed user IDs
@@ -131,12 +133,15 @@ class _MyHomePageState extends State<MyHomePage> {
         }
       }
       setState(() {
-        appointmentsList = appointments;
+        // Separate future and past appointments
+        appointmentsList = appointments.where((appointment) => appointment.date.isAfter(now)).toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
+        closedAppointmentsList = appointments.where((appointment) => appointment.date.isBefore(now)).toList()
+          ..sort((a, b) => a.date.compareTo(b.date));
         userDetailsList = users; // Store the list of user details
       });
     }
   }
-
 
   Future<void> _countUsersPerMentor() async {
     // Count users per mentor based on appointmentsList
@@ -214,7 +219,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+      ),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(color: Colors.blue),
@@ -230,11 +237,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Column(
                     children: [
-                      Text(
-                        'Hello, $userFirstName',
-                        style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+                      Center(
+                        child: Text(
+                          'Hello, $userFirstName',
+                          style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      const SizedBox(height: 10,),
                     ],
                   ),
                   const SizedBox(height: 16.0),
@@ -353,7 +361,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            if(isUser)
+            if (isUser)
               if (appointmentsList.isNotEmpty)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -396,39 +404,89 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
             if (appointmentsList.isNotEmpty)
               const SizedBox(height: 16.0),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: appointmentsList.length,
-              itemBuilder: (context, index) {
-                var appointment = appointmentsList[index];
-                var userIndex = userDetailsList.indexWhere((user) =>
-                user.userID == appointment.userID); // Find the corresponding user index
-                if (userIndex == -1) {
-                  return const SizedBox.shrink();// Return an empty widget if the user is not found
-                }
-                var user = userDetailsList[userIndex];
-                return Card(
-                  child: ListTile(
-                    onTap: () => _onAppointmentTap(appointment.appointmentID),
-                    title: Text('Appointment with ${user.name}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                            'Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
-                        Text('Time: ${appointment.time}'),
-                      ],
+            if (appointmentsList.isNotEmpty)
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: appointmentsList.length,
+                itemBuilder: (context, index) {
+                  var appointment = appointmentsList[index];
+                  var userIndex = userDetailsList.indexWhere((user) =>
+                  user.userID == appointment.userID); // Find the corresponding user index
+                  if (userIndex == -1) {
+                    return const SizedBox.shrink();// Return an empty widget if the user is not found
+                  }
+                  var user = userDetailsList[userIndex];
+                  return Card(
+                    child: ListTile(
+                      onTap: () => _onAppointmentTap(appointment.appointmentID),
+                      title: Text('Appointment with ${user.name}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              'Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                          Text('Time: ${appointment.time}'),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.info),
+                        onPressed: () => _navigateToUserDetails(user),
+                      ),
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.info),
-                      onPressed: () => _navigateToUserDetails(user),
+                  );
+                },
+              ),
+            const SizedBox(height: 16.0),
+            if (closedAppointmentsList.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Center(
+                      child: Text(
+                        'Closed Appointments:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
-            const SizedBox(height: 16.0),
+                  const SizedBox(height: 8.0),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: closedAppointmentsList.length,
+                    itemBuilder: (context, index) {
+                      var appointment = closedAppointmentsList[index];
+                      var mentorIndex = mentorDetailsList.indexWhere((mentor) => mentor.advisorID == appointment.advisorID);
+
+                      if (mentorIndex == -1) {
+                        return const SizedBox.shrink(); // Return an empty widget if the mentor is not found
+                      }
+
+                      var mentor = mentorDetailsList[mentorIndex];
+                      return Card(
+                        child: ListTile(
+                          onTap: () => _onAppointmentTap(appointment.appointmentID),
+                          leading: Text('${index + 1}.'),
+                          title: Text('Appointment with ${mentor.name}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'Date: ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                              Text('Main Service: ${appointment.mainService}'),
+                              Text('Sub Service: ${appointment.subService}'),
+                              Text('Time: ${appointment.time}'),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
           ],
         ),
       ),
