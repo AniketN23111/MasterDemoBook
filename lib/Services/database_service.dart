@@ -62,6 +62,7 @@ class DatabaseService {
       return [];
     }
   }
+
   //Admin Stored Services Get
   Future<List<AdminService>> getAdminService() async {
     try {
@@ -151,7 +152,9 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute(Sql.named('SELECT * FROM master_demo_user WHERE email = @email AND password = @password'),
+      final results = await connection.execute(
+        Sql.named(
+            'SELECT * FROM master_demo_user WHERE email = @email AND password = @password'),
         parameters: {
           'email': email,
           'password': password,
@@ -175,8 +178,10 @@ class DatabaseService {
       return null;
     }
   }
+
   //Mentor Details Get By Email
-  Future<MentorDetails?> getMentorByEmailDetails(String email, String password) async {
+  Future<MentorDetails?> getMentorByEmailDetails(
+      String email, String password) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -189,7 +194,9 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute(Sql.named('SELECT * FROM advisor_details WHERE email = @email AND password = @password'),
+      final results = await connection.execute(
+        Sql.named(
+            'SELECT * FROM advisor_details WHERE email = @email AND password = @password'),
         parameters: {
           'email': email,
           'password': password,
@@ -229,7 +236,8 @@ class DatabaseService {
   }
 
   //User Appointment Find by User ID
-  Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(int userID) async {
+  Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(
+      int userID) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -242,16 +250,16 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute(Sql.named('SELECT * FROM appointments WHERE user_id = @userId'),
-        parameters : {
-        'userId': userID,
+      final results = await connection.execute(
+        Sql.named('SELECT * FROM appointments WHERE user_id = @userId'),
+        parameters: {
+          'userId': userID,
         },
       );
 
       await connection.close();
 
       List<AppointmentsDetails> appointmentsDetailsList = [];
-
 
       for (var row in results) {
         appointmentsDetailsList.add(AppointmentsDetails(
@@ -285,8 +293,9 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute(Sql.named('SELECT * FROM master_demo_user WHERE user_id = @userId'),
-        parameters : {
+      final results = await connection.execute(
+        Sql.named('SELECT * FROM master_demo_user WHERE user_id = @userId'),
+        parameters: {
           'userId': userID,
         },
       );
@@ -311,7 +320,8 @@ class DatabaseService {
   }
 
   //Mentor Appointment Find by Mentor ID
-  Future<List<AppointmentsDetails>> getMentorAppointmentsAllDetails(int advisorID) async {
+  Future<List<AppointmentsDetails>> getMentorAppointmentsAllDetails(
+      int advisorID) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -324,8 +334,9 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute(Sql.named('SELECT * FROM appointments WHERE advisor_id = @advisorID'),
-        parameters : {
+      final results = await connection.execute(
+        Sql.named('SELECT * FROM appointments WHERE advisor_id = @advisorID'),
+        parameters: {
           'advisorID': advisorID,
         },
       );
@@ -333,7 +344,6 @@ class DatabaseService {
       await connection.close();
 
       List<AppointmentsDetails> appointmentsDetailsList = [];
-
 
       for (var row in results) {
         appointmentsDetailsList.add(AppointmentsDetails(
@@ -367,8 +377,6 @@ class DatabaseService {
     required String meetingLink,
     required int appointmentId,
   }) async {
-
-
     final connection = await Connection.open(
       Endpoint(
         host: '34.71.87.187',
@@ -379,25 +387,28 @@ class DatabaseService {
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
-     connection.execute(Sql.named('INSERT INTO mentor_meetings (user_id, advisor_id, title, meeting_date, start_time, end_time, location,  event_details, description, meeting_link, appointment_id) VALUES (@userId, @advisorId, @title, @meetingDate, @startTime, @endTime, @location, @eventDetails, @description, @meetingLink, @appointmentId)'),
-        parameters: {
-          'userId': userId,
-          'advisorId': advisorId,
-          'title': title,
-          'meetingDate': meetingDate,
-          'startTime': '${startTime.hour}:${startTime.minute}:00',
-          'endTime': '${endTime.hour}:${endTime.minute}:00',
-          'location': location,
-          'eventDetails': eventDetails,
-          'description': description,
-          'meetingLink': meetingLink,
-          'appointmentId':appointmentId,
-        },
-      );
-    }
+    connection.execute(
+      Sql.named(
+          'INSERT INTO mentor_meetings (user_id, advisor_id, title, meeting_date, start_time, end_time, location,  event_details, description, meeting_link, appointment_id) VALUES (@userId, @advisorId, @title, @meetingDate, @startTime, @endTime, @location, @eventDetails, @description, @meetingLink, @appointmentId)'),
+      parameters: {
+        'userId': userId,
+        'advisorId': advisorId,
+        'title': title,
+        'meetingDate': meetingDate,
+        'startTime': '${startTime.hour}:${startTime.minute}:00',
+        'endTime': '${endTime.hour}:${endTime.minute}:00',
+        'location': location,
+        'eventDetails': eventDetails,
+        'description': description,
+        'meetingLink': meetingLink,
+        'appointmentId': appointmentId,
+      },
+    );
+  }
 
-    //Get User meeting By date and time
-  Future<EditAppointmentMeeting?> getUserMeetingDetails(DateTime date, TimeOfDay startTime) async {
+  //Get User meeting By date and time
+  Future<EditAppointmentMeeting?> getUserMeetingDetails(
+      DateTime date, TimeOfDay startTime) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -410,30 +421,31 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-        List<List<dynamic>> results = await connection.execute(Sql.named('SELECT * FROM mentor_meetings WHERE meetingDate = @meetingDate AND startTime = @startTime'),
-          parameters: {
-            'meetingDate': date.toIso8601String(),
-            'startTime': startTime,
-          },
-        );
+      List<List<dynamic>> results = await connection.execute(
+        Sql.named(
+            'SELECT * FROM mentor_meetings WHERE meetingDate = @meetingDate AND startTime = @startTime'),
+        parameters: {
+          'meetingDate': date.toIso8601String(),
+          'startTime': startTime,
+        },
+      );
 
       await connection.close();
 
       if (results.isNotEmpty) {
         var row = results.first;
         return EditAppointmentMeeting(
-          mentorID: row[0] as int,
-          userID: row[1] as int,
-          advisorID: row[2] as int,
-          title: row[3] as String,
-          meetDate: row[4] as DateTime,
-          startTime: row[5] as TimeOfDay,
-          endTime: row[6] as TimeOfDay,
-          location:row[7] as String,
-          eventDetails: [8] as String,
-          description: [9] as String,
-          meetLink: row[10] as String
-        );
+            mentorID: row[0] as int,
+            userID: row[1] as int,
+            advisorID: row[2] as int,
+            title: row[3] as String,
+            meetDate: row[4] as DateTime,
+            startTime: row[5] as TimeOfDay,
+            endTime: row[6] as TimeOfDay,
+            location: row[7] as String,
+            eventDetails: [8] as String,
+            description: [9] as String,
+            meetLink: row[10] as String);
       }
       return null;
     } catch (e) {
@@ -453,7 +465,8 @@ class DatabaseService {
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
-    final results = await connection.execute(Sql.named('SELECT name FROM master_demo_user WHERE user_id = @userId'),
+    final results = await connection.execute(
+      Sql.named('SELECT name FROM master_demo_user WHERE user_id = @userId'),
       parameters: {'userId': userId},
     );
     await connection.close();
@@ -472,33 +485,34 @@ class DatabaseService {
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
-    final results = await connection.execute(Sql.named('SELECT name FROM advisor_details WHERE advisor_id = @advisorId'),
+    final results = await connection.execute(
+      Sql.named(
+          'SELECT name FROM advisor_details WHERE advisor_id = @advisorId'),
       parameters: {'advisorId': advisorId},
     );
     return results.isNotEmpty ? results.first[0] as String : 'Unknown Advisor';
   }
 
   //Insert in the Progress tracking
-  Future<void> insertProgressTracking({
-    required int advisorId,
-    required String advisorName,
-    required int userId,
-    required String userName,
-    required DateTime date,
-    required String goalType,
-    required String goal,
-    required String actionSteps,
-    required String timeline,
-    required DateTime progressDate,
-    required String progressMade,
-    required DateTime effectivenessDate,
-    required String outcome,
-    required String nextSteps,
-    required DateTime meetingDate,
-    required String agenda,
-    required String additionalNotes,
-    required int appointmentId
-  }) async {
+  Future<void> insertProgressTracking(
+      {required int advisorId,
+      required String advisorName,
+      required int userId,
+      required String userName,
+      required DateTime date,
+      required String goalType,
+      required String goal,
+      required String actionSteps,
+      required String timeline,
+      required DateTime progressDate,
+      required String progressMade,
+      required DateTime effectivenessDate,
+      required String outcome,
+      required String nextSteps,
+      required DateTime meetingDate,
+      required String agenda,
+      required String additionalNotes,
+      required int appointmentId}) async {
     final connection = await Connection.open(
       Endpoint(
         host: '34.71.87.187',
@@ -509,7 +523,8 @@ class DatabaseService {
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
-    await connection.execute(Sql.named( '''
+    await connection.execute(
+      Sql.named('''
       INSERT INTO progress_tracking (
         advisor_id, advisor_name, user_id, user_name, date, goal_type, goal, 
         action_steps, timeline, progress_date, progress_made, 
@@ -538,13 +553,14 @@ class DatabaseService {
         'meetingDate': meetingDate,
         'agenda': agenda,
         'additionalNotes': additionalNotes,
-        'appointmentId':appointmentId,
+        'appointmentId': appointmentId,
       },
     );
   }
 
   //Get Appointment by data,time,advisorID,main Service,Sub Service,UserID
-  Future<int?> getAppointmentID(DateTime date,String time,int advisorID,String mainService,String subService,int userID) async {
+  Future<int?> getAppointmentID(DateTime date, String time, int advisorID,
+      String mainService, String subService, int userID) async {
     final connection = await Connection.open(
       Endpoint(
         host: '34.71.87.187',
@@ -555,13 +571,24 @@ class DatabaseService {
       ),
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
-    final results = await connection.execute(Sql.named('SELECT appointment_id FROM appointments WHERE user_id = @userId AND date = @date AND sub_service = @subService AND main_service = @mainService AND advisor_id = @advisorId AND time = @time'),
-      parameters: {'date': date,'userId':userID,'subService':subService,'mainService':mainService,'advisorId':advisorID,'time':time},
+    final results = await connection.execute(
+      Sql.named(
+          'SELECT appointment_id FROM appointments WHERE user_id = @userId AND date = @date AND sub_service = @subService AND main_service = @mainService AND advisor_id = @advisorId AND time = @time'),
+      parameters: {
+        'date': date,
+        'userId': userID,
+        'subService': subService,
+        'mainService': mainService,
+        'advisorId': advisorID,
+        'time': time
+      },
     );
     await connection.close();
     return results.isNotEmpty ? results.first[0] as int : null;
   }
-  Future<ProgressTracking?> getProgressTrackingByAppointmentId(int appointmentID) async {
+
+  Future<ProgressTracking?> getProgressTrackingByAppointmentId(
+      int appointmentID) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -575,7 +602,8 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        Sql.named('SELECT * FROM progress_tracking WHERE appointment_id = @appointmentID'),
+        Sql.named(
+            'SELECT * FROM progress_tracking WHERE appointment_id = @appointmentID'),
         parameters: {
           'appointmentID': appointmentID,
         },
@@ -615,6 +643,7 @@ class DatabaseService {
       return null;
     }
   }
+
   Future<List<String>> getDistinctGoalTypes(int userId, int advisorId) async {
     try {
       final connection = await Connection.open(
@@ -629,7 +658,8 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        Sql.named('SELECT DISTINCT goal_type FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId'),
+        Sql.named(
+            'SELECT DISTINCT goal_type FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId'),
         parameters: {
           'userId': userId,
           'advisorId': advisorId,
@@ -648,7 +678,9 @@ class DatabaseService {
       return [];
     }
   }
-  Future<List<ProgressTracking>> getProgressDetailsByGoalType(int userId, int advisorId, String goalType) async {
+
+  Future<List<ProgressTracking>> getProgressDetailsByGoalType(
+      int userId, int advisorId, String goalType) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -662,7 +694,8 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        Sql.named('SELECT * FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId AND goal_type = @goalType '),
+        Sql.named(
+            'SELECT * FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId AND goal_type = @goalType '),
         parameters: {
           'userId': userId,
           'advisorId': advisorId,
@@ -706,6 +739,7 @@ class DatabaseService {
       return [];
     }
   }
+
   Future<void> updateProgressTracking(ProgressTracking progressTracking) async {
     try {
       final connection = await Connection.open(
@@ -719,14 +753,15 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
       // Prepare the SQL statement
-      await connection.execute(Sql.named('UPDATE progress_tracking SET advisor_name = @advisorName, '
-          'user_name = @userName, date = @date, goal_type = @goalType, '
-          'goal = @goal, action_steps = @actionSteps, timeline = @timeline, '
-          'progress_date = @progressDate, progress_made = @progressMade, '
-          'effectiveness_date = @effectivenessDate, outcome = @outcome, '
-          'next_steps = @nextSteps, meeting_date = @meetingDate, '
-          'agenda = @agenda, additional_notes = @additionalNotes, progress_status =@progressStatus '
-          'WHERE appointment_id = @appointmentId'),
+      await connection.execute(
+        Sql.named('UPDATE progress_tracking SET advisor_name = @advisorName, '
+            'user_name = @userName, date = @date, goal_type = @goalType, '
+            'goal = @goal, action_steps = @actionSteps, timeline = @timeline, '
+            'progress_date = @progressDate, progress_made = @progressMade, '
+            'effectiveness_date = @effectivenessDate, outcome = @outcome, '
+            'next_steps = @nextSteps, meeting_date = @meetingDate, '
+            'agenda = @agenda, additional_notes = @additionalNotes, progress_status =@progressStatus '
+            'WHERE appointment_id = @appointmentId'),
         parameters: {
           'advisorName': progressTracking.advisorName,
           'userName': progressTracking.userName,
@@ -737,13 +772,14 @@ class DatabaseService {
           'timeline': progressTracking.timeline,
           'progressDate': progressTracking.progressDate.toIso8601String(),
           'progressMade': progressTracking.progressMade,
-          'effectivenessDate': progressTracking.effectivenessDate.toIso8601String(),
+          'effectivenessDate':
+              progressTracking.effectivenessDate.toIso8601String(),
           'outcome': progressTracking.outcome,
           'nextSteps': progressTracking.nextSteps,
           'meetingDate': progressTracking.meetingDate.toIso8601String(),
           'agenda': progressTracking.agenda,
           'additionalNotes': progressTracking.additionalNotes,
-          'progressStatus':progressTracking.progressStatus,
+          'progressStatus': progressTracking.progressStatus,
           'appointmentId': progressTracking.appointmentId,
         },
       );
@@ -755,6 +791,7 @@ class DatabaseService {
       throw Exception('Failed to update progress tracking');
     }
   }
+
   //Get Program Initializer
   Future<ProgramInitializer?> getProgramInitializerByID(int programId) async {
     try {
@@ -770,7 +807,8 @@ class DatabaseService {
       );
 
       final results = await connection.execute(
-        Sql.named('SELECT * FROM program_initializer WHERE program_id = @programId'),
+        Sql.named(
+            'SELECT * FROM program_initializer WHERE program_id = @programId'),
         parameters: {
           'programId': programId,
         },
@@ -787,9 +825,8 @@ class DatabaseService {
           organizationName: row[3] as String,
           imageUrl: row[4] as String,
           coordinatorName: row[5] as String,
-          coordinatorEmail:row[6] as String,
+          coordinatorEmail: row[6] as String,
           coordinatorNumber: row[7] as String,
-
         );
       } else {
         return null;
@@ -799,6 +836,7 @@ class DatabaseService {
       return null;
     }
   }
+
   Future<List<String>> getProgramInitializerName() async {
     List<String> programList = [];
     try {
@@ -813,7 +851,8 @@ class DatabaseService {
         settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
-      final results = await connection.execute('SELECT program_name FROM program_initializer');
+      final results = await connection
+          .execute('SELECT program_name FROM program_initializer');
 
       await connection.close();
 
@@ -829,6 +868,7 @@ class DatabaseService {
 
     return programList;
   }
+
   Future<String> _getMentorName(int advisorId) async {
     final connection = await Connection.open(
       Endpoint(
@@ -842,8 +882,10 @@ class DatabaseService {
     );
 
     // Replace with your actual query to fetch mentor name
-    const query = 'SELECT name FROM advisor_details WHERE advisor_id = @advisorId';
-    final result = await connection.execute(Sql.named(query), parameters: {'advisorId': advisorId});
+    const query =
+        'SELECT name FROM advisor_details WHERE advisor_id = @advisorId';
+    final result = await connection
+        .execute(Sql.named(query), parameters: {'advisorId': advisorId});
 
     if (result.isNotEmpty) {
       return result.first.toColumnMap()['name'] as String;
@@ -851,8 +893,8 @@ class DatabaseService {
       return 'Unknown'; // Default value if mentor name is not found
     }
   }
-  Future<Map<String, Map<int, int>>> getMentorMeetingCounts(int year) async {
 
+  Future<Map<String, Map<int, int>>> getMentorMeetingCounts(int year) async {
     final connection = await Connection.open(
       Endpoint(
         host: '34.71.87.187',
@@ -880,17 +922,24 @@ class DatabaseService {
       final monthString = row[1] as String;
       final meetingCount = row[2] as int;
       final month = int.tryParse(monthString) ?? 0;
-      final mentorName = await _getMentorName(advisorId); // Method to fetch mentor name from ID
+      final mentorName = await _getMentorName(
+          advisorId); // Method to fetch mentor name from ID
 
-      if (!data.containsKey(mentorName)) {
-        data[mentorName] = {};
+      // Create a unique key combining advisor_id and name
+      final uniqueKey = '$mentorName (ID: $advisorId)';
+
+      if (!data.containsKey(uniqueKey)) {
+        data[uniqueKey] = {};
       }
 
-      data[mentorName]![month] = meetingCount;
+      data[uniqueKey]![month] = meetingCount;
     }
 
-    return data;
+    return data.map((uniqueKey, meetingCounts) {
+      return MapEntry(uniqueKey, meetingCounts);
+    });
   }
+
   Future<String> _getMenteeName(int userID) async {
     final connection = await Connection.open(
       Endpoint(
@@ -905,7 +954,8 @@ class DatabaseService {
 
     // Replace with your actual query to fetch mentor name
     const query = 'SELECT name FROM master_demo_user WHERE user_id = @userId';
-    final result = await connection.execute(Sql.named(query), parameters: {'userId': userID});
+    final result = await connection
+        .execute(Sql.named(query), parameters: {'userId': userID});
 
     if (result.isNotEmpty) {
       return result.first.toColumnMap()['name'] as String;
@@ -913,46 +963,52 @@ class DatabaseService {
       return 'Unknown'; // Default value if mentor name is not found
     }
   }
-  Future<Map<String, Map<int, int>>> getMenteeMeetingCounts(int year) async {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
 
-      final results = await connection.execute(Sql.named('''
+  Future<Map<String, Map<int, int>>> getMenteeMeetingCounts(int year) async {
+    final connection = await Connection.open(
+      Endpoint(
+        host: '34.71.87.187',
+        port: 5432,
+        database: 'datagovernance',
+        username: 'postgres',
+        password: 'India@5555',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
+
+    final results = await connection.execute(
+      Sql.named('''
         SELECT user_id,EXTRACT(MONTH FROM date) AS month, COUNT(*) AS count
         FROM appointments
         WHERE EXTRACT(YEAR FROM date) = @year
         GROUP BY user_id,EXTRACT(MONTH FROM date)
         '''),
-        parameters: {'year': year},
-      );
+      parameters: {'year': year},
+    );
 
-      await connection.close();
+    await connection.close();
 
-      final data = <String, Map<int, int>>{};
+    final data = <String, Map<int, int>>{};
 
-      for (var row in results) {
-        final userID = row[0] as int;
-        final monthString = row[1] as String;
-        int count = row[2] as int;
-        final month = int.tryParse(monthString) ?? 0;
-        final menteeName = await _getMenteeName(userID);
+    for (var row in results) {
+      final userID = row[0] as int;
+      final monthString = row[1] as String;
+      int count = row[2] as int;
+      final month = int.tryParse(monthString) ?? 0;
+      final menteeName = await _getMenteeName(userID);
 
-        if (!data.containsKey(menteeName)) {
-          data[menteeName] = {};
-        }
+      // Create a unique key combining advisor_id and name
+      final uniqueKey = '$menteeName (ID: $userID)';
 
-        data[menteeName]![month] = count;
+      if (!data.containsKey(uniqueKey)) {
+        data[uniqueKey] = {};
       }
-      return data;
+
+      data[uniqueKey]![month] = count;
+    }
+
+    return data.map((uniqueKey, meetingCounts) {
+      return MapEntry(uniqueKey, meetingCounts);
+    });
   }
 }
-
-
