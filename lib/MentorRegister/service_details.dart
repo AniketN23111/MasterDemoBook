@@ -381,7 +381,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                   onPressed: _isRegistering
                       ? null
                       : () async {
-                    if (_formKey.currentState!.validate()) {
                       setState(() {
                         _isRegistering = true;
                       });
@@ -402,7 +401,6 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                           _isRegistering = false;
                         });
                       }
-                    }
                   },
                   child: const Text('Register'),
                 ),
