@@ -44,8 +44,8 @@ class ServiceDetails extends StatefulWidget {
     this.gender,
     this.dateOfBirth,
     this.password, {
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ServiceDetails> createState() => _ServiceDetailsState();
@@ -64,6 +64,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   CloudApi? cloudApi;
   bool _uploading = false;
   String? _downloadUrl;
+  bool _isRegistering = false;
 
   @override
   void initState() {
@@ -183,7 +184,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       appBar: AppBar(
         title: const Text('Service Details'),
       ),
-      body: SingleChildScrollView(
+      body: _isRegistering
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
@@ -375,10 +378,31 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
-                  onPressed: () async {
-                    // if (_formKey.currentState?.validate() ?? false) {
-                    registerMentorDetailsRegister();
-                    //}
+                  onPressed: _isRegistering
+                      ? null
+                      : () async {
+                    if (_formKey.currentState!.validate()) {
+                      setState(() {
+                        _isRegistering = true;
+                      });
+                      try {
+                        // Register the shop details
+                         registerMentorDetailsRegister();
+                        // Navigate to the login page after registration
+                        Navigator.pushReplacementNamed(
+                            context, '/login');
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content:
+                              Text('Failed to register: $e')),
+                        );
+                      } finally {
+                        setState(() {
+                          _isRegistering = false;
+                        });
+                      }
+                    }
                   },
                   child: const Text('Register'),
                 ),
