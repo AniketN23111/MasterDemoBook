@@ -2,7 +2,9 @@ import 'package:email_otp/email_otp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:postgres/postgres.dart';
+import 'package:saloon/GoogleApi/cloud_api.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 
 import '../Constants/screen_utility.dart';
@@ -27,7 +29,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool isOtpEnabled = false;
   bool isOtpSending = false;  // Added state variable for OTP sending process
   bool isSigningUp = false;
-  bool isEmailValid = false;  // Added state variable for email validity
+  bool isEmailValid = false;
+  CloudApi? cloudApi;
+  bool _uploading = false;
+  String? _downloadUrl;// Added state variable for email validity
+
+  Future<void> _pickAndUploadImage() async {
+    setState(() {
+      _uploading = true; // Start uploading, show progress indicator
+    });
+
+    final pickedFile =
+    await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No file picked')),
+      );
+      setState(() {
+        _uploading = false; // Cancel upload, hide progress indicator
+      });
+      return;
+    }
+
+    if (cloudApi == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cloud API not initialized')),
+      );
+      setState(() {
+        _uploading = false; // Cancel upload, hide progress indicator
+      });
+      return;
+    }
+
+    Uint8List imageBytes = await pickedFile.readAsBytes();
+    String fileName = pickedFile.name; // Provide a default name
+
+    try {
+      await cloudApi!.save(fileName, imageBytes);
+      final downloadUrl = await cloudApi!.getDownloadUrl(fileName);
+
+      // Store the image bytes to display it
+      setState(() {
+        _downloadUrl = downloadUrl;
+        _uploading = false; // Upload finished, hide progress indicator
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to upload image: $e')),
+      );
+      setState(() {
+        _uploading = false; // Error in upload, hide progress indicator
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -302,6 +359,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GestureDetector(
+                    onTap: _pickAndUploadImage,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: _uploading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                        'Upload Image',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (_downloadUrl != null)
+                  Center(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Uploaded Image:',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Image.network(
+                          _downloadUrl!,
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        ),
+                      ],
+                    ),
+                  ),
                 SizedBox(height: ScreenUtility.screenHeight * 0.05),
                 Center(
                   child: ElevatedButton(
@@ -361,18 +458,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                 ),
                 SizedBox(height: ScreenUtility.screenHeight * 0.03),
-                /*Row(
-                  children: [
-                    const SizedBox(width: 100),
-                    Image.asset("assets/Icon/FacebookIcon.png"),
-                    const SizedBox(width: 10),
-                    Image.asset("assets/Icon/googleIcon.png"),
-                    const SizedBox(width: 10),
-                    Image.asset("assets/Icon/InstagramIcon.png"),
-                    const SizedBox(width: 10),
-                    Image.asset("assets/Icon/WhatsAppIcon.png"),
-                  ],
-                )*/
               ],
             ),
           ),

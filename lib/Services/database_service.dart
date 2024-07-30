@@ -171,6 +171,7 @@ class DatabaseService {
           email: row[2] as String,
           number: row[3] as String,
           userID: row[4] as int,
+          imageURL:row[5] as String,
         );
       }
       return null;
@@ -310,6 +311,7 @@ class DatabaseService {
           email: row[2] as String,
           number: row[3] as String,
           userID: row[4] as int,
+          imageURL: row[5] as String,
         );
       }
 
@@ -1023,7 +1025,7 @@ class DatabaseService {
       settings: const ConnectionSettings(sslMode: SslMode.disable),
     );
 
-    final query = '''
+    const query = '''
     SELECT * FROM appointments
     WHERE EXTRACT(MONTH FROM date) = @month
     AND EXTRACT(YEAR FROM date) = @year

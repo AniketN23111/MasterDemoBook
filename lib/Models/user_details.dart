@@ -4,6 +4,7 @@ class UserDetails {
   final String email;
   final String number;
   final int userID;
+  final String imageURL;
 
   UserDetails({
     required this.name,
@@ -11,5 +12,6 @@ class UserDetails {
     required this.email,
     required this.number,
     required this.userID,
+    required this.imageURL,
   });
 }
