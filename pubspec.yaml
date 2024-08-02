@@ -28,6 +28,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  http: ^1.2.0
   flutter:
     sdk: flutter
 
@@ -40,7 +41,6 @@ dependencies:
   expandable_group: ^0.0.8
   expandable: ^5.0.1
   autocomplete_textfield: ^2.0.1
-  http: ^1.1.0
   csc_picker: ^0.2.7
   country_code_picker: ^3.0.0
   lottie: ^3.1.2
@@ -67,6 +67,8 @@ dependencies:
   mailer: ^6.1.1
   email_validator: ^3.0.0
   sendmail: ^0.0.4
+  build_runner: ^2.4.11
+  build_web_compilers: ^4.0.10
 
 dev_dependencies:
   flutter_test:
@@ -113,10 +115,7 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  fonts:
-     - family: Shrikhand
-       fonts:
-        - asset: assets/fonts/Shrikhand-Regular.ttf
+  # fonts:
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:email_otp/email_otp.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -6,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/GoogleApi/cloud_api.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
+import 'package:http/http.dart' as http;
 
 import '../Constants/screen_utility.dart';
 
@@ -34,7 +38,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _uploading = false;
   String? _downloadUrl;// Added state variable for email validity
 
+  Future<void> _loadCloudApi() async {
+    String jsonCredentials =
+    await rootBundle.loadString('assets/GoogleJson/clean-emblem-394910-8dd84a4022c3.json');
+    setState(() {
+      cloudApi = CloudApi(jsonCredentials);
+    });
+  }
   Future<void> _pickAndUploadImage() async {
+    _loadCloudApi();
     setState(() {
       _uploading = true; // Start uploading, show progress indicator
     });
@@ -407,12 +419,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         setState(() {
                           isSigningUp = true;
                         });
-                        bool isRegistered = await registerUser(
-                          nameController.text,
-                          passwordController.text,
-                          emailController.text,
-                          numberController.text,
-                        );
+                        bool isRegistered = false;
+
+                        if (kIsWeb) {
+                          // Register user on the web
+                          await _registerUserWeb(
+                            nameController.text,
+                            passwordController.text,
+                            emailController.text,
+                            numberController.text,
+                            _downloadUrl ?? '',
+                          );
+                          // Assume registration is always successful on the web for this example
+                          isRegistered = true;
+                        } else {
+                          // Register user on Android
+                          isRegistered = await registerUserAndroid(
+                            nameController.text,
+                            passwordController.text,
+                            emailController.text,
+                            numberController.text,
+                            _downloadUrl ?? '',
+                          );
+                        }
+
                         setState(() {
                           isSigningUp = false;
                         });
@@ -466,8 +496,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Future<bool> registerUser(
-      String name, String password, String email, String number) async {
+  Future<bool> registerUserAndroid(
+      String name, String password, String email, String number,String imageUrl) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -481,9 +511,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       connection.execute(
-        'INSERT INTO public.master_demo_user(name, password, email, number) '
-            'VALUES (\$1, \$2, \$3, \$4)',
-        parameters: [name, password, email, number],
+        'INSERT INTO public.master_demo_user(name, password, email, number,image_url) '
+            'VALUES (\$1, \$2, \$3, \$4, \$5)',
+        parameters: [name, password, email, number,imageUrl],
       );
       await connection.close();
       return true;
@@ -523,6 +553,46 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return false;
     }
   }
+  Future<void> _registerUserWeb(String name, String password, String email, String number,String imageUrl) async {
+    final String apiUrl = 'http://localhost:3000/register';
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': name,
+          'password': password,
+          'email': email,
+          'number': number,
+          'imageUrl': imageUrl,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        // User registered successfully
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User registered successfully')),
+        );
+      } else if (response.statusCode == 400) {
+        // Email already exists
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Email already exists')),
+        );
+      } else {
+        // Registration failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Registration failed')),
+        );
+      }
+    } catch (e) {
+      // Handle any errors
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred: $e')),
+      );
+    }
+  }
+
 
   bool _validatePassword(String password) {
     // Regular expression to check if password contains at least one letter, one number, and one special character

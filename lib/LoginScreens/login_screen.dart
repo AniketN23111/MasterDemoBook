@@ -1,10 +1,13 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:postgres/postgres.dart';
-import 'package:saloon/Admin/admin_page.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Constants/screen_utility.dart';
+import '../Admin/admin_page.dart';
 import '../HomeScreen/my_home_page.dart';
+import 'package:postgres/postgres.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
   }
 
-  Future<void> _login() async {
+  Future<void> _loginAndroid() async {
     if (formkey.currentState!.validate()) {
       setState(() {
         _isLoggingIn = true; // Set login state to true when login process starts
@@ -85,6 +88,66 @@ class _LoginScreenState extends State<LoginScreen> {
       } finally {
         setState(() {
           _isLoggingIn = false; // Reset login state to false when login process completes
+        });
+      }
+    }
+  }
+
+  Future<void> _loginWeb() async {
+    if (formkey.currentState!.validate()) {
+      setState(() {
+        _isLoggingIn = true;
+      });
+      try {
+        String enteredEmail = emailController.text.toString();
+        String enteredPassword = passwordController.text.toString();
+
+        // Make a POST request to the server for login
+        final response = await http.post(
+          Uri.parse('http://localhost:3000/api/login'), // Replace with your server URL
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': enteredEmail, 'password': enteredPassword}),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['isAdmin'] == true) {
+            await _storeDetailsInPrefs(true, true);
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminPage()),
+            );
+          } else if (data['isUser'] == true) {
+            await _storeDetailsInPrefs(true, false);
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MyHomePage()),
+            );
+          } else {
+            await _storeDetailsInPrefs(false, false);
+            if (!mounted) return;
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MyHomePage()),
+            );
+          }
+        } else {
+          // Show error message for invalid credentials
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid username or password')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login failed. Please try again.')),
+        );
+      } finally {
+        setState(() {
+          _isLoggingIn = false;
         });
       }
     }
@@ -230,16 +293,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       EmailValidator(errorText: 'Please correct email filled'),
                     ]).call,
                     decoration: const InputDecoration(
-                        hintText: 'Email',
-                        labelText: 'Email',
-                        prefixIcon: Icon(
-                          Icons.email,
-                          color: Colors.lightBlue,
-                        ),
-                        contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red),
-                            borderRadius: BorderRadius.all(Radius.circular(9.0)))),
+                      hintText: 'Email',
+                      labelText: 'Email',
+                      prefixIcon: Icon(
+                        Icons.email,
+                        color: Colors.lightBlue,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                        borderRadius: BorderRadius.all(Radius.circular(9.0)),
+                      ),
+                    ),
                   ),
                 ),
                 Padding(
@@ -259,22 +324,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                     obscureText: true,
                     decoration: const InputDecoration(
-                        hintText: 'Password',
-                        labelText: 'Password',
-                        prefixIcon: Icon(
-                          Icons.password,
-                          color: Colors.lightBlue,
-                        ),
-                        contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
-                        border: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.red),
-                            borderRadius: BorderRadius.all(Radius.circular(9.0)))),
+                      hintText: 'Password',
+                      labelText: 'Password',
+                      prefixIcon: Icon(
+                        Icons.password,
+                        color: Colors.lightBlue,
+                      ),
+                      contentPadding: EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.red),
+                        borderRadius: BorderRadius.all(Radius.circular(9.0)),
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: ScreenUtility.screenHeight * 0.05),
                 Center(
                   child: ElevatedButton(
-                    onPressed: _isLoggingIn ? null : _login,
+                    onPressed: _isLoggingIn
+                        ? null
+                        : () {
+                      // Call the appropriate login function based on the platform
+                      if (kIsWeb) {
+                        _loginWeb();
+                      } else {
+                        _loginAndroid();
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       minimumSize: Size(
