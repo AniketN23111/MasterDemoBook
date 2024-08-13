@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
 import 'package:saloon/HomeScreen/my_home_page.dart';
 import 'package:saloon/Services/database_service.dart';
 
@@ -175,7 +173,7 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     }
   }
 
-  Future<void> sendNotification(String recipientEmail, String subject) async {
+ /* Future<void> sendNotification(String recipientEmail, String subject) async {
     String username = 'sakshikadam1892001@gmail.com';
     String password = 'hjfg apya uqde svpk';
     final smtpServer = gmail(username, password);
@@ -203,7 +201,7 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
     } catch (error) {
       print('Failed to send email: $error');
     }
-  }
+  }*/
 
   void _addGuestEmail() {
     if (_guestEmailController.text.isNotEmpty) {

@@ -40,4 +40,27 @@ class MentorDetails {
     required this.dateOfBirth,
     required this.password,
   });
+  factory MentorDetails.fromJson(Map<String, dynamic> json) {
+    return MentorDetails(
+      name: json['name'],
+      address: json['address'],
+      mobile: json['mobile'],
+      email: json['email'],
+      pincode: json['pincode'],
+      country: json['country'],
+      state: json['state'],
+      city: json['city'],
+      area: json['area'],
+      license: json['license'],
+      workingDays: json['working_days'],
+      timeSlots: json['timeslot'],
+      imageURL: json['image_url'],
+      advisorID:int.tryParse(json['advisor_id']) ?? 0,
+      companyName: json['company_name'],
+      designation: json['designation'],
+      gender: json['gender'],
+      dateOfBirth: DateTime.parse(json['date_of_birth']),
+      password: json['password'],
+    );
+  }
 }

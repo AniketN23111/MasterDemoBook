@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +15,7 @@ import 'package:saloon/ProgressTracking/progress_tracking_details.dart';
 import 'package:saloon/Services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saloon/Models/appointments_details.dart';
+import 'package:http/http.dart' as http;
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -38,11 +40,88 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isUser = true;
   bool isMentor = false;
 
+  final String baseUrl = 'http://localhost:3000';
+
   @override
   void initState() {
     super.initState();
     _initializeData();
   }
+  Future<void> _fetchUserDetails(String email, String password) async {
+        final String endpoint = isUser ? '/user/login' : '/mentor/login';
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (isUser) {
+          // Assuming `UserDetails` is a model class with a `fromJson` method
+          UserDetails details = UserDetails.fromJson(data);
+          setState(() {
+            userDetails = details;
+            userFirstName = userDetails!.name;
+          });
+        } else {
+          // Assuming `MentorDetails` is a model class with a `fromJson` method
+          MentorDetails details = MentorDetails.fromJson(data);
+          setState(() {
+            isMentor = true;
+            mentorDetails = details;
+            userFirstName = 'Mentor - ${mentorDetails!.name}';
+          });
+
+          // Fetch additional mentor details if needed
+          _fetchMentorDetails(); // Fetch other mentor details
+        }
+      } else {
+        // Handle error response
+        if (kDebugMode) {
+          print('Error: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      // Handle exception
+      if (kDebugMode) {
+        print('Exception: $e');
+      }
+    }
+  }
+
+  Future<void> _fetchMentorDetails() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/mentor/details'), // Adjust endpoint if needed
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        // Assuming `MentorDetails` is a model class with a `fromJson` method
+        List<MentorDetails> details = data.map((json) => MentorDetails.fromJson(json)).toList();
+        setState(() {
+          mentorDetailsList = details;
+        });
+      } else {
+        // Handle error response
+        if (kDebugMode) {
+          print('Error: ${response.statusCode}');
+        }
+      }
+    } catch (e) {
+      // Handle exception
+      if (kDebugMode) {
+        print('Exception: $e');
+      }
+    }
+  }
+
 
   Future<void> _initializeData() async {
     await _getDetailsInPrefs();
@@ -63,45 +142,6 @@ class _MyHomePageState extends State<MyHomePage> {
     await _fetchUserDetails(userEmail, userPass);
   }
 
-  Future<void> _fetchUserDetails(String email, String password) async {
-    DatabaseService dbService = DatabaseService();
-    if (isUser) {
-      UserDetails? details = await dbService.getUserDetails(email, password);
-      if (details != null) {
-        setState(() {
-          userDetails = details;
-          userFirstName = userDetails!.name;
-        });
-      } else {
-        if (kDebugMode) {
-          print('User not found');
-        }
-      }
-    } else {
-      MentorDetails? details = await dbService.getMentorByEmailDetails(
-          email, password);
-      if (details != null) {
-        setState(() {
-          isMentor = true;
-          mentorDetails = details;
-          userFirstName = 'Mentor - ${mentorDetails!.name}';
-        });
-      } else {
-        if (kDebugMode) {
-          print('Mentor not found');
-        }
-      }
-    }
-  }
-
-  Future<void> _fetchMentorDetails() async {
-    DatabaseService dbService = DatabaseService();
-    List<MentorDetails> details = await dbService.getMentorDetails();
-    setState(() {
-      mentorDetailsList = details;
-    });
-  }
-
   Future<void> _fetchMasterService() async {
     DatabaseService dbService = DatabaseService();
     List<MentorService> details = await dbService.getMentorServices();
@@ -114,45 +154,44 @@ class _MyHomePageState extends State<MyHomePage> {
     DatabaseService dbService = DatabaseService();
     DateTime now = DateTime.now();
     if (isUser && userDetails != null) {
-      List<AppointmentsDetails> appointments = await dbService
-          .getUserAppointmentsAllDetails(userDetails!.userID);
-      setState(() {
-        // Separate future and past appointments
-        appointmentsList =
-        appointments.where((appointment) => appointment.date.isAfter(now))
-            .toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
-        closedAppointmentsList =
-        appointments.where((appointment) => appointment.date.isBefore(now))
-            .toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
-      });
-    } else if (!isUser && mentorDetails != null) {
-      List<AppointmentsDetails> appointments = await dbService
-          .getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
-      // Fetch user details for each appointment
-      List<UserDetails> users = [];
-      Set<int> displayedUserIds = {}; // Track displayed user IDs
-      for (var appointment in appointments) {
-        UserDetails? user = await dbService.getUserDetailsById(
-            appointment.userID);
-        if (user != null && !displayedUserIds.contains(user.userID)) {
-          users.add(user);
-          displayedUserIds.add(user.userID); // Add user ID to the set
+      try {
+        List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
+        setState(() {
+          appointmentsList = appointments.where((appointment) => appointment.date.isAfter(now)).toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+          closedAppointmentsList = appointments.where((appointment) => appointment.date.isBefore(now)).toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+        });
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error fetching user appointments: $e');
         }
       }
-      setState(() {
-        // Separate future and past appointments
-        appointmentsList =
-        appointments.where((appointment) => appointment.date.isAfter(now))
-            .toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
-        closedAppointmentsList =
-        appointments.where((appointment) => appointment.date.isBefore(now))
-            .toList()
-          ..sort((a, b) => a.date.compareTo(b.date));
-        userDetailsList = users; // Store the list of user details
-      });
+    } else if (!isUser && mentorDetails != null) {
+      try {
+        List<AppointmentsDetails> appointments = await dbService.getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
+        List<UserDetails> users = [];
+        Set<int> displayedUserIds = {}; // Track displayed user IDs
+
+        for (var appointment in appointments) {
+          UserDetails? user = await dbService.getUserDetailsById(appointment.userID);
+          if (user != null && !displayedUserIds.contains(user.userID)) {
+            users.add(user);
+            displayedUserIds.add(user.userID); // Add user ID to the set
+          }
+        }
+        setState(() {
+          appointmentsList = appointments.where((appointment) => appointment.date.isAfter(now)).toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+          closedAppointmentsList = appointments.where((appointment) => appointment.date.isBefore(now)).toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+          userDetailsList = users; // Store the list of user details
+        });
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error fetching mentor appointments: $e');
+        }
+      }
     }
   }
 
@@ -176,7 +215,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            ProgressTrackingDetailsPage(progressTracking: progressTracking),
+            ProgressTrackingDetailsPage(progressTracking: progressTracking,isMentor: isMentor),
       ),
     );
   }
@@ -338,7 +377,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             const SizedBox(height: 16.0),
-            if (!isUser && userDetailsList.isNotEmpty)
+            if (isMentor && userDetailsList.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -408,7 +447,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: _buildAppointmentsGroupedByMentor(
                       closedAppointmentsList,
-                      'Closed Mentor: ',
+                      'Closed ',
                     ),
                   ),
                 ],

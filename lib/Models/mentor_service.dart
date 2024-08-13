@@ -14,4 +14,15 @@ class MentorService {
     required this.quantity,
     required this.unitMeasurement,
   });
+  factory MentorService.fromJson(Map<String, dynamic> json) {
+    return MentorService(
+      advisorID: json['advisor_id'] ?? 0,
+      mainService: json['main_service'],
+      subService: json['sub_service'],
+      rate: json['rate'] ?? 0,
+      quantity: json['quantity'] ?? 0,
+      unitMeasurement: json['unit_of_measurement'],
+
+    );
+  }
 }

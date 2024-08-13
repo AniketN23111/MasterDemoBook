@@ -5,14 +5,21 @@ import 'package:saloon/Services/database_service.dart';
 
 class ProgressTrackingDetailsPage extends StatefulWidget {
   final ProgressTracking progressTracking;
+  final bool isMentor; // Add isMentor boolean flag
 
-  const ProgressTrackingDetailsPage({super.key, required this.progressTracking});
+  const ProgressTrackingDetailsPage({
+    super.key,
+    required this.progressTracking,
+    required this.isMentor, // Require the isMentor flag
+  });
 
   @override
-  State<ProgressTrackingDetailsPage> createState() => _ProgressTrackingDetailsPageState();
+  State<ProgressTrackingDetailsPage> createState() =>
+      _ProgressTrackingDetailsPageState();
 }
 
-class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPage> {
+class _ProgressTrackingDetailsPageState
+    extends State<ProgressTrackingDetailsPage> {
   late TextEditingController _advisorNameController;
   late TextEditingController _userNameController;
   late TextEditingController _dateController;
@@ -31,26 +38,45 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
   late String _progressStatus;
 
   final DateFormat _dateFormat = DateFormat('yyyy-MM-dd');
-  final List<String> _progressStatusOptions = ['Open', 'Closed', 'In Progress', 'Hold'];
+  final List<String> _progressStatusOptions = [
+    'Open',
+    'Closed',
+    'In Progress',
+    'Hold'
+  ];
 
   @override
   void initState() {
     super.initState();
-    _advisorNameController = TextEditingController(text: widget.progressTracking.advisorName);
-    _userNameController = TextEditingController(text: widget.progressTracking.userName);
-    _dateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.date));
-    _goalTypeController = TextEditingController(text: widget.progressTracking.goalType);
+    _advisorNameController =
+        TextEditingController(text: widget.progressTracking.advisorName);
+    _userNameController =
+        TextEditingController(text: widget.progressTracking.userName);
+    _dateController = TextEditingController(
+        text: _dateFormat.format(widget.progressTracking.date));
+    _goalTypeController =
+        TextEditingController(text: widget.progressTracking.goalType);
     _goalController = TextEditingController(text: widget.progressTracking.goal);
-    _actionStepsController = TextEditingController(text: widget.progressTracking.actionSteps);
-    _timelineController = TextEditingController(text: widget.progressTracking.timeline);
-    _progressDateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.progressDate));
-    _progressMadeController = TextEditingController(text: widget.progressTracking.progressMade);
-    _effectivenessDateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.effectivenessDate));
-    _outcomeController = TextEditingController(text: widget.progressTracking.outcome);
-    _nextStepsController = TextEditingController(text: widget.progressTracking.nextSteps);
-    _meetingDateController = TextEditingController(text: _dateFormat.format(widget.progressTracking.meetingDate));
-    _agendaController = TextEditingController(text: widget.progressTracking.agenda);
-    _additionalNotesController = TextEditingController(text: widget.progressTracking.additionalNotes);
+    _actionStepsController =
+        TextEditingController(text: widget.progressTracking.actionSteps);
+    _timelineController =
+        TextEditingController(text: widget.progressTracking.timeline);
+    _progressDateController = TextEditingController(
+        text: _dateFormat.format(widget.progressTracking.progressDate));
+    _progressMadeController =
+        TextEditingController(text: widget.progressTracking.progressMade);
+    _effectivenessDateController = TextEditingController(
+        text: _dateFormat.format(widget.progressTracking.effectivenessDate));
+    _outcomeController =
+        TextEditingController(text: widget.progressTracking.outcome);
+    _nextStepsController =
+        TextEditingController(text: widget.progressTracking.nextSteps);
+    _meetingDateController = TextEditingController(
+        text: _dateFormat.format(widget.progressTracking.meetingDate));
+    _agendaController =
+        TextEditingController(text: widget.progressTracking.agenda);
+    _additionalNotesController =
+        TextEditingController(text: widget.progressTracking.additionalNotes);
     _progressStatus = widget.progressTracking.progressStatus;
   }
 
@@ -81,7 +107,9 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
       barrierDismissible: false,
       builder: (BuildContext context) {
         return const Center(
-          child: CircularProgressIndicator(color: Colors.blue,),
+          child: CircularProgressIndicator(
+            color: Colors.blue,
+          ),
         );
       },
     );
@@ -109,8 +137,6 @@ class _ProgressTrackingDetailsPageState extends State<ProgressTrackingDetailsPag
     );
 
     await DatabaseService().updateProgressTracking(updatedProgressTracking);
-print(_progressStatus);
-    // Close the dialog and optionally navigate back
     if (!mounted) return;
     Navigator.pop(context); // Close the progress dialog
     Navigator.pop(context); // Navigate back
@@ -143,7 +169,8 @@ print(_progressStatus);
                   _buildDataRow('Timeline', _timelineController),
                   _buildDataRow('Progress Date', _progressDateController),
                   _buildDataRow('Progress Made', _progressMadeController),
-                  _buildDataRowForDropdown('Progress Status', _progressStatusOptions, _progressStatus),
+                  _buildDataRowForDropdown(
+                      'Progress Status', _progressStatusOptions, _progressStatus),
                   _buildDataRow('Effectiveness Date', _effectivenessDateController),
                   _buildDataRow('Outcome', _outcomeController),
                   _buildDataRow('Next Steps', _nextStepsController),
@@ -153,10 +180,12 @@ print(_progressStatus);
                 ],
               ),
               const SizedBox(height: 16.0),
-              ElevatedButton(
+              widget.isMentor
+                  ? ElevatedButton(
                 onPressed: _saveProgressTrackingDetails,
                 child: const Text('Save'),
-              ),
+              )
+                  : const SizedBox(), // Hide save button if not mentor
             ],
           ),
         ),
@@ -174,6 +203,7 @@ print(_progressStatus);
           child: TextField(
             controller: controller,
             maxLines: 1, // Allow single line input to avoid expanding the height
+            enabled: widget.isMentor, // Enable editing only if isMentor is true
             decoration: const InputDecoration(
               filled: true,
               fillColor: Color(0xFFF0F0F0),
@@ -190,7 +220,8 @@ print(_progressStatus);
     ]);
   }
 
-  DataRow _buildDataRowForDropdown(String label, List<String> options, String selectedValue) {
+  DataRow _buildDataRowForDropdown(
+      String label, List<String> options, String selectedValue) {
     return DataRow(cells: [
       DataCell(Text(label)),
       DataCell(
@@ -205,12 +236,13 @@ print(_progressStatus);
                 child: Text(value),
               );
             }).toList(),
-            onChanged: (newValue) {
+            onChanged: widget.isMentor
+                ? (newValue) {
               setState(() {
                 _progressStatus = newValue!;
-                print(_progressStatus);
               });
-            },
+            }
+                : null, // Disable dropdown if not mentor
             decoration: const InputDecoration(
               filled: true,
               fillColor: Color(0xFFF0F0F0),

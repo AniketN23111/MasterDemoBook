@@ -1,67 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/appointments_details.dart';
-import 'package:saloon/Models/edit_appointment_meeting.dart';
-import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/admin_service.dart';
 import 'package:saloon/Models/mentor_service.dart';
 import 'package:saloon/Models/program_initializer.dart';
 import 'package:saloon/Models/progress_tracking.dart';
 import 'package:saloon/Models/user_details.dart';
+import 'package:http/http.dart' as http;
 
 class DatabaseService {
-  //Mentor All Details
-  Future<List<MentorDetails>> getMentorDetails() async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        'SELECT * FROM public.advisor_details',
-      );
-
-      await connection.close();
-
-      List<MentorDetails> mentorDetailsList = [];
-
-      for (var row in results) {
-        mentorDetailsList.add(MentorDetails(
-          name: row[0] as String,
-          address: row[1] as String,
-          mobile: row[2] as String,
-          email: row[3] as String,
-          pincode: row[4] as String,
-          country: row[5] as String,
-          state: row[6] as String,
-          city: row[7] as String,
-          area: row[8] as String,
-          license: row[9] as String,
-          workingDays: row[10] as String,
-          timeSlots: row[11] as String,
-          imageURL: row[12] as String,
-          companyName: row[13] as String,
-          designation: row[14] as String,
-          gender: row[15] as String,
-          dateOfBirth: row[16] as DateTime,
-          advisorID: row[17] as int,
-          password: row[18] as String,
-        ));
-      }
-
-      return mentorDetailsList;
-    } catch (e) {
-      return [];
-    }
-  }
+  final String baseUrl = 'http://localhost:3000';
 
   //Admin Stored Services Get
   Future<List<AdminService>> getAdminService() async {
@@ -99,273 +50,23 @@ class DatabaseService {
     }
   }
 
-  //Mentor Services
+
   Future<List<MentorService>> getMentorServices() async {
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
+      final response = await http.get(Uri.parse('$baseUrl/mentor/services'));
 
-      final results = await connection.execute(
-        'SELECT * FROM public.advisor_service_details',
-      );
-
-      await connection.close();
-
-      List<MentorService> mentorServiceList = [];
-
-      for (var row in results) {
-        mentorServiceList.add(MentorService(
-          advisorID: row[0] as int,
-          mainService: row[1] as String,
-          subService: row[2] as String,
-          rate: row[3] as int,
-          quantity: row[4] as int,
-          unitMeasurement: row[5] as String,
-        ));
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((json) => MentorService.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load mentor services');
       }
-
-      return mentorServiceList;
     } catch (e) {
+      print('Error: $e');
       return [];
     }
   }
 
-  //User Details
-  Future<UserDetails?> getUserDetails(String email, String password) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT * FROM master_demo_user WHERE email = @email AND password = @password'),
-        parameters: {
-          'email': email,
-          'password': password,
-        },
-      );
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        var row = results.first;
-        return UserDetails(
-          name: row[0] as String,
-          password: row[1] as String,
-          email: row[2] as String,
-          number: row[3] as String,
-          userID: row[4] as int,
-          imageURL:row[5] as String,
-        );
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  //Mentor Details Get By Email
-  Future<MentorDetails?> getMentorByEmailDetails(
-      String email, String password) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT * FROM advisor_details WHERE email = @email AND password = @password'),
-        parameters: {
-          'email': email,
-          'password': password,
-        },
-      );
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        var row = results.first;
-        return MentorDetails(
-          name: row[0] as String,
-          address: row[1] as String,
-          mobile: row[2] as String,
-          email: row[3] as String,
-          pincode: row[4] as String,
-          country: row[5] as String,
-          state: row[6] as String,
-          city: row[7] as String,
-          area: row[8] as String,
-          license: row[9] as String,
-          workingDays: row[10] as String,
-          timeSlots: row[11] as String,
-          imageURL: row[12] as String,
-          companyName: row[13] as String,
-          designation: row[14] as String,
-          gender: row[15] as String,
-          dateOfBirth: row[16] as DateTime,
-          advisorID: row[17] as int,
-          password: row[18] as String,
-        );
-      }
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  //User Appointment Find by User ID
-  Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(
-      int userID) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        Sql.named('SELECT * FROM appointments WHERE user_id = @userId'),
-        parameters: {
-          'userId': userID,
-        },
-      );
-
-      await connection.close();
-
-      List<AppointmentsDetails> appointmentsDetailsList = [];
-
-      for (var row in results) {
-        appointmentsDetailsList.add(AppointmentsDetails(
-          appointmentID: row[0] as int,
-          date: row[1] as DateTime,
-          time: row[2] as String,
-          advisorID: row[3] as int,
-          mainService: row[4] as String,
-          subService: row[5] as String,
-          userID: row[6] as int,
-        ));
-      }
-
-      return appointmentsDetailsList;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  //User Find by User ID
-  Future<UserDetails?> getUserDetailsById(int userID) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        Sql.named('SELECT * FROM master_demo_user WHERE user_id = @userId'),
-        parameters: {
-          'userId': userID,
-        },
-      );
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        var row = results.first;
-        return UserDetails(
-          name: row[0] as String,
-          password: row[1] as String,
-          email: row[2] as String,
-          number: row[3] as String,
-          userID: row[4] as int,
-          imageURL: row[5] as String,
-        );
-      }
-
-      return null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  //Mentor Appointment Find by Mentor ID
-  Future<List<AppointmentsDetails>> getMentorAppointmentsAllDetails(
-      int advisorID) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        Sql.named('SELECT * FROM appointments WHERE advisor_id = @advisorID'),
-        parameters: {
-          'advisorID': advisorID,
-        },
-      );
-
-      await connection.close();
-
-      List<AppointmentsDetails> appointmentsDetailsList = [];
-
-      for (var row in results) {
-        appointmentsDetailsList.add(AppointmentsDetails(
-          appointmentID: row[0] as int,
-          date: row[1] as DateTime,
-          time: row[2] as String,
-          advisorID: row[3] as int,
-          mainService: row[4] as String,
-          subService: row[5] as String,
-          userID: row[6] as int,
-        ));
-      }
-
-      return appointmentsDetailsList;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  // Insert In the Mentor Meeting
   Future<void> insertMentorMeeting({
     required int userId,
     required int advisorId,
@@ -379,269 +80,176 @@ class DatabaseService {
     required String meetingLink,
     required int appointmentId,
   }) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    connection.execute(
-      Sql.named(
-          'INSERT INTO mentor_meetings (user_id, advisor_id, title, meeting_date, start_time, end_time, location,  event_details, description, meeting_link, appointment_id) VALUES (@userId, @advisorId, @title, @meetingDate, @startTime, @endTime, @location, @eventDetails, @description, @meetingLink, @appointmentId)'),
-      parameters: {
-        'userId': userId,
-        'advisorId': advisorId,
-        'title': title,
-        'meetingDate': meetingDate,
-        'startTime': '${startTime.hour}:${startTime.minute}:00',
-        'endTime': '${endTime.hour}:${endTime.minute}:00',
-        'location': location,
-        'eventDetails': eventDetails,
-        'description': description,
-        'meetingLink': meetingLink,
-        'appointmentId': appointmentId,
-      },
-    );
+    final url = '$baseUrl/insert-mentor-meeting';
+
+    final body = jsonEncode({
+      'userId': userId,
+      'advisorId': advisorId,
+      'title': title,
+      'meetingDate': meetingDate.toIso8601String(),
+      'startTime': '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:00',
+      'endTime': '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00',
+      'location': location,
+      'eventDetails': eventDetails,
+      'description': description,
+      'meetingLink': meetingLink,
+      'appointmentId': appointmentId,
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print('Mentor meeting inserted successfully');
+      } else {
+        print('Failed to insert mentor meeting: ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
-  //Get User meeting By date and time
-  Future<EditAppointmentMeeting?> getUserMeetingDetails(
-      DateTime date, TimeOfDay startTime) async {
+  Future<String?> getUserName(int userId) async {
+    final url = '$baseUrl/getUserName/$userId';
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      List<List<dynamic>> results = await connection.execute(
-        Sql.named(
-            'SELECT * FROM mentor_meetings WHERE meetingDate = @meetingDate AND startTime = @startTime'),
-        parameters: {
-          'meetingDate': date.toIso8601String(),
-          'startTime': startTime,
-        },
-      );
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        var row = results.first;
-        return EditAppointmentMeeting(
-            mentorID: row[0] as int,
-            userID: row[1] as int,
-            advisorID: row[2] as int,
-            title: row[3] as String,
-            meetDate: row[4] as DateTime,
-            startTime: row[5] as TimeOfDay,
-            endTime: row[6] as TimeOfDay,
-            location: row[7] as String,
-            eventDetails: [8] as String,
-            description: [9] as String,
-            meetLink: row[10] as String);
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['user_name'] as String?;
+      } else {
+        throw Exception('Failed to load user name');
       }
-      return null;
     } catch (e) {
+      print('Error: $e');
       return null;
     }
   }
 
-  //Get user User ID
-  Future<String?> getUserName(int userId) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    final results = await connection.execute(
-      Sql.named('SELECT name FROM master_demo_user WHERE user_id = @userId'),
-      parameters: {'userId': userId},
-    );
-    await connection.close();
-    return results.isNotEmpty ? results.first[0] as String : null;
-  }
-
-  //Get Advisor Name by Id
+  // Get advisor name by advisorId
   Future<String?> getAdvisorName(int advisorId) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    final results = await connection.execute(
-      Sql.named(
-          'SELECT name FROM advisor_details WHERE advisor_id = @advisorId'),
-      parameters: {'advisorId': advisorId},
-    );
-    return results.isNotEmpty ? results.first[0] as String : 'Unknown Advisor';
+    final url = '$baseUrl/getAdvisorName/$advisorId';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['advisor_name'] as String?;
+      } else {
+        throw Exception('Failed to load advisor name');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return null;
+    }
   }
 
-  //Insert in the Progress tracking
-  Future<void> insertProgressTracking(
-      {required int advisorId,
-      required String advisorName,
-      required int userId,
-      required String userName,
-      required DateTime date,
-      required String goalType,
-      required String goal,
-      required String actionSteps,
-      required String timeline,
-      required DateTime progressDate,
-      required String progressMade,
-      required DateTime effectivenessDate,
-      required String outcome,
-      required String nextSteps,
-      required DateTime meetingDate,
-      required String agenda,
-      required String additionalNotes,
-      required int appointmentId}) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    await connection.execute(
-      Sql.named('''
-      INSERT INTO progress_tracking (
-        advisor_id, advisor_name, user_id, user_name, date, goal_type, goal, 
-        action_steps, timeline, progress_date, progress_made, 
-        effectiveness_date, outcome, next_steps, meeting_date, agenda, additional_notes, appointment_id
-      ) VALUES (
-        @advisorId, @advisorName, @userId, @userName, @date, @goalType, @goal, 
-        @actionSteps, @timeline, @progressDate, @progressMade, 
-        @effectivenessDate, @outcome, @nextSteps, @meetingDate, @agenda, @additionalNotes, @appointmentId
-      )
-      '''),
-      parameters: {
-        'advisorId': advisorId,
-        'advisorName': advisorName,
-        'userId': userId,
-        'userName': userName,
-        'date': date,
-        'goalType': goalType,
-        'goal': goal,
-        'actionSteps': actionSteps,
-        'timeline': timeline,
-        'progressDate': progressDate,
-        'progressMade': progressMade,
-        'effectivenessDate': effectivenessDate,
-        'outcome': outcome,
-        'nextSteps': nextSteps,
-        'meetingDate': meetingDate,
-        'agenda': agenda,
-        'additionalNotes': additionalNotes,
-        'appointmentId': appointmentId,
-      },
-    );
-  }
+  Future<void> insertProgressTracking({
+    required int advisorId,
+    required String advisorName,
+    required int userId,
+    required String userName,
+    required DateTime date,
+    required String goalType,
+    required String goal,
+    required String actionSteps,
+    required String timeline,
+    required DateTime progressDate,
+    required String progressMade,
+    required DateTime effectivenessDate,
+    required String outcome,
+    required String nextSteps,
+    required DateTime meetingDate,
+    required String agenda,
+    required String additionalNotes,
+    required int appointmentId,
+  }) async {
+    final url = '$baseUrl/insert-progress-tracking';
 
-  //Get Appointment by data,time,advisorID,main Service,Sub Service,UserID
-  Future<int?> getAppointmentID(DateTime date, String time, int advisorID,
-      String mainService, String subService, int userID) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    final results = await connection.execute(
-      Sql.named(
-          'SELECT appointment_id FROM appointments WHERE user_id = @userId AND date = @date AND sub_service = @subService AND main_service = @mainService AND advisor_id = @advisorId AND time = @time'),
-      parameters: {
-        'date': date,
-        'userId': userID,
-        'subService': subService,
-        'mainService': mainService,
-        'advisorId': advisorID,
-        'time': time
-      },
-    );
-    await connection.close();
-    return results.isNotEmpty ? results.first[0] as int : null;
-  }
+    final body = jsonEncode({
+      'advisorId': advisorId,
+      'advisorName': advisorName,
+      'userId': userId,
+      'userName': userName,
+      'date': date.toIso8601String(),
+      'goalType': goalType,
+      'goal': goal,
+      'actionSteps': actionSteps,
+      'timeline': timeline,
+      'progressDate': progressDate.toIso8601String(),
+      'progressMade': progressMade,
+      'effectivenessDate': effectivenessDate.toIso8601String(),
+      'outcome': outcome,
+      'nextSteps': nextSteps,
+      'meetingDate': meetingDate.toIso8601String(),
+      'agenda': agenda,
+      'additionalNotes': additionalNotes,
+      'appointmentId': appointmentId,
+    });
 
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print('Progress tracking details inserted successfully');
+      } else {
+        print('Failed to insert progress tracking details: ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+  Future<int?> getAppointmentID(DateTime date, String time, int advisorID, String mainService, String subService, int userID) async {
+    // Construct the URL with query parameters
+    final url = Uri.parse(
+        '$baseUrl/get-appointment-id?date=${date
+            .toIso8601String()}&time=$time&advisorId=$advisorID&mainService=$mainService&subService=$subService&userId=$userID'
+    );
+
+    try {
+      // Make the GET request
+      final response = await http.get(url);
+
+      // Check the response status
+      if (response.statusCode == 200) {
+        // Decode the JSON response
+        final data = jsonDecode(response.body);
+        return data['appointment_id'] as int?;
+      } else if (response.statusCode == 404) {
+        // Handle not found case
+        return null;
+      } else {
+        // Handle other errors
+        throw Exception('Failed to retrieve appointment ID');
+      }
+    } catch (e) {
+      // Handle exceptions
+      print('Error: $e');
+      return null;
+    }
+  }
   Future<ProgressTracking?> getProgressTrackingByAppointmentId(
       int appointmentID) async {
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
+      final response = await http.get(Uri.parse('$baseUrl/progress-tracking/$appointmentID'));
 
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT * FROM progress_tracking WHERE appointment_id = @appointmentID'),
-        parameters: {
-          'appointmentID': appointmentID,
-        },
-      );
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        var row = results.first;
-        return ProgressTracking(
-          advisorId: row[1] as int,
-          advisorName: row[2] as String,
-          userId: row[3] as int,
-          userName: row[4] as String,
-          date: row[5] as DateTime,
-          goalType: row[6] as String,
-          goal: row[7] as String,
-          actionSteps: row[8] as String,
-          timeline: row[9] as String,
-          progressDate: row[10] as DateTime,
-          progressMade: row[11] as String,
-          effectivenessDate: row[12] as DateTime,
-          outcome: row[13] as String,
-          nextSteps: row[14] as String,
-          meetingDate: row[15] as DateTime,
-          agenda: row[16] as String,
-          additionalNotes: row[17] as String,
-          appointmentId: row[18] as int,
-          progressStatus: row[19] as String,
-        );
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        return ProgressTracking.fromJson(data);
+      } else if (response.statusCode == 404) {
+        print('Progress tracking not found');
+        return null;
+      } else {
+        throw Exception('Failed to load progress tracking');
       }
-      return null;
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
+      print('Error: $e');
       return null;
     }
   }
@@ -741,30 +349,14 @@ class DatabaseService {
       return [];
     }
   }
-
   Future<void> updateProgressTracking(ProgressTracking progressTracking) async {
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-      // Prepare the SQL statement
-      await connection.execute(
-        Sql.named('UPDATE progress_tracking SET advisor_name = @advisorName, '
-            'user_name = @userName, date = @date, goal_type = @goalType, '
-            'goal = @goal, action_steps = @actionSteps, timeline = @timeline, '
-            'progress_date = @progressDate, progress_made = @progressMade, '
-            'effectiveness_date = @effectivenessDate, outcome = @outcome, '
-            'next_steps = @nextSteps, meeting_date = @meetingDate, '
-            'agenda = @agenda, additional_notes = @additionalNotes, progress_status =@progressStatus '
-            'WHERE appointment_id = @appointmentId'),
-        parameters: {
+      final response = await http.put(
+        Uri.parse('$baseUrl/progress-tracking/update'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
           'advisorName': progressTracking.advisorName,
           'userName': progressTracking.userName,
           'date': progressTracking.date.toIso8601String(),
@@ -774,8 +366,7 @@ class DatabaseService {
           'timeline': progressTracking.timeline,
           'progressDate': progressTracking.progressDate.toIso8601String(),
           'progressMade': progressTracking.progressMade,
-          'effectivenessDate':
-              progressTracking.effectivenessDate.toIso8601String(),
+          'effectivenessDate': progressTracking.effectivenessDate.toIso8601String(),
           'outcome': progressTracking.outcome,
           'nextSteps': progressTracking.nextSteps,
           'meetingDate': progressTracking.meetingDate.toIso8601String(),
@@ -783,54 +374,41 @@ class DatabaseService {
           'additionalNotes': progressTracking.additionalNotes,
           'progressStatus': progressTracking.progressStatus,
           'appointmentId': progressTracking.appointmentId,
-        },
+        }),
       );
 
-      await connection.close();
-
-      // Disconnect from the database
+      if (response.statusCode == 200) {
+        print('Progress tracking updated successfully');
+      } else if (response.statusCode == 404) {
+        print('Appointment ID not found');
+      } else {
+        throw Exception('Failed to update progress tracking');
+      }
     } catch (e) {
-      throw Exception('Failed to update progress tracking');
+      print('Error: $e');
     }
   }
 
-  //Get Program Initializer
   Future<ProgramInitializer?> getProgramInitializerByID(int programId) async {
+    final url = '$baseUrl/program-initializer/$programId';
+
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
+      final response = await http.get(Uri.parse(url));
 
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT * FROM program_initializer WHERE program_id = @programId'),
-        parameters: {
-          'programId': programId,
-        },
-      );
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        final row = results.first;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
         return ProgramInitializer(
-          programId: row[0] as int,
-          programName: row[1] as String,
-          programDescription: row[2] as String,
-          organizationName: row[3] as String,
-          imageUrl: row[4] as String,
-          coordinatorName: row[5] as String,
-          coordinatorEmail: row[6] as String,
-          coordinatorNumber: row[7] as String,
+          programId: data['programId'],
+          programName: data['programName'],
+          programDescription: data['programDescription'],
+          organizationName: data['organizationName'],
+          imageUrl: data['imageUrl'],
+          coordinatorName: data['coordinatorName'],
+          coordinatorEmail: data['coordinatorEmail'],
+          coordinatorNumber: data['coordinatorNumber'],
         );
       } else {
+        print('Program not found: ${response.body}');
         return null;
       }
     } catch (e) {
@@ -838,38 +416,25 @@ class DatabaseService {
       return null;
     }
   }
-
   Future<List<String>> getProgramInitializerName() async {
+    final url = '$baseUrl/program-initializer-names';
     List<String> programList = [];
+
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
+      final response = await http.get(Uri.parse(url));
 
-      final results = await connection
-          .execute('SELECT program_name FROM program_initializer');
-
-      await connection.close();
-
-      if (results.isNotEmpty) {
-        for (final row in results) {
-          programList.add(row[0] as String);
-        }
+      if (response.statusCode == 200) {
+        programList = List<String>.from(jsonDecode(response.body));
+      } else {
+        print('Failed to retrieve program names: ${response.body}');
       }
-      print(programList);
     } catch (e) {
-      print('Error retrieving program details: $e');
+      print('Error retrieving program names: $e');
     }
 
     return programList;
   }
+
 
   Future<String> _getMentorName(int advisorId) async {
     final connection = await Connection.open(
@@ -1048,5 +613,34 @@ class DatabaseService {
     }).toList();
 
     return appointments;
+  }
+
+  Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/user/appointments/$userId'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => AppointmentsDetails.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load user appointments');
+    }
+  }
+
+  Future<List<AppointmentsDetails>> getMentorAppointmentsAllDetails(int advisorId) async {
+    final response = await http.get(Uri.parse('$baseUrl/mentor/appointments/$advisorId'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => AppointmentsDetails.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load mentor appointments');
+    }
+  }
+
+  Future<UserDetails?> getUserDetailsById(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/user/$userId'));
+    if (response.statusCode == 200) {
+      return UserDetails.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load user details');
+    }
   }
 }

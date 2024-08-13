@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:postgres/postgres.dart';
 import 'package:saloon/GoogleApi/cloud_api.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:http/http.dart' as http;
@@ -234,17 +233,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             setState(() {
                               isOtpSending = true;
                             });
-                            // Check if email already exists in the database
-                            bool emailExists = await checkEmailExists(emailController.text);
-                            if (emailExists) {
-                              // ignore: use_build_context_synchronously
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Email already exists"),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            } else {
                               // Send OTP if email does not exist
                               EmailOTP.config(
                                 appEmail: "ox.black.passionit@gmail.com",
@@ -274,7 +262,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ),
                                 );
                               }
-                            }
                             setState(() {
                               isOtpSending = false;
                             });
@@ -420,29 +407,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           isSigningUp = true;
                         });
                         bool isRegistered = false;
-
-                        if (kIsWeb) {
                           // Register user on the web
-                          await _registerUserWeb(
+                        try {
+                          await _registerUser(
                             nameController.text,
                             passwordController.text,
                             emailController.text,
                             numberController.text,
                             _downloadUrl ?? '',
                           );
-                          // Assume registration is always successful on the web for this example
-                          isRegistered = true;
-                        } else {
-                          // Register user on Android
-                          isRegistered = await registerUserAndroid(
-                            nameController.text,
-                            passwordController.text,
-                            emailController.text,
-                            numberController.text,
-                            _downloadUrl ?? '',
-                          );
+                          isRegistered =true;
                         }
-
+                        catch(e)
+                      {
+                        isRegistered=false;
+                        print(e);
+                      }
                         setState(() {
                           isSigningUp = false;
                         });
@@ -495,65 +475,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-
-  Future<bool> registerUserAndroid(
-      String name, String password, String email, String number,String imageUrl) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      connection.execute(
-        'INSERT INTO public.master_demo_user(name, password, email, number,image_url) '
-            'VALUES (\$1, \$2, \$3, \$4, \$5)',
-        parameters: [name, password, email, number,imageUrl],
-      );
-      await connection.close();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> checkEmailExists(String email) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT COUNT(*) FROM public.master_demo_user WHERE email = \$1',
-        parameters: [email],
-      );
-
-      await connection.close();
-
-      // Ensure the result is properly cast to an integer
-      if (result.isNotEmpty && result.first.isNotEmpty) {
-        int count = result.first[0] as int;
-        return count > 0;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-  }
-  Future<void> _registerUserWeb(String name, String password, String email, String number,String imageUrl) async {
+  Future<void> _registerUser(String name, String password, String email, String number,String imageUrl) async {
     final String apiUrl = 'http://localhost:3000/register';
 
     try {

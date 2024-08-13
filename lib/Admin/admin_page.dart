@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -241,11 +244,21 @@ class _AdminPageState extends State<AdminPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            registerService(
-              _serviceController.text,
-              _subServiceController.text,
-              _serviceURl ?? '',
-            );
+            if(kIsWeb)
+              {
+                registerServiceWeb(
+                  _serviceController.text,
+                  _subServiceController.text,
+                  _serviceURl ?? '',
+                );
+              }
+            else{
+              registerService(
+                _serviceController.text,
+                _subServiceController.text,
+                _serviceURl ?? '',
+              );
+            }
           },
           child: const Text("Add Services"),
         ),
@@ -367,15 +380,29 @@ class _AdminPageState extends State<AdminPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            registerProgramInitializer(
-              _programNameController.text,
-              _programDescriptionController.text,
-              _organizationNameController.text,
-              _programInitializerURl ?? '',
-              _coordinatorNameController.text,
-              _coordinatorEmailController.text,
-              _coordinatorNumberController.text,
-            );
+            if(kIsWeb)
+              {
+                registerProgramInitializerWeb(
+                  _programNameController.text,
+                  _programDescriptionController.text,
+                  _organizationNameController.text,
+                  _programInitializerURl ?? '',
+                  _coordinatorNameController.text,
+                  _coordinatorEmailController.text,
+                  _coordinatorNumberController.text,
+                );
+              }
+            else{
+              registerProgramInitializer(
+                _programNameController.text,
+                _programDescriptionController.text,
+                _organizationNameController.text,
+                _programInitializerURl ?? '',
+                _coordinatorNameController.text,
+                _coordinatorEmailController.text,
+                _coordinatorNumberController.text,
+              );
+            }
           },
           child: const Text("Add Program Initializer"),
         ),
@@ -463,6 +490,62 @@ class _AdminPageState extends State<AdminPage> {
         const SnackBar(content: Text('Error registering program initializer')),
       );
       return false;
+    }
+  }
+  Future<void> registerServiceWeb(
+      String service, String subService, String imageUrl) async {
+    final response = await http.post(
+      Uri.parse('http://3.110.123.193/registerService'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'service': service,
+        'subService': subService,
+        'imageUrl': imageUrl,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Service registered successfully
+      print('Service registered');
+    } else {
+      // Error registering service
+      print('Error: ${response.body}');
+    }
+  }
+
+// Function to register a program initializer
+  Future<void> registerProgramInitializerWeb(
+      String programName,
+      String programDescription,
+      String organizationName,
+      String imageUrl,
+      String coordinatorName,
+      String coordinatorEmail,
+      String coordinatorNumber) async {
+    final response = await http.post(
+      Uri.parse('http://your-server-ip:3000/registerProgramInitializer'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'programName': programName,
+        'programDescription': programDescription,
+        'organizationName': organizationName,
+        'imageUrl': imageUrl,
+        'coordinatorName': coordinatorName,
+        'coordinatorEmail': coordinatorEmail,
+        'coordinatorNumber': coordinatorNumber,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Program initializer registered successfully
+      print('Program initializer registered');
+    } else {
+      // Error registering program initializer
+      print('Error: ${response.body}');
     }
   }
 }

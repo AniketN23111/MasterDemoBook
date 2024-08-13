@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:postgres/postgres.dart';
 import 'package:saloon/MasterSeparateDetails/mentor_meeting_page.dart';
 import 'package:saloon/Models/mentor_details.dart';
 import 'package:saloon/Models/mentor_service.dart';
 import 'package:saloon/Models/user_details.dart';
+import 'package:http/http.dart' as http;
 
 class DetailPage extends StatefulWidget {
   final MentorDetails mentorDetails;
@@ -12,11 +12,10 @@ class DetailPage extends StatefulWidget {
   final UserDetails? userDetails;
 
   const DetailPage(
-      {Key? key,
+      {super.key,
       required this.mentorDetails,
       required this.masterServices,
-      required this.userDetails})
-      : super(key: key);
+      required this.userDetails});
 
   @override
   State<DetailPage> createState() => _DetailPageState();
@@ -39,37 +38,23 @@ class _DetailPageState extends State<DetailPage> {
     // Fetch existing appointments
     _fetchBookedTimeSlots();
   }
-
   Future<void> _fetchBookedTimeSlots() async {
     try {
-      Connection connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/booked-time-slots/${widget.mentorDetails.advisorID}'),
       );
 
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT date, time FROM appointments WHERE advisor_id = @advisorId'),
-        parameters: {
-          'advisorId': widget.mentorDetails.advisorID,
-        },
-      );
+      if (response.statusCode == 200) {
+        final List<dynamic> slots = json.decode(response.body);
 
-      await connection.close();
-
-      setState(() {
-        bookedTimeSlots = results.map((row) {
-          final date = row[0] as DateTime;
-          final time = row[1] as String;
-          return '${date.toLocal().toString().split(' ')[0]} $time';
-        }).toList();
-      });
+        setState(() {
+          bookedTimeSlots = slots.map((slot) {
+            return '${slot['date']} ${slot['time']}';
+          }).toList();
+        });
+      } else {
+        print('Failed to fetch booked time slots: ${response.statusCode}');
+      }
     } catch (e) {
       print('Failed to fetch booked time slots: $e');
     }
@@ -365,11 +350,13 @@ class _DetailPageState extends State<DetailPage> {
   void _showDateTimePicker(BuildContext context, List<bool> workingDaysList,
       List<String> timeSlots) async {
     DateTime now = DateTime.now();
-    DateTime? initialDate = now;
-    while (initialDate != null && !workingDaysList[initialDate.weekday - 1]) {
-      initialDate =
-          initialDate.add(const Duration(days: 1)); // Move to the next day
+    DateTime? initialDate = now.add(const Duration(days: 1)); // Start from tomorrow
+
+    // Ensure the initialDate is a valid working day and not today
+    while (initialDate != null && (!workingDaysList[initialDate.weekday - 1])) {
+      initialDate = initialDate.add(const Duration(days: 1)); // Move to the next day
     }
+
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: initialDate ?? now,
@@ -377,7 +364,7 @@ class _DetailPageState extends State<DetailPage> {
       lastDate: now.add(const Duration(days: 30)),
       selectableDayPredicate: (DateTime date) {
         int dayIndex = date.weekday - 1; // Weekday starts from Monday as 1
-        return workingDaysList[dayIndex];
+        return date.isAfter(now) && workingDaysList[dayIndex]; // Disable today and non-working days
       },
     );
 
@@ -389,7 +376,7 @@ class _DetailPageState extends State<DetailPage> {
       // Fetch booked time slots for the selected date
       List<String> bookedTimeSlotsForDate = bookedTimeSlots
           .where((slot) => slot
-              .startsWith('${pickedDate.toLocal().toString().split(' ')[0]}'))
+          .startsWith('${pickedDate.toLocal().toString().split(' ')[0]}'))
           .toList();
 
       // Check if all time slots are booked for the selected date
@@ -430,8 +417,8 @@ class _DetailPageState extends State<DetailPage> {
                   onPressed: isBooked
                       ? null
                       : () {
-                          Navigator.pop(context, timeSlot);
-                        },
+                    Navigator.pop(context, timeSlot);
+                  },
                   child: Text(
                     timeSlot,
                     style: TextStyle(
@@ -465,66 +452,57 @@ class _DetailPageState extends State<DetailPage> {
         .where((entry) => entry.value)
         .map((entry) => entry.key)
         .toList();
-    final selectedMainServices = selectedServices.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key.mainService)
-        .toList();
 
-    final selectedSubServices = selectedServices.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key.subService)
+    final selectedMainServices = selectedServicesList.map((e) => e.mainService)
+        .toList();
+    final selectedSubServices = selectedServicesList.map((e) => e.subService)
         .toList();
 
     if (selectedDate != null &&
         selectedTimeSlot != null &&
         selectedServicesList.isNotEmpty) {
       try {
-        Connection connection = await Connection.open(
-          Endpoint(
-            host: '34.71.87.187',
-            port: 5432,
-            database: 'datagovernance',
-            username: 'postgres',
-            password: 'India@5555',
-          ),
-          settings: const ConnectionSettings(sslMode: SslMode.disable),
+        // Prepare the data to be sent to the server
+        final response = await http.post(
+          Uri.parse('http://localhost:3000/confirm-appointment'),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'advisorId': widget.mentorDetails.advisorID,
+            'userId': widget.userDetails!.userID,
+            'date': selectedDate!.toIso8601String(),
+            'timeSlot': selectedTimeSlot,
+            'services': selectedServicesList.map((service) {
+              return {
+                'mainService': service.mainService,
+                'subService': service.subService,
+              };
+            }).toList(),
+          }),
         );
 
-        for (var service in selectedServicesList) {
-          await connection.execute(
-            Sql.named(
-                'INSERT INTO appointments (advisor_id, user_id, date, time,main_service,sub_service) VALUES (@advisorId, @userId, @date, @time,@mainService,@subService)'),
-            parameters: {
-              'advisorId': widget.mentorDetails.advisorID,
-              'userId': widget.userDetails!.userID,
-              'date': selectedDate,
-              'time': selectedTimeSlot,
-              'mainService': service.mainService,
-              'subService': service.subService,
-            },
-          );
-        }
+        if (response.statusCode == 200) {
+          setState(() {
+            isLoading = false; // Stop showing progress indicator
+          });
 
-        await connection.close();
-
-        setState(() {
-          isLoading = false; // Stop showing progress indicator
-        });
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MentorMeetingPage(
-              title: '',
-              date: selectedDate!,
-              timeSlot: selectedTimeSlot!,
-              mainService: selectedMainServices.join(', '),
-              subService: selectedSubServices.join(', '),
-              userID: widget.userDetails!.userID,
-              advisorID: widget.mentorDetails.advisorID,
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  MentorMeetingPage(
+                    title: '',
+                    date: selectedDate!,
+                    timeSlot: selectedTimeSlot!,
+                    mainService: selectedMainServices.join(', '),
+                    subService: selectedSubServices.join(', '),
+                    userID: widget.userDetails!.userID,
+                    advisorID: widget.mentorDetails.advisorID,
+                  ),
             ),
-          ),
-        );
+          );
+        } else {
+          throw Exception('Failed to confirm appointment');
+        }
       } catch (e) {
         showDialog(
           context: context,
@@ -569,7 +547,7 @@ class _DetailPageState extends State<DetailPage> {
       );
       setState(() {
         isLoading =
-            false; // Stop showing progress indicator on incomplete selection
+        false; // Stop showing progress indicator on incomplete selection
       });
     }
   }

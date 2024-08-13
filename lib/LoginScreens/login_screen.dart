@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:http/http.dart' as http;
@@ -7,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Constants/screen_utility.dart';
 import '../Admin/admin_page.dart';
 import '../HomeScreen/my_home_page.dart';
-import 'package:postgres/postgres.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,70 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
   }
 
-  Future<void> _loginAndroid() async {
-    if (formkey.currentState!.validate()) {
-      setState(() {
-        _isLoggingIn = true; // Set login state to true when login process starts
-      });
-      try {
-        String enteredEmail = emailController.text.toString();
-        String enteredPassword = passwordController.text.toString();
 
-        // Directly check for admin credentials
-        if (enteredEmail == 'admin@gmail.com' && enteredPassword == 'admin@123') {
-          await _storeDetailsInPrefs(true, true); // Store details with isAdmin flag
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const AdminPage()),
-          );
-          _isLoggingIn = false;
-          return; // Exit function early if admin credentials match
-        }
-
-        // Check credentials in the user database
-        final isValidUser = await fetchUserCredentials(enteredEmail, enteredPassword);
-        if (isValidUser) {
-          userData = await fetchUserData(enteredEmail);
-          await _storeDetailsInPrefs(true, false); // Store details as user
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MyHomePage()),
-          );
-        } else {
-          // Check credentials in the mentor database
-          final isValidMentor = await fetchMentorCredentials(enteredEmail, enteredPassword);
-          if (isValidMentor) {
-            userData = await fetchMentorData(enteredEmail);
-            await _storeDetailsInPrefs(false, false); // Store details as mentor
-            if (!mounted) return;
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MyHomePage()),
-            );
-          } else {
-            // Show error message for invalid credentials
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Invalid username or password')),
-            );
-          }
-        }
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed. Please try again.')),
-        );
-      } finally {
-        setState(() {
-          _isLoggingIn = false; // Reset login state to false when login process completes
-        });
-      }
-    }
-  }
-
-  Future<void> _loginWeb() async {
+  Future<void> _login() async {
     if (formkey.currentState!.validate()) {
       setState(() {
         _isLoggingIn = true;
@@ -161,8 +97,83 @@ class _LoginScreenState extends State<LoginScreen> {
     prefs.setBool('isUser', isUser); // Store whether the user is a user
     prefs.setBool('isAdmin', isAdmin); // Store whether the user is an admin
   }
-
   Future<bool> fetchUserCredentials(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/fetchUserCredentials'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['result'] == true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> fetchMentorCredentials(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/fetchMentorCredentials'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['result'] == true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<List<List<dynamic>>> fetchUserData(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/fetchUserData'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<List<dynamic>>.from(data);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<List<dynamic>>> fetchMentorData(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/api/fetchMentorData'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<List<dynamic>>.from(data);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /*Future<bool> fetchUserCredentials(String email, String password) async {
     try {
       final connection = await Connection.open(
         Endpoint(
@@ -264,7 +275,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       return [];
     }
-  }
+  }*/
 
   bool _validatePassword(String password) {
     // Regular expression to check if password contains at least one letter, one number, and one special character
@@ -344,12 +355,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _isLoggingIn
                         ? null
                         : () {
-                      // Call the appropriate login function based on the platform
-                      if (kIsWeb) {
-                        _loginWeb();
-                      } else {
-                        _loginAndroid();
-                      }
+                        _login();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
