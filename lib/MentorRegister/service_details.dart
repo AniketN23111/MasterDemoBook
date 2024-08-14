@@ -1,11 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:postgres/postgres.dart';
 import 'package:saloon/GoogleApi/cloud_api.dart'; // Replace with your import paths
 import 'package:saloon/Models/admin_service.dart'; // Replace with your import paths
 import 'package:saloon/Services/database_service.dart'; // Replace with your import paths
+import 'package:http/http.dart' as http;
 
 class ServiceDetails extends StatefulWidget {
   final String name;
@@ -389,7 +391,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                          registerMentorDetailsRegister();
                         // Navigate to the login page after registration
                         Navigator.pushReplacementNamed(
-                            context, '/login');
+                            context, 'loginScreen');
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -412,97 +414,45 @@ class _ServiceDetailsState extends State<ServiceDetails> {
       ),
     );
   }
-
-  void registerMentorDetailsRegister() async {
-    late Connection connection;
-
+  Future<void> registerMentorDetailsRegister() async {
     try {
-      // Open the database connection
-      connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/registerMentor'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': widget.name,
+          'address': widget.address,
+          'mobile': widget.number,
+          'email': widget.email,
+          'pincode': widget.pincode,
+          'country': widget.country,
+          'state': widget.state,
+          'city': widget.city,
+          'area': widget.area,
+          'license': widget.license,
+          'workingDays': widget.workingDays,
+          'timeslot': widget.timeslot,
+          'imageUrl': _downloadUrl,
+          'company_name': widget.companyName,
+          'designation': widget.designation,
+          'gender': widget.gender,
+          'date_of_birth': widget.dateOfBirth.toIso8601String(),
+          'password': widget.password,
+          'selectedServices': selectedServices,
+        }),
       );
 
-      // Insert into public.master_details table and get the generated advisor_id
-      final result = await connection.execute(Sql.named('''
-      INSERT INTO public.advisor_details (
-        name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url ,company_name,designation,gender,date_of_birth,password
-      ) VALUES (
-        @name, @address, @mobile, @email, @pincode, @country, @state, @city, @area, @license, @workingDays, @timeslot, @imageUrl, @company_name, @designation, @gender,@date_of_birth, @password
-      ) RETURNING advisor_id;
-    '''), parameters: {
-        'name': widget.name,
-        'address': widget.address,
-        'mobile': widget.number,
-        'email': widget.email,
-        'pincode': widget.pincode,
-        'country': widget.country,
-        'state': widget.state,
-        'city': widget.city,
-        'area': widget.area,
-        'license': widget.license,
-        'workingDays': widget.workingDays,
-        'timeslot': widget.timeslot,
-        'imageUrl': _downloadUrl,
-        'company_name': widget.companyName,
-        'designation': widget.designation,
-        'gender': widget.gender,
-        'date_of_birth': widget.dateOfBirth,
-        'password':widget.password,
-      });
-      if (result.isEmpty) {
-        throw Exception("Failed to retrieve shop ID.");
-      }
-
-      final advisorID = result.first[0];
-
-      // Insert service details into service table
-      for (String service in selectedServices) {
-        List<String> parts = service.split(' - ');
-
-        if (parts.length != 5) {
-          continue; // Skip this invalid service string
-        }
-
-        String mainService = parts[0].split(': ').last.trim();
-        String subService = parts[1].split(': ').last.trim();
-        String rate = parts[2].split(': ').last.trim();
-        String quantity = parts[3].split(': ').last.trim();
-        String unit = parts[4].split(': ').last.trim();
-
-        await connection.execute(Sql.named('''
-        INSERT INTO public.advisor_service_details (
-          advisor_id, main_service, sub_service, rate, quantity, unit_of_measurement
-        ) VALUES (
-          @advisorID, @mainService, @subService, @rate, @quantity, @unit
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Details registered successfully')),
         );
-      '''), parameters: {
-          'advisorID': advisorID,
-          'mainService': mainService,
-          'subService': subService,
-          'rate': rate,
-          'quantity': quantity,
-          'unit': unit,
-        });
+      } else {
+        throw Exception('Failed to register mentor details.');
       }
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Details registered successfully')),
-      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to register shop details: $e')),
+        SnackBar(content: Text('Failed to register mentor details: $e')),
       );
-    } finally {
-      // Close the connection
-      await connection.close();
     }
   }
 }

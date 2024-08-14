@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:saloon/HomeScreen/home_page.dart';
 import 'package:saloon/HomeScreen/my_home_page.dart';
@@ -16,6 +15,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreen extends State<SplashScreen> {
   var isLogin = false;
   late Timer _timer;
+
   @override
   void initState() {
     super.initState();
@@ -23,12 +23,11 @@ class _SplashScreen extends State<SplashScreen> {
     _navigateToNextScreen();
   }
 
-
   Future<void> _navigateToNextScreen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-    _timer=Timer(
+    _timer = Timer(
       const Duration(seconds: 3),
           () {
         if (isLoggedIn) {
@@ -56,13 +55,14 @@ class _SplashScreen extends State<SplashScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomePage(), // Use user!
+          builder: (context) => const MyHomePage(), // Use user!
         ),
       );
     } else {
       Navigator.pushReplacementNamed(context, 'loginScreen');
     }
   }
+
   @override
   void dispose() {
     super.dispose();
@@ -88,15 +88,30 @@ class _SplashScreen extends State<SplashScreen> {
           children: [
             Padding(
               padding: EdgeInsets.all(20.0),
-              child: Text(
-                "BlackOX Experts Connect",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 36.0,
-                  fontFamily: 'Roboto', // Customize font family if needed
-                ),
+              child: Column(
+                children: [
+                  Text(
+                    "BlackOX PASSION HUB",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 36.0,
+                      fontFamily: 'Roboto',
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Connecting Agro Experts with Farmers",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                      fontSize: 30.0,
+                      fontFamily: 'Roboto',
+                    ),
+                  ),
+                ],
               ),
             ),
             CircularProgressIndicator(

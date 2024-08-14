@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:saloon/Models/progress_tracking.dart'; // Import your ProgressTracking model
@@ -8,8 +9,7 @@ class GoalDetailsPage extends StatelessWidget {
   final int advisorId; // Assuming you have advisorId available
 
   const GoalDetailsPage(
-      {Key? key, required this.userId, required this.advisorId})
-      : super(key: key);
+      {super.key, required this.userId, required this.advisorId});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +51,9 @@ class GoalDetailsPage extends StatelessWidget {
       DatabaseService dbService = DatabaseService();
       return await dbService.getDistinctGoalTypes(userId, advisorId) ;
     } catch (e) {
-      print('Error fetching goal types: $e');
+      if (kDebugMode) {
+        print('Error fetching goal types: $e');
+      }
       return []; // Return an empty list on error
     }
   }
@@ -90,7 +92,9 @@ class GoalDetailsPage extends StatelessWidget {
       return await dbService.getProgressDetailsByGoalType(
           userId, advisorId, goalType) ;
     } catch (e) {
-      print('Error fetching progress tracking: $e');
+      if (kDebugMode) {
+        print('Error fetching progress tracking: $e');
+      }
       return []; // Return an empty list on error
     }
   }

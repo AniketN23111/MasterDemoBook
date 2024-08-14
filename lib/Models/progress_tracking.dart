@@ -42,7 +42,7 @@ class ProgressTracking {
   });
   factory ProgressTracking.fromJson(Map<String, dynamic> json) {
     return ProgressTracking(
-      advisorId: json['advisor_id'],
+      advisorId:  json['advisor_id'],
       advisorName: json['advisor_name'],
       userId: json['user_id'],
       userName: json['user_name'],

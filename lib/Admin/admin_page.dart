@@ -1,15 +1,12 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:postgres/postgres.dart';
 import 'package:saloon/Admin/dashboard_screen.dart';
 import 'package:saloon/Constants/screen_utility.dart';
 import 'package:saloon/GoogleApi/cloud_api.dart';
+import 'package:saloon/Services/database_service.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -35,7 +32,7 @@ class _AdminPageState extends State<AdminPage> {
   CloudApi? cloudApi;
   bool _uploading = false;
   bool _showServiceForm = false;
-
+  DatabaseService dbService=DatabaseService();
   @override
   void initState() {
     super.initState();
@@ -244,21 +241,11 @@ class _AdminPageState extends State<AdminPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            if(kIsWeb)
-              {
-                registerServiceWeb(
-                  _serviceController.text,
-                  _subServiceController.text,
-                  _serviceURl ?? '',
-                );
-              }
-            else{
-              registerService(
+              dbService.registerService(
                 _serviceController.text,
                 _subServiceController.text,
                 _serviceURl ?? '',
               );
-            }
           },
           child: const Text("Add Services"),
         ),
@@ -380,20 +367,7 @@ class _AdminPageState extends State<AdminPage> {
         ),
         ElevatedButton(
           onPressed: () {
-            if(kIsWeb)
-              {
-                registerProgramInitializerWeb(
-                  _programNameController.text,
-                  _programDescriptionController.text,
-                  _organizationNameController.text,
-                  _programInitializerURl ?? '',
-                  _coordinatorNameController.text,
-                  _coordinatorEmailController.text,
-                  _coordinatorNumberController.text,
-                );
-              }
-            else{
-              registerProgramInitializer(
+              dbService.registerProgramInitializer(
                 _programNameController.text,
                 _programDescriptionController.text,
                 _organizationNameController.text,
@@ -402,150 +376,10 @@ class _AdminPageState extends State<AdminPage> {
                 _coordinatorEmailController.text,
                 _coordinatorNumberController.text,
               );
-            }
           },
           child: const Text("Add Program Initializer"),
         ),
       ],
     );
-  }
-
-  Future<bool> registerService(
-      String service, String subService, String imageUrl) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      await connection.execute(
-        'INSERT INTO public.service_master(service, sub_service, icon_url) VALUES (@service, @subService, @icon)',
-        parameters: {
-          'service': service,
-          'subService': subService,
-          'icon': imageUrl,
-        },
-      );
-
-      await connection.close();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Service registered successfully')),
-      );
-      return true;
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error registering service')),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> registerProgramInitializer(
-      String programName,
-      String programDescription,
-      String organizationName,
-      String imageUrl,
-      String coordinatorName,
-      String coordinatorEmail,
-      String coordinatorNumber,
-      ) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      await connection.execute(Sql.named('INSERT INTO public.program_initializer(program_name, program_description, organization_name, icon_url, coordinator_name, coordinator_email, coordinator_number) '
-          'VALUES (@programName, @programDescription, @organizationName, @iconUrl, @coordinatorName, @coordinatorEmail, @coordinatorNumber)'),
-        parameters: {
-          'programName': programName,
-          'programDescription': programDescription,
-          'organizationName': organizationName,
-          'iconUrl': imageUrl,
-          'coordinatorName': coordinatorName,
-          'coordinatorEmail': coordinatorEmail,
-          'coordinatorNumber': coordinatorNumber,
-        },
-      );
-
-      await connection.close();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Program initializer registered successfully')),
-      );
-      return true;
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error registering program initializer')),
-      );
-      return false;
-    }
-  }
-  Future<void> registerServiceWeb(
-      String service, String subService, String imageUrl) async {
-    final response = await http.post(
-      Uri.parse('http://3.110.123.193/registerService'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'service': service,
-        'subService': subService,
-        'imageUrl': imageUrl,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      // Service registered successfully
-      print('Service registered');
-    } else {
-      // Error registering service
-      print('Error: ${response.body}');
-    }
-  }
-
-// Function to register a program initializer
-  Future<void> registerProgramInitializerWeb(
-      String programName,
-      String programDescription,
-      String organizationName,
-      String imageUrl,
-      String coordinatorName,
-      String coordinatorEmail,
-      String coordinatorNumber) async {
-    final response = await http.post(
-      Uri.parse('http://your-server-ip:3000/registerProgramInitializer'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'programName': programName,
-        'programDescription': programDescription,
-        'organizationName': organizationName,
-        'imageUrl': imageUrl,
-        'coordinatorName': coordinatorName,
-        'coordinatorEmail': coordinatorEmail,
-        'coordinatorNumber': coordinatorNumber,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      // Program initializer registered successfully
-      print('Program initializer registered');
-    } else {
-      // Error registering program initializer
-      print('Error: ${response.body}');
-    }
   }
 }

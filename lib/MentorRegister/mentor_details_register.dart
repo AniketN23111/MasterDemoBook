@@ -273,7 +273,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
               ),
               const SizedBox(height: 10),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: TextFormField(
                   controller: _password,
                   validator: (value) {
@@ -288,17 +288,19 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                     return null; // Validation passed
                   },
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  decoration:  InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.all(15),
                       hintText: 'Password',
-                      labelText: 'Password',
-                      prefixIcon: Icon(
-                        Icons.password,
-                        color: Colors.lightBlue,
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(9),
+                        child: SvgPicture.asset(
+                            'assets/icons/password.svg'),
                       ),
-                      contentPadding:  EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
                       border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.red),
-                          borderRadius: BorderRadius.all(Radius.circular(9.0)))),
+                          borderRadius: BorderRadius.circular(15),
+                          borderSide: BorderSide.none)),
                 ),
               ),
               const SizedBox(height: 10),
@@ -376,7 +378,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                       hintText: 'Designation',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: SvgPicture.asset('assets/icons/designation.svg'),
+                        child: SvgPicture.asset('assets/icons/user-id-svgrepo-com.svg'),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
@@ -461,7 +463,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                         hintText: 'Date of Birth',
                         prefixIcon: Padding(
                           padding: const EdgeInsets.all(12),
-                          child: SvgPicture.asset('assets/icons/birthdate.svg'),
+                          child: SvgPicture.asset('assets/icons/date.svg'),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),

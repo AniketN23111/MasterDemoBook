@@ -207,6 +207,83 @@ app.get('/admin/services', async (req, res) => {
   }
 });
 
+//Register Mentor
+app.post('/registerMentor', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const {
+      name,
+      address,
+      mobile,
+      email,
+      pincode,
+      country,
+      state,
+      city,
+      area,
+      license,
+      workingDays,
+      timeslot,
+      imageUrl,
+      company_name,
+      designation,
+      gender,
+      date_of_birth,
+      password,
+      selectedServices,
+    } = req.body;
+
+    // Start a transaction
+    await client.query('BEGIN');
+
+    // Insert into advisor_details table and get the generated advisor_id
+    const result = await client.query(`
+      INSERT INTO public.advisor_details (
+        name, address, mobile, email, pincode, country, state, city, area, license, working_days, timeslot, image_url, company_name, designation, gender, date_of_birth, password
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+      ) RETURNING advisor_id;
+    `, [
+      name, address, mobile, email, pincode, country, state, city, area, license, workingDays, timeslot, imageUrl, company_name, designation, gender, date_of_birth, password
+    ]);
+
+    const advisorID = result.rows[0].advisor_id;
+
+    // Insert service details into advisor_service_details table
+    for (const service of selectedServices) {
+      const parts = service.split(' - ');
+
+      if (parts.length !== 5) {
+        continue; // Skip this invalid service string
+      }
+
+      const mainService = parts[0].split(': ').pop().trim();
+      const subService = parts[1].split(': ').pop().trim();
+      const rate = parts[2].split(': ').pop().trim();
+      const quantity = parts[3].split(': ').pop().trim();
+      const unit = parts[4].split(': ').pop().trim();
+
+      await client.query(`
+        INSERT INTO public.advisor_service_details (
+          advisor_id, main_service, sub_service, rate, quantity, unit_of_measurement
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6
+        );
+      `, [advisorID, mainService, subService, rate, quantity, unit]);
+    }
+
+    // Commit the transaction
+    await client.query('COMMIT');
+
+    res.status(200).json({ message: 'Details registered successfully' });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Failed to register mentor details' });
+  } finally {
+    client.release();
+  }
+});
 // Route to get all mentor services
 app.get('/mentor/services', async (req, res) => {
   try {
@@ -374,7 +451,6 @@ app.get('/getAdvisorName/:advisorId', async (req, res) => {
   }
 });
 
-
 // Function to insert progress tracking
 app.post('/insertProgressTracking', async (req, res) => {
   const {
@@ -493,20 +569,61 @@ app.get('/progress-tracking/:appointmentID', async (req, res) => {
   }
 });
 
-// Get distinct goal types
-app.get('/goal-types/:userId/:advisorId', async (req, res) => {
-  const { userId, advisorId } = req.params;
+// Get Progress Details goal types
+app.post('/getProgressDetailsByGoalType', async (req, res) => {
+  const { userId, advisorId, goalType } = req.body;
 
   try {
-    const result = await pool.query(
+    const results = await pool.query(
+      'SELECT * FROM progress_tracking WHERE user_id = $1 AND advisor_id = $2 AND goal_type = $3',
+      [userId, advisorId, goalType]
+    );
+
+    const progressList = results.rows.map(row => ({
+      advisor_id: row.advisor_id,
+      advisor_name: row.advisor_name,
+      user_id: row.user_id,
+      user_name: row.user_name,
+      date: row.date,
+      goal_type: row.goal_type,
+      goal: row.goal,
+      action_steps: row.action_steps,
+      timeline: row.timeline,
+      progress_date: row.progress_date,
+      progress_made: row.progress_made,
+      effectiveness_date: row.effectiveness_date,
+      outcome: row.outcome,
+      next_steps: row.next_steps,
+      meeting_date: row.meeting_date,
+      agenda: row.agenda,
+      additional_notes: row.additional_notes,
+      appointment_id: row.appointment_id,
+      progress_status: row.progress_status,
+    }));
+
+    res.json(progressList);
+  } catch (error) {
+    console.error('Error fetching progress details:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Get distinct goal types
+app.post('/getDistinctGoalTypes', async (req, res) => {
+  const { userId, advisorId } = req.body;
+
+  try {
+    const results = await pool.query(
       'SELECT DISTINCT goal_type FROM progress_tracking WHERE user_id = $1 AND advisor_id = $2',
       [userId, advisorId]
     );
 
-    res.json(result.rows.map(row => row.goal_type));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
+    const goalTypes = results.rows.map(row => row.goal_type);
+
+    res.json(goalTypes);
+  } catch (error) {
+    console.error('Error fetching distinct goal types:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -601,44 +718,52 @@ app.get('/program-initializer-names', async (req, res) => {
 });
 
 // Get mentor meeting counts
-app.get('/mentor-meeting-counts/:year', async (req, res) => {
-  const { year } = req.params;
+ app.get('/getMentorMeetingCounts/:year', async (req, res) => {
+   const year = parseInt(req.params.year, 10);
 
-  try {
-    const result = await pool.query(
-      `SELECT advisor_id, EXTRACT(MONTH FROM date) as month, COUNT(*) AS meeting_count
-       FROM appointments WHERE EXTRACT(YEAR FROM date) = $1 GROUP BY advisor_id, EXTRACT(MONTH FROM date)`,
-      [year]
-    );
+   if (isNaN(year)) {
+     return res.status(400).json({ error: 'Invalid year parameter' });
+   }
 
-    const data = {};
+   try {
+     const result = await pool.query(
+       `SELECT advisor_id, EXTRACT(MONTH FROM date) as month, COUNT(*) AS meeting_count
+        FROM appointments WHERE EXTRACT(YEAR FROM date) = $1 GROUP BY advisor_id, EXTRACT(MONTH FROM date)`,
+       [year]
+     );
 
-    for (const row of result.rows) {
-      const advisorId = row.advisor_id;
-      const month = parseInt(row.month);
-      const meetingCount = row.meeting_count;
+     const data = {};
 
-      const mentorName = await getMentorName(advisorId);
+     for (const row of result.rows) {
+       const advisorId = row.advisor_id;
+       const month = parseInt(row.month, 10); // Ensure month is an integer
+       const meetingCount = parseInt(row.meeting_count, 10); // Ensure meeting_count is an integer
 
-      const uniqueKey = `${mentorName} (ID: ${advisorId})`;
+       const mentorName = await getMentorName(advisorId); // Await the async function
 
-      if (!data[uniqueKey]) {
-        data[uniqueKey] = {};
-      }
+       const uniqueKey = `${mentorName} (ID: ${advisorId})`;
 
-      data[uniqueKey][month] = meetingCount;
-    }
+       if (!data[uniqueKey]) {
+         data[uniqueKey] = {};
+       }
 
-    res.json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
-  }
-});
+       data[uniqueKey][month] = meetingCount;
+     }
+
+     res.json(data);
+   } catch (err) {
+     console.error(err);
+     res.status(500).json({ error: 'Database error' });
+   }
+ });
 
 // Get mentee meeting counts
-app.get('/mentee-meeting-counts/:year', async (req, res) => {
-  const { year } = req.params;
+app.get('/getMenteeMeetingCounts/:year', async (req, res) => {
+  const year = parseInt(req.params.year, 10);
+
+     if (isNaN(year)) {
+       return res.status(400).json({ error: 'Invalid year parameter' });
+     }
 
   try {
     const result = await pool.query(
@@ -646,13 +771,11 @@ app.get('/mentee-meeting-counts/:year', async (req, res) => {
        FROM appointments WHERE EXTRACT(YEAR FROM date) = $1 GROUP BY user_id, EXTRACT(MONTH FROM date)`,
       [year]
     );
-
     const data = {};
-
     for (const row of result.rows) {
       const userId = row.user_id;
-      const month = parseInt(row.month);
-      const count = row.count;
+      const month = parseInt(row.month, 10);
+      const count = parseInt(row.count, 10);
 
       const menteeName = await getMenteeName(userId);
 
@@ -956,6 +1079,32 @@ app.post('/insert-progress-tracking', async (req, res) => {
   } catch (err) {
     console.error('Error inserting progress tracking details:', err);
     res.status(500).json({ error: 'Failed to insert progress tracking details', details: err.message });
+  }
+});
+
+//get Appointments Per Month
+app.get('/getAppointmentsForMonth', async (req, res) => {
+  const { month, year } = req.query;
+
+  try {
+    const client = await pool.connect();
+
+    const query = `
+      SELECT * FROM appointments
+      WHERE EXTRACT(MONTH FROM date) = $1
+      AND EXTRACT(YEAR FROM date) = $2
+    `;
+
+    const result = await client.query(query, [month, year]);
+
+    client.release();
+
+    // Send the appointments data as JSON
+    res.json(result.rows);
+
+  } catch (err) {
+    console.error('Error executing query', err.stack);
+    res.status(500).send('Error retrieving appointments');
   }
 });
 

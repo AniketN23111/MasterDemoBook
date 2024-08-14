@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:saloon/GoalDetailsPage/goal_details_page.dart';
+import 'package:saloon/HomeScreen/profile_page.dart';
 import 'package:saloon/HomeScreen/search_page.dart';
 import 'package:saloon/LoginScreens/login_screen.dart';
 import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
@@ -121,7 +122,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
   }
-
 
   Future<void> _initializeData() async {
     await _getDetailsInPrefs();
@@ -256,7 +256,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-
   void logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.clear();
@@ -268,6 +267,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  /*void profile() async {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ProfilePage(),
+      ),
+    );
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -505,9 +513,7 @@ class _MyHomePageState extends State<MyHomePage> {
             if (isUser)
               ListTile(
                 title: const Text('Profile'),
-                onTap: () {
-                  // Navigate to user profile screen
-                },
+                onTap:(){} //profile,
               ),
             if (!isUser)
               ListTile(
@@ -594,9 +600,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     groupedAppointments.forEach((userID, appointments) {
-      var mentorIndex = userDetailsList.indexWhere((mentor) => mentor.userID == userID);
-      if (mentorIndex != -1) {
-        var user = userDetailsList[mentorIndex];
+      var userIndex = userDetailsList.indexWhere((user) => user.userID == userID);
+      if (userIndex != -1) {
+        var user = userDetailsList[userIndex];
         bool expanded = isExpanded[userID] ?? false;
         widgets.add(
           ExpansionTile(
@@ -615,7 +621,7 @@ class _MyHomePageState extends State<MyHomePage> {
               return Card(
                 child: ListTile(
                   onTap: () => _onAppointmentTap(appointment.appointmentID),
-                  title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                    title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -631,7 +637,6 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       }
     });
-
     return widgets;
   }
 }

@@ -1,8 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:postgres/postgres.dart';
 import 'package:saloon/Models/appointments_details.dart';
 import 'package:saloon/Models/admin_service.dart';
 import 'package:saloon/Models/mentor_service.dart';
@@ -14,42 +12,78 @@ import 'package:http/http.dart' as http;
 class DatabaseService {
   final String baseUrl = 'http://localhost:3000';
 
-  //Admin Stored Services Get
   Future<List<AdminService>> getAdminService() async {
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
+      final response = await http.get(Uri.parse('$baseUrl/admin/services'));
 
-      final results = await connection.execute(
-        'SELECT * FROM public.service_master',
-      );
-
-      await connection.close();
-
-      List<AdminService> adminServiceList = [];
-
-      for (var row in results) {
-        adminServiceList.add(AdminService(
-          service: row[0] as String,
-          subService: row[1] as String,
-          imageIcon: row[2] as String,
-        ));
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((json) => AdminService.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load mentor services');
       }
-
-      return adminServiceList;
     } catch (e) {
+      print('Error: $e');
       return [];
     }
   }
 
+  Future<void> registerService(
+      String service, String subService, String imageUrl) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/registerService'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'service': service,
+        'subService': subService,
+        'imageUrl': imageUrl,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Service registered successfully
+      print('Service registered');
+    } else {
+      // Error registering service
+      print('Error: ${response.body}');
+    }
+  }
+
+// Function to register a program initializer
+  Future<void> registerProgramInitializer(
+      String programName,
+      String programDescription,
+      String organizationName,
+      String imageUrl,
+      String coordinatorName,
+      String coordinatorEmail,
+      String coordinatorNumber) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/registerProgramInitializer'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'programName': programName,
+        'programDescription': programDescription,
+        'organizationName': organizationName,
+        'imageUrl': imageUrl,
+        'coordinatorName': coordinatorName,
+        'coordinatorEmail': coordinatorEmail,
+        'coordinatorNumber': coordinatorNumber,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // Program initializer registered successfully
+      print('Program initializer registered');
+    } else {
+      // Error registering program initializer
+      print('Error: ${response.body}');
+    }
+  }
 
   Future<List<MentorService>> getMentorServices() async {
     try {
@@ -255,100 +289,58 @@ class DatabaseService {
   }
 
   Future<List<String>> getDistinctGoalTypes(int userId, int advisorId) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
+    final url = Uri.parse('$baseUrl/getDistinctGoalTypes');
 
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT DISTINCT goal_type FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId'),
-        parameters: {
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
           'userId': userId,
           'advisorId': advisorId,
-        },
+        }),
       );
 
-      await connection.close();
-
-      List<String> goalTypes = results.map((row) => row[0] as String).toList();
-
-      return goalTypes;
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        return data.map<String>((item) => item.toString()).toList();
+      } else {
+        print('Error: ${response.statusCode}');
+        return [];
       }
+    } catch (e) {
+      print('Error: $e');
       return [];
     }
   }
+  Future<List<ProgressTracking>> getProgressDetailsByGoalType(int userId, int advisorId, String goalType) async {
+    final url = Uri.parse('$baseUrl/getProgressDetailsByGoalType');
 
-  Future<List<ProgressTracking>> getProgressDetailsByGoalType(
-      int userId, int advisorId, String goalType) async {
     try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final results = await connection.execute(
-        Sql.named(
-            'SELECT * FROM progress_tracking WHERE user_id = @userId AND advisor_id = @advisorId AND goal_type = @goalType '),
-        parameters: {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
           'userId': userId,
           'advisorId': advisorId,
           'goalType': goalType,
-        },
+        }),
       );
 
-      await connection.close();
-
-      List<ProgressTracking> progressList = [];
-
-      for (var row in results) {
-        progressList.add(ProgressTracking(
-          advisorId: row[1] as int,
-          advisorName: row[2] as String,
-          userId: row[3] as int,
-          userName: row[4] as String,
-          date: row[5] as DateTime,
-          goalType: row[6] as String,
-          goal: row[7] as String,
-          actionSteps: row[8] as String,
-          timeline: row[9] as String,
-          progressDate: row[10] as DateTime,
-          progressMade: row[11] as String,
-          effectivenessDate: row[12] as DateTime,
-          outcome: row[13] as String,
-          nextSteps: row[14] as String,
-          meetingDate: row[15] as DateTime,
-          agenda: row[16] as String,
-          additionalNotes: row[17] as String,
-          appointmentId: row[18] as int,
-          progressStatus: row[19] as String,
-        ));
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<ProgressTracking> progressList = data.map((item) => ProgressTracking.fromJson(item)).toList();
+        return progressList;
+      } else {
+        print('Error: ${response.statusCode}');
+        return [];
       }
-
-      return progressList;
     } catch (e) {
-      if (kDebugMode) {
-        print(e);
-      }
+      print('Error: $e');
       return [];
     }
   }
+
   Future<void> updateProgressTracking(ProgressTracking progressTracking) async {
     try {
       final response = await http.put(
@@ -435,184 +427,99 @@ class DatabaseService {
     return programList;
   }
 
+  Future<List<AppointmentsDetails>> getAppointmentsForMonth(int month, int year) async {
+    final response = await http.get(Uri.parse('$baseUrl/getAppointmentsForMonth?month=$month&year=$year'));
 
-  Future<String> _getMentorName(int advisorId) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
 
-    // Replace with your actual query to fetch mentor name
-    const query =
-        'SELECT name FROM advisor_details WHERE advisor_id = @advisorId';
-    final result = await connection
-        .execute(Sql.named(query), parameters: {'advisorId': advisorId});
-
-    if (result.isNotEmpty) {
-      return result.first.toColumnMap()['name'] as String;
+      return data.map((json) {
+        return AppointmentsDetails(
+          appointmentID: json['appointment_id'],
+          date: DateTime.parse(json['date']),
+          time: json['time'],
+          advisorID: json['advisor_id'],
+          mainService: json['main_service'],
+          subService: json['sub_service'],
+          userID: json['user_id'],
+          // Parse any additional fields as needed
+        );
+      }).toList();
     } else {
-      return 'Unknown'; // Default value if mentor name is not found
+      throw Exception('Failed to load appointments');
     }
   }
-
   Future<Map<String, Map<int, int>>> getMentorMeetingCounts(int year) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-    // Replace with your actual query to fetch data
-    final query = '''
-      SELECT advisor_id, EXTRACT(MONTH FROM date) as Month, COUNT(*) AS meeting_count
-      FROM appointments
-      WHERE EXTRACT(YEAR FROM date) = $year
-      GROUP BY advisor_id, EXTRACT(MONTH FROM date)
-    ''';
+    final response = await http.get(Uri.parse('$baseUrl/getMentorMeetingCounts/$year'));
 
-    final result = await connection.execute(Sql.named(query));
+    if (response.statusCode == 200) {
+      try {
+        // Decode the JSON data
+        final data = json.decode(response.body) as Map<String, dynamic>;
 
-    final data = <String, Map<int, int>>{};
+        // Parse the data into the expected format
+        return data.map((key, value) {
+          // Ensure that 'value' is a Map<String, dynamic> and cast it properly
+          final monthCountMap = value as Map<String, dynamic>;
 
-    for (var row in result) {
-      final advisorId = row[0] as int;
-      final monthString = row[1] as String;
-      final meetingCount = row[2] as int;
-      final month = int.tryParse(monthString) ?? 0;
-      final mentorName = await _getMentorName(
-          advisorId); // Method to fetch mentor name from ID
+          return MapEntry(
+            key,
+            monthCountMap.map((month, count) {
+              // Parse the month (key) to an integer and ensure count is an integer
+              final parsedMonth = int.tryParse(month);
+              final parsedCount = count as int?;
 
-      // Create a unique key combining advisor_id and name
-      final uniqueKey = '$mentorName (ID: $advisorId)';
+              if (parsedMonth == null || parsedCount == null) {
+                throw Exception('Failed to parse month or count');
+              }
 
-      if (!data.containsKey(uniqueKey)) {
-        data[uniqueKey] = {};
+              return MapEntry(parsedMonth, parsedCount);
+            }),
+          );
+        });
+      } catch (e) {
+        throw Exception('Failed to parse JSON data: $e');
       }
-
-      data[uniqueKey]![month] = meetingCount;
-    }
-
-    return data.map((uniqueKey, meetingCounts) {
-      return MapEntry(uniqueKey, meetingCounts);
-    });
-  }
-
-  Future<String> _getMenteeName(int userID) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-
-    // Replace with your actual query to fetch mentor name
-    const query = 'SELECT name FROM master_demo_user WHERE user_id = @userId';
-    final result = await connection
-        .execute(Sql.named(query), parameters: {'userId': userID});
-
-    if (result.isNotEmpty) {
-      return result.first.toColumnMap()['name'] as String;
     } else {
-      return 'Unknown'; // Default value if mentor name is not found
+      // Handle the case where the response status is not 200
+      throw Exception('Failed to load mentor meeting counts. Status code: ${response.statusCode}');
     }
   }
 
   Future<Map<String, Map<int, int>>> getMenteeMeetingCounts(int year) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
+    final response = await http.get(Uri.parse('$baseUrl/getMenteeMeetingCounts/$year'));
 
-    final results = await connection.execute(
-      Sql.named('''
-        SELECT user_id,EXTRACT(MONTH FROM date) AS month, COUNT(*) AS count
-        FROM appointments
-        WHERE EXTRACT(YEAR FROM date) = @year
-        GROUP BY user_id,EXTRACT(MONTH FROM date)
-        '''),
-      parameters: {'year': year},
-    );
+    if (response.statusCode == 200) {
+      try {
+        // Decode the JSON data
+        final data = json.decode(response.body) as Map<String, dynamic>;
 
-    await connection.close();
+        // Parse the data into the expected format
+        return data.map((key, value) {
+          // Ensure that 'value' is a Map<String, dynamic> and cast it properly
+          final monthCountMap = value as Map<String, dynamic>;
 
-    final data = <String, Map<int, int>>{};
+          return MapEntry(
+            key,
+            monthCountMap.map((month, count) {
+              // Parse the month (key) to an integer and ensure count is an integer
+              final parsedMonth = int.tryParse(month);
+              final parsedCount = count as int?;
 
-    for (var row in results) {
-      final userID = row[0] as int;
-      final monthString = row[1] as String;
-      int count = row[2] as int;
-      final month = int.tryParse(monthString) ?? 0;
-      final menteeName = await _getMenteeName(userID);
-
-      // Create a unique key combining advisor_id and name
-      final uniqueKey = '$menteeName (ID: $userID)';
-
-      if (!data.containsKey(uniqueKey)) {
-        data[uniqueKey] = {};
+              if (parsedMonth == null || parsedCount == null) {
+                throw Exception('Failed to parse month or count');
+              }
+              return MapEntry(parsedMonth, parsedCount);
+            }),
+          );
+        });
+      } catch (e) {
+        throw Exception('Failed to parse JSON data: $e');
       }
-
-      data[uniqueKey]![month] = count;
+    } else {
+      // Handle the case where the response status is not 200
+      throw Exception('Failed to load mentee meeting counts');
     }
-
-    return data.map((uniqueKey, meetingCounts) {
-      return MapEntry(uniqueKey, meetingCounts);
-    });
-  }
-  Future<List<AppointmentsDetails>> getAppointmentsForMonth(int month, int year) async {
-    final connection = await Connection.open(
-      Endpoint(
-        host: '34.71.87.187',
-        port: 5432,
-        database: 'datagovernance',
-        username: 'postgres',
-        password: 'India@5555',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
-
-    const query = '''
-    SELECT * FROM appointments
-    WHERE EXTRACT(MONTH FROM date) = @month
-    AND EXTRACT(YEAR FROM date) = @year
-  ''';
-
-    final result = await connection.execute(Sql.named(query), parameters: {'month': month, 'year': year});
-
-    // Parse the result into a list of Appointment objects
-    final appointments = result.map((row) {
-      return AppointmentsDetails(
-          appointmentID: row[0] as int,
-        date: row[1] as DateTime,
-        time: row[2] as String,
-        advisorID:  row[3] as int,
-        mainService: row[4] as String,
-          subService: row[5] as String,
-          userID: row[6] as int,
-        // Add more fields as needed
-      );
-    }).toList();
-
-    return appointments;
   }
 
   Future<List<AppointmentsDetails>> getUserAppointmentsAllDetails(int userId) async {
