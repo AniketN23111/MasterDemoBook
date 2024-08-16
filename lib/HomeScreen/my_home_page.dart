@@ -3,19 +3,17 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:saloon/GoalDetailsPage/goal_details_page.dart';
-import 'package:saloon/HomeScreen/profile_page.dart';
-import 'package:saloon/HomeScreen/search_page.dart';
-import 'package:saloon/LoginScreens/login_screen.dart';
-import 'package:saloon/MasterSeparateDetails/separate_mentor_details.dart';
-import 'package:saloon/Models/mentor_details.dart';
-import 'package:saloon/Models/mentor_service.dart';
-import 'package:saloon/Models/progress_tracking.dart';
-import 'package:saloon/Models/user_details.dart';
-import 'package:saloon/ProgressTracking/progress_tracking_details.dart';
-import 'package:saloon/Services/database_service.dart';
+import 'package:passionHub/GoalDetailsPage/goal_details_page.dart';
+import 'package:passionHub/HomeScreen/search_page.dart';
+import 'package:passionHub/MasterSeparateDetails/separate_mentor_details.dart';
+import 'package:passionHub/Models/mentor_details.dart';
+import 'package:passionHub/Models/mentor_service.dart';
+import 'package:passionHub/Models/progress_tracking.dart';
+import 'package:passionHub/Models/user_details.dart';
+import 'package:passionHub/ProgressTracking/progress_tracking_details.dart';
+import 'package:passionHub/Services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:saloon/Models/appointments_details.dart';
+import 'package:passionHub/Models/appointments_details.dart';
 import 'package:http/http.dart' as http;
 
 class MyHomePage extends StatefulWidget {
@@ -38,7 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<UserDetails> userDetailsList = [];
   Map<int, int> usersPerMentor = {}; // Map to store user count per mentor
   bool isLoading = true;
-  bool isUser = true;
+  bool isUser = false;
   bool isMentor = false;
 
   final String baseUrl = 'http://localhost:3000';
@@ -256,33 +254,9 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.clear();
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
-    );
-  }
-
-  /*void profile() async {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ProfilePage(),
-      ),
-    );
-  }*/
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-      ),
       body: isLoading
           ? const Center(
         child: CircularProgressIndicator(color: Colors.blue),
@@ -498,36 +472,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
 
-      ),
-
-      drawer: Drawer(
-        child: ListView(
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.blue),
-              child: Text(
-                'Welcome, $userFirstName',
-                style: const TextStyle(fontSize: 24, color: Colors.white),
-              ),
-            ),
-            if (isUser)
-              ListTile(
-                title: const Text('Profile'),
-                onTap:(){} //profile,
-              ),
-            if (!isUser)
-              ListTile(
-                title: const Text('Profile'),
-                onTap: () {
-                  // Navigate to mentor profile screen
-                },
-              ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: logout,
-            ),
-          ],
-        ),
       ),
     );
   }

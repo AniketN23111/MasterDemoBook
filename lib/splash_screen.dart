@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:saloon/HomeScreen/home_page.dart';
-import 'package:saloon/HomeScreen/my_home_page.dart';
-import 'package:saloon/LoginScreens/login_screen.dart';
+import 'package:passionHub/HomeScreen/my_home_page.dart';
+import 'package:passionHub/LoginScreens/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {

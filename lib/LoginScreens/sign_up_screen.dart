@@ -1,13 +1,11 @@
 import 'dart:convert';
-
-import 'package:email_otp/email_otp.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:saloon/GoogleApi/cloud_api.dart';
-import 'package:saloon/LoginScreens/login_screen.dart';
+import 'package:passionHub/GoogleApi/cloud_api.dart';
+import 'package:passionHub/LoginScreens/login_screen.dart';
 import 'package:http/http.dart' as http;
 
 import '../Constants/screen_utility.dart';

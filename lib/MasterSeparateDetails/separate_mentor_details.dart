@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:saloon/MasterSeparateDetails/mentor_meeting_page.dart';
-import 'package:saloon/Models/mentor_details.dart';
-import 'package:saloon/Models/mentor_service.dart';
-import 'package:saloon/Models/user_details.dart';
+import 'package:passionHub/MasterSeparateDetails/mentor_meeting_page.dart';
+import 'package:passionHub/Models/mentor_details.dart';
+import 'package:passionHub/Models/mentor_service.dart';
+import 'package:passionHub/Models/user_details.dart';
 import 'package:http/http.dart' as http;
 
 class DetailPage extends StatefulWidget {

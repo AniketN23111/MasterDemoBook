@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:saloon/Models/progress_tracking.dart';
-import 'package:saloon/Services/database_service.dart';
+import 'package:passionHub/Models/progress_tracking.dart';
+import 'package:passionHub/Services/database_service.dart';
 
 class ProgressTrackingDetailsPage extends StatefulWidget {
   final ProgressTracking progressTracking;

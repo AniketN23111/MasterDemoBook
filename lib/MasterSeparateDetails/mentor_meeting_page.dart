@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:saloon/HomeScreen/my_home_page.dart';
-import 'package:saloon/Services/database_service.dart';
+import 'package:passionHub/HomeScreen/my_home_page.dart';
+import 'package:passionHub/Services/database_service.dart';
 
 class MentorMeetingPage extends StatefulWidget {
   final String title;

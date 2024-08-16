@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 import 'package:http/http.dart' as http;
+import 'package:passionHub/HomeScreen/main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Constants/screen_utility.dart';
 import '../Admin/admin_page.dart';
-import '../HomeScreen/my_home_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -59,14 +59,14 @@ class _LoginScreenState extends State<LoginScreen> {
             if (!mounted) return;
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MyHomePage()),
+              MaterialPageRoute(builder: (context) => const MainScreen()),
             );
           } else {
             await _storeDetailsInPrefs(false, false);
             if (!mounted) return;
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const MyHomePage()),
+              MaterialPageRoute(builder: (context) => const MainScreen()),
             );
           }
         } else {
@@ -172,111 +172,6 @@ class _LoginScreenState extends State<LoginScreen> {
       return [];
     }
   }
-
-  /*Future<bool> fetchUserCredentials(String email, String password) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT * FROM public.master_demo_user WHERE email = \$1 AND password = \$2',
-        parameters: [email, password],
-      );
-
-      await connection.close();
-
-      return result.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> fetchMentorCredentials(String email, String password) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT * FROM public.advisor_details WHERE email = \$1 AND password = \$2',
-        parameters: [email, password],
-      );
-
-      await connection.close();
-
-      return result.isNotEmpty;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<List<List<dynamic>>> fetchUserData(String email) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT * FROM public.master_demo_user WHERE email = \$1',
-        parameters: [email],
-      );
-
-      await connection.close();
-
-      return result;
-    } catch (e) {
-      return [];
-    }
-  }
-
-  Future<List<List<dynamic>>> fetchMentorData(String email) async {
-    try {
-      final connection = await Connection.open(
-        Endpoint(
-          host: '34.71.87.187',
-          port: 5432,
-          database: 'datagovernance',
-          username: 'postgres',
-          password: 'India@5555',
-        ),
-        settings: const ConnectionSettings(sslMode: SslMode.disable),
-      );
-
-      final result = await connection.execute(
-        'SELECT * FROM public.master_demo_mentor WHERE email = \$1',
-        parameters: [email],
-      );
-
-      await connection.close();
-
-      return result;
-    } catch (e) {
-      return [];
-    }
-  }*/
-
   bool _validatePassword(String password) {
     // Regular expression to check if password contains at least one letter, one number, and one special character
     final RegExp regex =

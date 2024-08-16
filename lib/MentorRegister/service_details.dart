@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:saloon/GoogleApi/cloud_api.dart'; // Replace with your import paths
-import 'package:saloon/Models/admin_service.dart'; // Replace with your import paths
-import 'package:saloon/Services/database_service.dart'; // Replace with your import paths
+import 'package:passionHub/GoogleApi/cloud_api.dart'; // Replace with your import paths
+import 'package:passionHub/Models/admin_service.dart'; // Replace with your import paths
+import 'package:passionHub/Services/database_service.dart'; // Replace with your import paths
 import 'package:http/http.dart' as http;
 
 class ServiceDetails extends StatefulWidget {

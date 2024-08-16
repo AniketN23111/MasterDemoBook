@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:saloon/Admin/dashboard_screen.dart';
-import 'package:saloon/Constants/screen_utility.dart';
-import 'package:saloon/GoogleApi/cloud_api.dart';
-import 'package:saloon/Services/database_service.dart';
+import 'package:passionHub/Admin/dashboard_screen.dart';
+import 'package:passionHub/Constants/screen_utility.dart';
+import 'package:passionHub/GoogleApi/cloud_api.dart';
+import 'package:passionHub/Services/database_service.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});

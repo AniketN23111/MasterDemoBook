@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:saloon/Models/progress_tracking.dart'; // Import your ProgressTracking model
-import 'package:saloon/Services/database_service.dart'; // Import your DatabaseService
+import 'package:passionHub/Models/progress_tracking.dart'; // Import your ProgressTracking model
+import 'package:passionHub/Services/database_service.dart'; // Import your DatabaseService
 
 class GoalDetailsPage extends StatelessWidget {
   final int userId; // Assuming you have userId available

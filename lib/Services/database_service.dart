@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:saloon/Models/appointments_details.dart';
-import 'package:saloon/Models/admin_service.dart';
-import 'package:saloon/Models/mentor_service.dart';
-import 'package:saloon/Models/program_initializer.dart';
-import 'package:saloon/Models/progress_tracking.dart';
-import 'package:saloon/Models/user_details.dart';
+import 'package:passionHub/Models/appointments_details.dart';
+import 'package:passionHub/Models/admin_service.dart';
+import 'package:passionHub/Models/mentor_service.dart';
+import 'package:passionHub/Models/program_initializer.dart';
+import 'package:passionHub/Models/progress_tracking.dart';
+import 'package:passionHub/Models/user_details.dart';
 import 'package:http/http.dart' as http;
 
 class DatabaseService {

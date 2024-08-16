@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:saloon/LoginScreens/login_screen.dart';
-import 'package:saloon/LoginScreens/sign_up_screen.dart';
-import 'package:saloon/MentorRegister/mentor_details_register.dart';
-import 'package:saloon/splash_screen.dart';
+import 'package:passionHub/LoginScreens/login_screen.dart';
+import 'package:passionHub/LoginScreens/sign_up_screen.dart';
+import 'package:passionHub/MentorRegister/mentor_details_register.dart';
+import 'package:passionHub/splash_screen.dart';
 import 'Constants/screen_utility.dart';
 
 void main() {

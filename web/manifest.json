@@ -1,6 +1,6 @@
 {
-    "name": "saloon",
-    "short_name": "saloon",
+    "name": "passionHub",
+    "short_name": "passionHub",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

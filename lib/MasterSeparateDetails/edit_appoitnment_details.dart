@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saloon/Models/edit_appointment_meeting.dart';
+import 'package:passionHub/Models/edit_appointment_meeting.dart';
 
 class EditAppointmentPage extends StatelessWidget {
   final EditAppointmentMeeting appointmentDetails;

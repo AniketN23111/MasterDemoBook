@@ -5,7 +5,7 @@ import 'package:csc_picker/csc_picker.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:saloon/MentorRegister/service_details.dart';
+import 'package:passionHub/MentorRegister/service_details.dart';
 
 class MentorDetailsRegister extends StatefulWidget {
   const MentorDetailsRegister({super.key});
