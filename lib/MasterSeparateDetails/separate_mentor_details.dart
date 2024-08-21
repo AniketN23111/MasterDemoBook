@@ -41,7 +41,7 @@ class _DetailPageState extends State<DetailPage> {
   Future<void> _fetchBookedTimeSlots() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3000/booked-time-slots/${widget.mentorDetails.advisorID}'),
+        Uri.parse('https://mentor.passionit.com/mentor-api/booked-time-slots/${widget.mentorDetails.advisorID}'),
       );
 
       if (response.statusCode == 200) {
@@ -464,7 +464,7 @@ class _DetailPageState extends State<DetailPage> {
       try {
         // Prepare the data to be sent to the server
         final response = await http.post(
-          Uri.parse('http://localhost:3000/confirm-appointment'),
+          Uri.parse('https://mentor.passionit.com/mentor-api/confirm-appointment'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'advisorId': widget.mentorDetails.advisorID,

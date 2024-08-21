@@ -277,7 +277,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         catch(e)
                       {
                         isRegistered=false;
-                        print(e);
+                        if (kDebugMode) {
+                          print(e);
+                        }
                       }
                         setState(() {
                           isSigningUp = false;
@@ -332,7 +334,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
   Future<void> _registerUser(String name, String password, String email, String number,String imageUrl) async {
-    final String apiUrl = 'http://localhost:3000/register';
+    const String apiUrl = 'http://mentor.passionit.com/mentor=api/register';
 
     try {
       final response = await http.post(
@@ -347,6 +349,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }),
       );
 
+      if(!mounted)
+      {return;}
       if (response.statusCode == 201) {
         // User registered successfully
         ScaffoldMessenger.of(context).showSnackBar(

@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController emailController = TextEditingController();
 
   List<List<dynamic>>? userData;
-
+  final String baseUrl="https://mentor.passionit.com/mentor-api";
   bool _isLoggingIn = false;
 
   @override
@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         // Make a POST request to the server for login
         final response = await http.post(
-          Uri.parse('http://localhost:3000/api/login'), // Replace with your server URL
+          Uri.parse('$baseUrl/api/login'), // Replace with your server URL
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'email': enteredEmail, 'password': enteredPassword}),
         );
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<bool> fetchUserCredentials(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/fetchUserCredentials'),
+        Uri.parse('$baseUrl/api/fetchUserCredentials'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<bool> fetchMentorCredentials(String email, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/fetchMentorCredentials'),
+        Uri.parse('$baseUrl/api/fetchMentorCredentials'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
       );
@@ -138,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<List<List<dynamic>>> fetchUserData(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/fetchUserData'),
+        Uri.parse('$baseUrl/api/fetchUserData'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
@@ -157,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<List<List<dynamic>>> fetchMentorData(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/api/fetchMentorData'),
+        Uri.parse('$baseUrl/api/fetchMentorData'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );

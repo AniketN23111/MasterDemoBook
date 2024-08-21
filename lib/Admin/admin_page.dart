@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:passionHub/LoginScreens/login_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:passionHub/Admin/dashboard_screen.dart';
 import 'package:passionHub/Constants/screen_utility.dart';
 import 'package:passionHub/GoogleApi/cloud_api.dart';
 import 'package:passionHub/Services/database_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -18,7 +20,6 @@ class AdminPage extends StatefulWidget {
 class _AdminPageState extends State<AdminPage> {
   final TextEditingController _serviceController = TextEditingController();
   final TextEditingController _subServiceController = TextEditingController();
-
   final TextEditingController _programNameController = TextEditingController();
   final TextEditingController _programDescriptionController = TextEditingController();
   final TextEditingController _organizationNameController = TextEditingController();
@@ -32,7 +33,9 @@ class _AdminPageState extends State<AdminPage> {
   CloudApi? cloudApi;
   bool _uploading = false;
   bool _showServiceForm = false;
-  DatabaseService dbService=DatabaseService();
+  bool _submitting = false; // Flag for showing CircularProgressIndicator
+  DatabaseService dbService = DatabaseService();
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +67,7 @@ class _AdminPageState extends State<AdminPage> {
 
   Future<void> _pickAndUploadImage() async {
     setState(() {
-      _uploading = true; // Start uploading, show progress indicator
+      _uploading = true;
     });
 
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -74,7 +77,7 @@ class _AdminPageState extends State<AdminPage> {
         const SnackBar(content: Text('No file picked')),
       );
       setState(() {
-        _uploading = false; // Cancel upload, hide progress indicator
+        _uploading = false;
       });
       return;
     }
@@ -85,7 +88,7 @@ class _AdminPageState extends State<AdminPage> {
         const SnackBar(content: Text('Cloud API not initialized')),
       );
       setState(() {
-        _uploading = false; // Cancel upload, hide progress indicator
+        _uploading = false;
       });
       return;
     }
@@ -94,15 +97,13 @@ class _AdminPageState extends State<AdminPage> {
     String fileName = pickedFile.name;
 
     try {
-      // Upload the image to the bucket
       await cloudApi!.save(fileName, imageBytes);
       final downloadUrl = await cloudApi!.getDownloadUrl(fileName);
 
-      // Store the image bytes to display it
       setState(() {
         _serviceURl = downloadUrl;
         _programInitializerURl = downloadUrl;
-        _uploading = false; // Upload finished, hide progress indicator
+        _uploading = false;
       });
     } catch (e) {
       if (!mounted) return;
@@ -110,9 +111,76 @@ class _AdminPageState extends State<AdminPage> {
         SnackBar(content: Text('Failed to upload image: $e')),
       );
       setState(() {
-        _uploading = false; // Error in upload, hide progress indicator
+        _uploading = false;
       });
     }
+  }
+
+  Future<void> _addService() async {
+    setState(() {
+      _submitting = true;
+    });
+
+    await dbService.registerService(
+      _serviceController.text,
+      _subServiceController.text,
+      _serviceURl ?? '',
+    );
+
+    setState(() {
+      _submitting = false;
+      _serviceController.clear();
+      _subServiceController.clear();
+      _serviceURl = null;
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Service added successfully')),
+    );
+  }
+
+  Future<void> _addProgramInitializer() async {
+    setState(() {
+      _submitting = true;
+    });
+
+    await dbService.registerProgramInitializer(
+      _programNameController.text,
+      _programDescriptionController.text,
+      _organizationNameController.text,
+      _programInitializerURl ?? '',
+      _coordinatorNameController.text,
+      _coordinatorEmailController.text,
+      _coordinatorNumberController.text,
+    );
+
+    setState(() {
+      _submitting = false;
+      _programNameController.clear();
+      _programDescriptionController.clear();
+      _organizationNameController.clear();
+      _coordinatorNameController.clear();
+      _coordinatorEmailController.clear();
+      _coordinatorNumberController.clear();
+      _programInitializerURl = null;
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Program initializer added successfully')),
+    );
+  }
+  void logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.clear();
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
+    );
   }
 
   @override
@@ -120,6 +188,35 @@ class _AdminPageState extends State<AdminPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin Page'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blue),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundImage: AssetImage('assets/icons/admin.svg'),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Admin",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              title: const Text('Logout'),
+              onTap:  logout,
+            ),
+            // Add other drawer items here
+          ],
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -144,15 +241,16 @@ class _AdminPageState extends State<AdminPage> {
                     },
                     child: const Text('Program Initializers'),
                   ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => const DashboardScreen()));
+                      });
+                    },
+                    child: const Text('DashBoard'),
+                  ),
                 ],
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    Navigator.push(context,MaterialPageRoute(builder: (context) => const DashboardScreen()));
-                  });
-                },
-                child: const Text('DashBoard'),
               ),
               const SizedBox(height: 20),
               _showServiceForm ? _buildServiceForm() : _buildInitializerForm(),
@@ -169,12 +267,6 @@ class _AdminPageState extends State<AdminPage> {
         TextFormField(
           keyboardType: TextInputType.text,
           controller: _serviceController,
-          validator: (text) {
-            if (text == null || text.isEmpty) {
-              return "Service is Empty";
-            }
-            return null;
-          },
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
@@ -193,12 +285,6 @@ class _AdminPageState extends State<AdminPage> {
         TextFormField(
           keyboardType: TextInputType.text,
           controller: _subServiceController,
-          validator: (text) {
-            if (text == null || text.isEmpty) {
-              return "SubService is Empty";
-            }
-            return null;
-          },
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
@@ -240,14 +326,12 @@ class _AdminPageState extends State<AdminPage> {
               : const Text("Upload Icon"),
         ),
         ElevatedButton(
-          onPressed: () {
-              dbService.registerService(
-                _serviceController.text,
-                _subServiceController.text,
-                _serviceURl ?? '',
-              );
-          },
-          child: const Text("Add Services"),
+          onPressed: _submitting ? null : _addService,
+          child: _submitting
+              ? const CircularProgressIndicator(
+            color: Colors.white,
+          )
+              : const Text("Add Services"),
         ),
       ],
     );
@@ -305,7 +389,7 @@ class _AdminPageState extends State<AdminPage> {
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.all(15),
-            hintText: 'Program Coordinator Name',
+            hintText: 'Coordinator Name',
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none),
@@ -319,7 +403,7 @@ class _AdminPageState extends State<AdminPage> {
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.all(15),
-            hintText: 'Program Coordinator Email',
+            hintText: 'Coordinator Email',
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none),
@@ -333,7 +417,7 @@ class _AdminPageState extends State<AdminPage> {
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.all(15),
-            hintText: 'Program Coordinator Number',
+            hintText: 'Coordinator Number',
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none),
@@ -341,7 +425,7 @@ class _AdminPageState extends State<AdminPage> {
         ),
         const SizedBox(height: 20),
         SizedBox(
-          height: ScreenUtility.screenHeight * 0.2,
+          height: ScreenUtility.screenHeight * 0.4,
           width: ScreenUtility.screenWidth * 0.8,
           child: _programInitializerURl != null
               ? Padding(
@@ -366,18 +450,12 @@ class _AdminPageState extends State<AdminPage> {
               : const Text("Upload Icon"),
         ),
         ElevatedButton(
-          onPressed: () {
-              dbService.registerProgramInitializer(
-                _programNameController.text,
-                _programDescriptionController.text,
-                _organizationNameController.text,
-                _programInitializerURl ?? '',
-                _coordinatorNameController.text,
-                _coordinatorEmailController.text,
-                _coordinatorNumberController.text,
-              );
-          },
-          child: const Text("Add Program Initializer"),
+          onPressed: _submitting ? null : _addProgramInitializer,
+          child: _submitting
+              ? const CircularProgressIndicator(
+            color: Colors.white,
+          )
+              : const Text("Add Program Initializer"),
         ),
       ],
     );

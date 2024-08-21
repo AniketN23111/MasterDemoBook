@@ -26,7 +26,7 @@ class _MainScreenState extends State<MainScreen> {
   UserDetails? userDetails;
   MentorDetails? mentorDetails;
 
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'https://mentor.passionit.com/mentor-api';
   @override
   void initState() {
     super.initState();

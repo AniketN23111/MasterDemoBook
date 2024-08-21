@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:passionHub/Models/appointments_details.dart';
 import 'package:passionHub/Models/admin_service.dart';
@@ -10,7 +11,7 @@ import 'package:passionHub/Models/user_details.dart';
 import 'package:http/http.dart' as http;
 
 class DatabaseService {
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'https://mentor.passionit.com/mentor-api';
 
   Future<List<AdminService>> getAdminService() async {
     try {
@@ -23,7 +24,9 @@ class DatabaseService {
         throw Exception('Failed to load mentor services');
       }
     } catch (e) {
-      print('Error: $e');
+      if (kDebugMode) {
+        print('Error: $e');
+      }
       return [];
     }
   }
@@ -44,10 +47,10 @@ class DatabaseService {
 
     if (response.statusCode == 200) {
       // Service registered successfully
-      print('Service registered');
+      if (kDebugMode) {
+        print('Service registered');
+      }
     } else {
-      // Error registering service
-      print('Error: ${response.body}');
     }
   }
 
@@ -77,11 +80,7 @@ class DatabaseService {
     );
 
     if (response.statusCode == 200) {
-      // Program initializer registered successfully
-      print('Program initializer registered');
     } else {
-      // Error registering program initializer
-      print('Error: ${response.body}');
     }
   }
 
@@ -96,7 +95,6 @@ class DatabaseService {
         throw Exception('Failed to load mentor services');
       }
     } catch (e) {
-      print('Error: $e');
       return [];
     }
   }
@@ -138,12 +136,12 @@ class DatabaseService {
       );
 
       if (response.statusCode == 200) {
-        print('Mentor meeting inserted successfully');
       } else {
-        print('Failed to insert mentor meeting: ${response.body}');
       }
     } catch (e) {
-      print('Error: $e');
+      if (kDebugMode) {
+        print('Error: $e');
+      }
     }
   }
 

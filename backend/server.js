@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const app = express();
 const { format } = require('date-fns');
-const port = 3000;
+const port = 5011;
 
 // Database configuration
 const pool = new Pool({
@@ -19,7 +19,7 @@ const pool = new Pool({
 app.use(bodyParser.json());
 app.use(cors());
 //API endpoint for user Register
-app.post('/register', async (req, res) => {
+app.post('/mentor-api/register', async (req, res) => {
   const { name, password, email, number,image_url } = req.body;
 
   try {
@@ -42,7 +42,7 @@ app.post('/register', async (req, res) => {
   }
 });
 // API endpoint for user login
-app.post('/api/login', async (req, res) => {
+app.post('/mentor-api/api/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -97,7 +97,7 @@ async function checkEmailExists(email) {
     return false;
   }
 }
-app.post('/api/fetchUserCredentials', (req, res) => {
+app.post('/mentor-api/api/fetchUserCredentials', (req, res) => {
     const { email, password } = req.body;
 
     exec(`dart run fetchUserCredentials.dart ${email} ${password}`, (error, stdout, stderr) => {
@@ -110,7 +110,7 @@ app.post('/api/fetchUserCredentials', (req, res) => {
 });
 
 // Endpoint for fetching mentor credentials
-app.post('/api/fetchMentorCredentials', (req, res) => {
+app.post('/mentor-api/api/fetchMentorCredentials', (req, res) => {
     const { email, password } = req.body;
 
     exec(`dart run fetchMentorCredentials.dart ${email} ${password}`, (error, stdout, stderr) => {
@@ -123,7 +123,7 @@ app.post('/api/fetchMentorCredentials', (req, res) => {
 });
 
 // Endpoint for fetching user data
-app.post('/api/fetchUserData', (req, res) => {
+app.post('/mentor-api/api/fetchUserData', (req, res) => {
     const { email } = req.body;
 
     exec(`dart run fetchUserData.dart ${email}`, (error, stdout, stderr) => {
@@ -136,7 +136,7 @@ app.post('/api/fetchUserData', (req, res) => {
 });
 
 // Endpoint for fetching mentor data
-app.post('/api/fetchMentorData', (req, res) => {
+app.post('/mentor-api/api/fetchMentorData', (req, res) => {
     const { email } = req.body;
 
     exec(`dart run fetchMentorData.dart ${email}`, (error, stdout, stderr) => {
@@ -148,7 +148,7 @@ app.post('/api/fetchMentorData', (req, res) => {
     });
 });
 
-app.post('/registerService', async (req, res) => {
+app.post('/mentor-api/registerService', async (req, res) => {
   const { service, subService, imageUrl } = req.body;
 
   try {
@@ -163,7 +163,7 @@ app.post('/registerService', async (req, res) => {
 });
 
 // Register Program Initializer
-app.post('/registerProgramInitializer', async (req, res) => {
+app.post('/mentor-api/registerProgramInitializer', async (req, res) => {
   const {
     programName,
     programDescription,
@@ -188,7 +188,7 @@ app.post('/registerProgramInitializer', async (req, res) => {
 });
 
 // Route to get all mentor details
-app.get('/mentor/details', async (req, res) => {
+app.get('/mentor-api/mentor/details', async (req, res) => {
   try {
     const results = await pool.query('SELECT * FROM public.advisor_details');
     res.json(results.rows);
@@ -198,7 +198,7 @@ app.get('/mentor/details', async (req, res) => {
 });
 
 // Route to get all admin services
-app.get('/admin/services', async (req, res) => {
+app.get('/mentor-api/admin/services', async (req, res) => {
   try {
     const results = await pool.query('SELECT * FROM public.service_master');
     res.json(results.rows);
@@ -208,7 +208,7 @@ app.get('/admin/services', async (req, res) => {
 });
 
 //Register Mentor
-app.post('/registerMentor', async (req, res) => {
+app.post('/mentor-api/registerMentor', async (req, res) => {
   const client = await pool.connect();
   try {
     const {
@@ -285,7 +285,7 @@ app.post('/registerMentor', async (req, res) => {
   }
 });
 // Route to get all mentor services
-app.get('/mentor/services', async (req, res) => {
+app.get('/mentor-api/mentor/services', async (req, res) => {
   try {
     const results = await pool.query('SELECT * FROM public.advisor_service_details');
     res.json(results.rows);
@@ -295,7 +295,7 @@ app.get('/mentor/services', async (req, res) => {
 });
 
 // Route to get user details by email and password
-app.post('/user/login', async (req, res) => {
+app.post('/mentor-api/user/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const results = await pool.query(
@@ -313,7 +313,7 @@ app.post('/user/login', async (req, res) => {
 });
 
 // Route to get mentor details by email and password
-app.post('/mentor/login', async (req, res) => {
+app.post('/mentor-api/mentor/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const results = await pool.query(
@@ -331,8 +331,7 @@ app.post('/mentor/login', async (req, res) => {
 });
 
 // Route to get user appointments by user ID
-
-app.get('/user/appointments/:userID', async (req, res) => {
+app.get('/mentor-api/user/appointments/:userID', async (req, res) => {
   const userID = req.params.userID;
   try {
     const results = await pool.query('SELECT appointment_id, date, "time", advisor_id, main_service, sub_service, user_id FROM appointments WHERE user_id = $1', [userID]);
@@ -350,7 +349,7 @@ app.get('/user/appointments/:userID', async (req, res) => {
 });
 
 // Route to get user details by user ID
-app.get('/user/:userID', async (req, res) => {
+app.get('/mentor-api/user/:userID', async (req, res) => {
   const userID = req.params.userID;
   try {
     const results = await pool.query('SELECT * FROM master_demo_user WHERE user_id = $1', [userID]);
@@ -365,7 +364,7 @@ app.get('/user/:userID', async (req, res) => {
 });
 
 // Route to get mentor appointments by mentor ID
-app.get('/mentor/appointments/:advisorID', async (req, res) => {
+app.get('/mentor-api/mentor/appointments/:advisorID', async (req, res) => {
   const advisorID = req.params.advisorID;
   try {
     const results = await pool.query('SELECT * FROM appointments WHERE advisor_id = $1', [advisorID]);
@@ -382,7 +381,7 @@ app.get('/mentor/appointments/:advisorID', async (req, res) => {
 });
 
 // Route to insert a new mentor meeting
-app.post('/mentor/meetings', async (req, res) => {
+app.post('/mentor-api/mentor/meetings', async (req, res) => {
   const {
     userId, advisorId, title, meetingDate, startTime, endTime,
     location, eventDetails, description, meetingLink, appointmentId
@@ -403,7 +402,7 @@ app.post('/mentor/meetings', async (req, res) => {
 });
 
 // Route to get user meeting details by date and time
-app.post('/user/meeting', async (req, res) => {
+app.post('/mentor-api/user/meeting', async (req, res) => {
   const { date, startTime } = req.body;
   try {
     const results = await pool.query(
@@ -420,7 +419,7 @@ app.post('/user/meeting', async (req, res) => {
   }
 });
 // Function to get user name by user ID
-app.get('/getUserName/:userId', async (req, res) => {
+app.get('/mentor-api/getUserName/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
     const result = await pool.query('SELECT name AS user_name FROM master_demo_user WHERE user_id = $1', [userId]);
@@ -436,7 +435,7 @@ app.get('/getUserName/:userId', async (req, res) => {
 });
 
 // Function to get advisor name by advisor ID
-app.get('/getAdvisorName/:advisorId', async (req, res) => {
+app.get('/mentor-api/getAdvisorName/:advisorId', async (req, res) => {
   const advisorId = parseInt(req.params.advisorId, 10); // Extract and parse advisorId
   try {
     const result = await pool.query('SELECT name FROM advisor_details WHERE advisor_id = $1', [advisorId]);
@@ -452,7 +451,7 @@ app.get('/getAdvisorName/:advisorId', async (req, res) => {
 });
 
 // Function to insert progress tracking
-app.post('/insertProgressTracking', async (req, res) => {
+app.post('/mentor-api/insertProgressTracking', async (req, res) => {
   const {
     advisorId, advisorName, userId, userName, date, goalType, goal, actionSteps, timeline,
     progressDate, progressMade, effectivenessDate, outcome, nextSteps, meetingDate,
@@ -479,7 +478,7 @@ app.post('/insertProgressTracking', async (req, res) => {
 // Function to get appointment ID based on date, time, advisor ID, main service, sub service, and user ID
 // In server.js
 
-app.get('/get-appointment-id', async (req, res) => {
+app.get('/mentor-api/get-appointment-id', async (req, res) => {
   const { date, time, advisorId, mainService, subService, userId } = req.query;
 
   try {
@@ -512,7 +511,7 @@ app.get('/get-appointment-id', async (req, res) => {
 });
 
 // Function to get details from appointments
-app.post('/getDetailsFromAppointment', async (req, res) => {
+app.post('/mentor-api/getDetailsFromAppointment', async (req, res) => {
   const { advisorId, userId, appointmentId } = req.body;
   try {
     const result = await pool.query(`
@@ -527,7 +526,7 @@ app.post('/getDetailsFromAppointment', async (req, res) => {
 });
 
 // Function to get the list of appointments for an advisor
-app.get('/getAdvisorAppointments/:advisorId', async (req, res) => {
+app.get('/mentor-api/getAdvisorAppointments/:advisorId', async (req, res) => {
   const advisorId = parseInt(req.params.advisorId);
   try {
     const result = await pool.query('SELECT * FROM appointments WHERE advisor_id = $1', [advisorId]);
@@ -538,7 +537,7 @@ app.get('/getAdvisorAppointments/:advisorId', async (req, res) => {
 });
 
 // Function to get the list of appointments for a user
-app.get('/getUserAppointments/:userId', async (req, res) => {
+app.get('/mentor-api/getUserAppointments/:userId', async (req, res) => {
   const userId = parseInt(req.params.userId);
   try {
     const result = await pool.query('SELECT * FROM appointments WHERE user_id = $1', [userId]);
@@ -549,7 +548,7 @@ app.get('/getUserAppointments/:userId', async (req, res) => {
 });
 
 // Get progress tracking by appointment ID
-app.get('/progress-tracking/:appointmentID', async (req, res) => {
+app.get('/mentor-api/progress-tracking/:appointmentID', async (req, res) => {
   const { appointmentID } = req.params;
 
   try {
@@ -570,7 +569,7 @@ app.get('/progress-tracking/:appointmentID', async (req, res) => {
 });
 
 // Get Progress Details goal types
-app.post('/getProgressDetailsByGoalType', async (req, res) => {
+app.post('/mentor-api/getProgressDetailsByGoalType', async (req, res) => {
   const { userId, advisorId, goalType } = req.body;
 
   try {
@@ -609,7 +608,7 @@ app.post('/getProgressDetailsByGoalType', async (req, res) => {
 });
 
 // Get distinct goal types
-app.post('/getDistinctGoalTypes', async (req, res) => {
+app.post('/mentor-api/getDistinctGoalTypes', async (req, res) => {
   const { userId, advisorId } = req.body;
 
   try {
@@ -628,7 +627,7 @@ app.post('/getDistinctGoalTypes', async (req, res) => {
 });
 
 // Get progress details by goal type
-app.get('/progress-details/:userId/:advisorId/:goalType', async (req, res) => {
+app.get('/mentor-api/progress-details/:userId/:advisorId/:goalType', async (req, res) => {
   const { userId, advisorId, goalType } = req.params;
 
   try {
@@ -645,7 +644,7 @@ app.get('/progress-details/:userId/:advisorId/:goalType', async (req, res) => {
 });
 
 // Update progress tracking
-app.put('/progress-tracking/update', async (req, res) => {
+app.put('/mentor-api/progress-tracking/update', async (req, res) => {
   const progressTracking = req.body;
 
   try {
@@ -685,7 +684,7 @@ app.put('/progress-tracking/update', async (req, res) => {
 });
 
 // Get program initializer by ID
-app.get('/program-initializer/:programId', async (req, res) => {
+app.get('/mentor-api/program-initializer/:programId', async (req, res) => {
   const { programId } = req.params;
 
   try {
@@ -706,7 +705,7 @@ app.get('/program-initializer/:programId', async (req, res) => {
 });
 
 // Get program initializer names
-app.get('/program-initializer-names', async (req, res) => {
+app.get('/mentor-api/program-initializer-names', async (req, res) => {
   try {
     const result = await pool.query('SELECT program_name FROM program_initializer');
 
@@ -718,7 +717,7 @@ app.get('/program-initializer-names', async (req, res) => {
 });
 
 // Get mentor meeting counts
- app.get('/getMentorMeetingCounts/:year', async (req, res) => {
+ app.get('/mentor-api/getMentorMeetingCounts/:year', async (req, res) => {
    const year = parseInt(req.params.year, 10);
 
    if (isNaN(year)) {
@@ -758,7 +757,7 @@ app.get('/program-initializer-names', async (req, res) => {
  });
 
 // Get mentee meeting counts
-app.get('/getMenteeMeetingCounts/:year', async (req, res) => {
+app.get('/mentor-api/getMenteeMeetingCounts/:year', async (req, res) => {
   const year = parseInt(req.params.year, 10);
 
      if (isNaN(year)) {
@@ -796,7 +795,7 @@ app.get('/getMenteeMeetingCounts/:year', async (req, res) => {
 });
 
 // Get appointments for a specific month and year
-app.get('/appointments/:month/:year', async (req, res) => {
+app.get('/mentor-api/appointments/:month/:year', async (req, res) => {
   const { month, year } = req.params;
 
   try {
@@ -813,7 +812,7 @@ app.get('/appointments/:month/:year', async (req, res) => {
 });
 
 // Endpoint to fetch booked time slots for a specific mentor (advisor)
-app.get('/booked-time-slots/:advisorId', async (req, res) => {
+app.get('/mentor-api/booked-time-slots/:advisorId', async (req, res) => {
   const { advisorId } = req.params;
 
   try {
@@ -863,7 +862,7 @@ async function getMenteeName(userId) {
 }
 
 // Endpoint to confirm an appointment
-app.post('/confirm-appointment', async (req, res) => {
+app.post('/mentor-api/confirm-appointment', async (req, res) => {
   const { advisorId, userId, date, timeSlot, services } = req.body;
 
   try {
@@ -889,7 +888,7 @@ app.post('/confirm-appointment', async (req, res) => {
   }
 });
 
-app.post('/save-meeting-details', async (req, res) => {
+app.post('/mentor-api/save-meeting-details', async (req, res) => {
   const {
     advisorId,
     advisorName,
@@ -974,7 +973,7 @@ app.post('/save-meeting-details', async (req, res) => {
   }
 });
 
-app.post('/insert-mentor-meeting', async (req, res) => {
+app.post('/mentor-api/insert-mentor-meeting', async (req, res) => {
   const {
     userId,
     advisorId,
@@ -1019,7 +1018,7 @@ app.post('/insert-mentor-meeting', async (req, res) => {
 });
 
 // Route to insert progress tracking details
-app.post('/insert-progress-tracking', async (req, res) => {
+app.post('/mentor-api/insert-progress-tracking', async (req, res) => {
   const {
     advisorId,
     advisorName,
@@ -1083,7 +1082,7 @@ app.post('/insert-progress-tracking', async (req, res) => {
 });
 
 //get Appointments Per Month
-app.get('/getAppointmentsForMonth', async (req, res) => {
+app.get('/mentor-api/getAppointmentsForMonth', async (req, res) => {
   const { month, year } = req.query;
 
   try {

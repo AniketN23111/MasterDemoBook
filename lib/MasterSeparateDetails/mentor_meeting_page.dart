@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:passionHub/HomeScreen/my_home_page.dart';
+import 'package:passionHub/HomeScreen/main_screen.dart';
 import 'package:passionHub/Services/database_service.dart';
 
 class MentorMeetingPage extends StatefulWidget {
@@ -100,10 +100,29 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
 
       String? userName = await databaseService.getUserName(widget.userID);
       String? advisorName = await databaseService.getAdvisorName(widget.advisorID);
-      int? appointmentID = await databaseService.getAppointmentID(widget.date, widget.timeSlot, widget.advisorID, widget.mainService, widget.subService, widget.userID);
 
-      // Save meeting details to database
+      // Iterate through each mainService and subService pair to get the corresponding appointment ID
       for (int i = 0; i < mainServices.length; i++) {
+        String currentMainService = mainServices[i];
+        String currentSubService = subServices[i];
+
+        // Get appointment ID for the specific mainService and subService combination
+        int? appointmentID = await databaseService.getAppointmentID(
+            widget.date,
+            widget.timeSlot,
+            widget.advisorID,
+            currentMainService,
+            currentSubService,
+            widget.userID
+        );
+
+        // Check if appointment ID is valid
+        if (appointmentID == null) {
+          // Handle the case where no appointment is found for this combination
+          throw Exception("No matching appointment found for $currentMainService - $currentSubService");
+        }
+
+        // Insert into progress tracking table
         await databaseService.insertProgressTracking(
           advisorId: widget.advisorID,
           advisorName: advisorName!,
@@ -112,7 +131,7 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
           date: selectedDate,
           goalType: 'Meeting',
           goal: _titleController.text,
-          actionSteps: '${mainServices[i]} - ${subServices[i]}',
+          actionSteps: '$currentMainService - $currentSubService',
           timeline: '${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}',
           progressDate: selectedDate,
           progressMade: '',
@@ -122,11 +141,10 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
           meetingDate: selectedDate,
           agenda: _descriptionController.text,
           additionalNotes: _meetingLinkController.text,
-          appointmentId: appointmentID!,
+          appointmentId: appointmentID,
         );
-      }
 
-      for (int i = 0; i < mainServices.length; i++) {
+        // Insert into mentor meeting table
         await databaseService.insertMentorMeeting(
           userId: widget.userID,
           advisorId: widget.advisorID,
@@ -135,21 +153,18 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
           startTime: startTime!,
           endTime: endTime!,
           location: _locationController.text,
-          eventDetails: '${mainServices[i]} - ${subServices[i]}',
+          eventDetails: '$currentMainService - $currentSubService',
           description: _descriptionController.text,
           meetingLink: _meetingLinkController.text,
-          appointmentId: appointmentID!,
+          appointmentId: appointmentID,
         );
       }
 
       if (!mounted) return;
 
-      // Send notifications to mentor and user
-      //await sendNotification('aniketnarayankar3@gmail.com', 'New Meeting Scheduled');
-      //await sendNotification('primesolus2311@gmail.com', 'New Meeting Scheduled'); // User's email
-
+      // Navigate to the main screen after saving all details
       Navigator.pop(context); // Dismiss the loading dialog
-      Navigator.push(context, MaterialPageRoute(builder: (context) => const MyHomePage()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const MainScreen()));
     } catch (e) {
       Navigator.pop(context); // Dismiss the loading dialog in case of an error
       // Handle the error (e.g., show a Snackbar or a dialog with an error message)
@@ -172,36 +187,6 @@ class _MentorMeetingPageState extends State<MentorMeetingPage> {
       );
     }
   }
-
- /* Future<void> sendNotification(String recipientEmail, String subject) async {
-    String username = 'sakshikadam1892001@gmail.com';
-    String password = 'hjfg apya uqde svpk';
-    final smtpServer = gmail(username, password);
-
-    final message = Message()
-      ..from = Address(username, 'Mail Service')
-      ..recipients.add(recipientEmail)
-      ..subject = subject
-      ..text = '''
-      A new meeting has been scheduled.
-      
-      Title: ${_titleController.text}
-      Date: ${DateFormat('yyyy-MM-dd').format(selectedDate)}
-      Time: ${formatTimeOfDay(startTime!)} - ${formatTimeOfDay(endTime!)}
-      Location: ${_locationController.text}
-      Notification Time: $notificationTime
-      Details: ${widget.mainService} - ${widget.subService}
-      Description: ${_descriptionController.text}
-      Meeting Link: ${_meetingLinkController.text}
-      ''';
-
-    try {
-      await send(message, smtpServer);
-      print('Email sent successfully');
-    } catch (error) {
-      print('Failed to send email: $error');
-    }
-  }*/
 
   void _addGuestEmail() {
     if (_guestEmailController.text.isNotEmpty) {

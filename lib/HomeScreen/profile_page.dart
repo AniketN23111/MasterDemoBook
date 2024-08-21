@@ -23,7 +23,7 @@ class _ProfilePageState extends State<ProfilePage> {
   UserDetails? userDetails;
   MentorDetails? mentorDetails;
 
-  final String baseUrl = 'http://localhost:3000';
+  final String baseUrl = 'https://mentor.passionit.com/mentor-api';
 
   @override
   void initState() {

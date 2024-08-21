@@ -417,7 +417,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   Future<void> registerMentorDetailsRegister() async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:3000/registerMentor'),
+        Uri.parse('https://mentor.passionit.com/mentor-api/registerMentor'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': widget.name,
