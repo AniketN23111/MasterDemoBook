@@ -118,15 +118,25 @@ class _MainScreenState extends State<MainScreen> {
             DrawerHeader(
               decoration: const BoxDecoration(color: Colors.blue),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundImage: NetworkImage(
-                        isUser
-                            ? userDetails?.imageURL ?? '' // If it's a user, show user image
-                            : mentorDetails?.imageURL ?? '' // If it's a mentor, show mentor image
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/Logo.png', // Add your company logo URL here
+                        width: 90,  // Adjust the size of the logo
+                        height: 90,
+                      ),
+                      const SizedBox(width: 20),
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage: NetworkImage(
+                            isUser
+                                ? userDetails?.imageURL ?? '' // If it's a user, show user image
+                                : mentorDetails?.imageURL ?? '' // If it's a mentor, show mentor image
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 10),
                   Text(

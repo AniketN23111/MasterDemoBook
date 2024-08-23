@@ -334,7 +334,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
   Future<void> _registerUser(String name, String password, String email, String number,String imageUrl) async {
-    const String apiUrl = 'http://mentor.passionit.com/mentor=api/register';
+    const String apiUrl = 'http://mentor.passionit.com/mentor-api/register';
 
     try {
       final response = await http.post(
