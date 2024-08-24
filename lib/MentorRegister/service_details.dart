@@ -58,8 +58,8 @@ class _ServiceDetailsState extends State<ServiceDetails> {
   TextEditingController quantityController = TextEditingController();
   TextEditingController unitController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  List<String> selectedMainServices = [];
-  List<String> selectedSubServices = [];
+  String selectedMainServices = '';
+  String selectedSubServices = '';
   List<String> selectedServices = [];
   List<AdminService> masterServices = [];
   List<XFile> selectedImages = [];
@@ -161,9 +161,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     if (selectedMainServices.isNotEmpty && selectedSubServices.isNotEmpty) {
       setState(() {
         selectedServices.add(
-            'Main: ${selectedMainServices.join(',')} - Sub: ${selectedSubServices.join(',')} - Rate: ${rateController.text} - Quantity: ${quantityController.text} - Unit: ${unitController.text}');
-        selectedMainServices.clear();
-        selectedSubServices.clear();
+            'Main: $selectedMainServices - Sub: $selectedSubServices - Rate: ${rateController.text} - Quantity: ${quantityController.text} - Unit: ${unitController.text}');
         rateController.clear();
         quantityController.clear();
         unitController.clear();
@@ -255,10 +253,12 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: DropdownButtonFormField<String>(
-                  value: null,
+                  value: selectedMainServices.isNotEmpty ? selectedMainServices : null,
                   onChanged: (value) {
                     setState(() {
-                      selectedMainServices.add(value!);
+                      selectedMainServices = '';
+                      selectedMainServices = value!;
+                      selectedSubServices = '';
                     });
                   },
                   items: mainServices
@@ -279,10 +279,11 @@ class _ServiceDetailsState extends State<ServiceDetails> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: DropdownButtonFormField<String>(
-                  value: null,
+                  value: selectedSubServices.isNotEmpty ? selectedSubServices : null,
                   onChanged: (value) {
                     setState(() {
-                      selectedSubServices.add(value!);
+                      selectedSubServices='';
+                      selectedSubServices=value!;
                     });
                   },
                   items: subServices
@@ -305,6 +306,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 child: TextFormField(
                   controller: rateController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Rate',
                     prefixIcon: Icon(Icons.attach_money),
@@ -323,6 +327,9 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 child: TextFormField(
                   controller: quantityController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Quantity',
                     prefixIcon: Icon(Icons.add_box),
@@ -381,30 +388,57 @@ class _ServiceDetailsState extends State<ServiceDetails> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
                   onPressed: _isRegistering
-                      ? null
+                      ? null // Disable the button when registration is ongoing
                       : () async {
-                      setState(() {
-                        _isRegistering = true;
-                      });
-                      try {
-                        // Register the shop details
-                         registerMentorDetailsRegister();
-                        // Navigate to the login page after registration
-                        Navigator.pushReplacementNamed(
-                            context, 'loginScreen');
-                      } catch (e) {
+                    // Start registration
+                    setState(() {
+                      _isRegistering = true;
+                    });
+                    try {
+                      if(selectedServices.isNotEmpty && _downloadUrl!=null)
+                        {
+                          // Register the mentor details
+                          await registerMentorDetailsRegister();
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Details registered successfully'),
+                            backgroundColor: Colors.green,),
+                          );
+                          // If registration is successful, show success message and navigate to login
+                          Navigator.pushReplacementNamed(context, 'loginScreen');
+                        }
+                      else if(_downloadUrl==null){
+                        if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                              Text('Failed to register: $e')),
+                          const SnackBar(content: Text('Upload Photo'),
+                            backgroundColor: Colors.red,),
                         );
-                      } finally {
-                        setState(() {
-                          _isRegistering = false;
-                        });
                       }
+                      else
+                        {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Select At Least 1 Service'),
+                              backgroundColor: Colors.red,),
+                          );
+                        }
+                    } catch (e) {
+                      // On error, stay on the current page and show error message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed to register: $e')),
+                      );
+                    } finally {
+                      // Reset the registering state
+                      setState(() {
+                        _isRegistering = false;
+                      });
+                    }
                   },
-                  child: const Text('Register'),
+                  child: _isRegistering
+                      ? const CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  )
+                      : const Text('Register'),
                 ),
               ),
               const SizedBox(height: 20),
@@ -415,6 +449,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
     );
   }
   Future<void> registerMentorDetailsRegister() async {
+    _downloadUrl ??= 'https://storage.googleapis.com/imagestore_camera/CategoryIcon/1000035239.png';
     try {
       final response = await http.post(
         Uri.parse('https://mentor.passionit.com/mentor-api/registerMentor'),
@@ -442,6 +477,7 @@ class _ServiceDetailsState extends State<ServiceDetails> {
         }),
       );
 
+      if(!mounted) return;
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Details registered successfully')),

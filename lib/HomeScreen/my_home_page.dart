@@ -46,8 +46,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     _initializeData();
   }
+
   Future<void> _fetchUserDetails(String email, String password) async {
-        final String endpoint = isUser ? '/user/login' : '/mentor/login';
+    final String endpoint = isUser ? '/user/login' : '/mentor/login';
 
     try {
       final response = await http.post(
@@ -103,7 +104,8 @@ class _MyHomePageState extends State<MyHomePage> {
         final List<dynamic> data = jsonDecode(response.body);
 
         // Assuming `MentorDetails` is a model class with a `fromJson` method
-        List<MentorDetails> details = data.map((json) => MentorDetails.fromJson(json)).toList();
+        List<MentorDetails> details = data.map((json) =>
+            MentorDetails.fromJson(json)).toList();
         setState(() {
           mentorDetailsList = details;
         });
@@ -153,11 +155,16 @@ class _MyHomePageState extends State<MyHomePage> {
     DateTime now = DateTime.now();
     if (isUser && userDetails != null) {
       try {
-        List<AppointmentsDetails> appointments = await dbService.getUserAppointmentsAllDetails(userDetails!.userID);
+        List<AppointmentsDetails> appointments = await dbService
+            .getUserAppointmentsAllDetails(userDetails!.userID);
         setState(() {
-          appointmentsList = appointments.where((appointment) => appointment.date.isAfter(now)).toList()
+          appointmentsList =
+          appointments.where((appointment) => appointment.date.isAfter(now))
+              .toList()
             ..sort((a, b) => a.date.compareTo(b.date));
-          closedAppointmentsList = appointments.where((appointment) => appointment.date.isBefore(now)).toList()
+          closedAppointmentsList =
+          appointments.where((appointment) => appointment.date.isBefore(now))
+              .toList()
             ..sort((a, b) => a.date.compareTo(b.date));
         });
       } catch (e) {
@@ -167,21 +174,27 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     } else if (!isUser && mentorDetails != null) {
       try {
-        List<AppointmentsDetails> appointments = await dbService.getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
+        List<AppointmentsDetails> appointments = await dbService
+            .getMentorAppointmentsAllDetails(mentorDetails!.advisorID);
         List<UserDetails> users = [];
         Set<int> displayedUserIds = {}; // Track displayed user IDs
 
         for (var appointment in appointments) {
-          UserDetails? user = await dbService.getUserDetailsById(appointment.userID);
+          UserDetails? user = await dbService.getUserDetailsById(
+              appointment.userID);
           if (user != null && !displayedUserIds.contains(user.userID)) {
             users.add(user);
             displayedUserIds.add(user.userID); // Add user ID to the set
           }
         }
         setState(() {
-          appointmentsList = appointments.where((appointment) => appointment.date.isAfter(now)).toList()
+          appointmentsList =
+          appointments.where((appointment) => appointment.date.isAfter(now))
+              .toList()
             ..sort((a, b) => a.date.compareTo(b.date));
-          closedAppointmentsList = appointments.where((appointment) => appointment.date.isBefore(now)).toList()
+          closedAppointmentsList =
+          appointments.where((appointment) => appointment.date.isBefore(now))
+              .toList()
             ..sort((a, b) => a.date.compareTo(b.date));
           userDetailsList = users; // Store the list of user details
         });
@@ -213,7 +226,8 @@ class _MyHomePageState extends State<MyHomePage> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            ProgressTrackingDetailsPage(progressTracking: progressTracking,isMentor: isMentor),
+            ProgressTrackingDetailsPage(
+                progressTracking: progressTracking, isMentor: isMentor),
       ),
     );
   }
@@ -248,10 +262,24 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GoalDetailsPage(
-            userId: user.userID, advisorId: mentorDetails!.advisorID),
+        builder: (context) =>
+            GoalDetailsPage(
+                userId: user.userID, advisorId: mentorDetails!.advisorID),
       ),
     );
+  }
+
+  Future<ProgressTracking?> _fetchProgressTrackingByAppointmentId(
+      int appointmentId) async {
+    DatabaseService dbService = DatabaseService();
+    try {
+      return await dbService.getProgressTrackingByAppointmentId(appointmentId);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching progress tracking: $e');
+      }
+      return null;
+    }
   }
 
   @override
@@ -334,11 +362,12 @@ class _MyHomePageState extends State<MyHomePage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => DetailPage(
-                                mentorDetails: mentorDetails,
-                                masterServices: masterServiceList,
-                                userDetails: userDetails,
-                              ),
+                              builder: (context) =>
+                                  DetailPage(
+                                    mentorDetails: mentorDetails,
+                                    masterServices: masterServiceList,
+                                    userDetails: userDetails,
+                                  ),
                             ),
                           );
                         },
@@ -383,7 +412,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           title: Text('Mentee: ${user.name}'),
                           subtitle: Text('Email: ${user.email}'),
                           onTap: () {
-                            _navigateToUserDetails(user); // Function to navigate to user details
+                            _navigateToUserDetails(
+                                user); // Function to navigate to user details
                           },
                         ),
                       );
@@ -400,40 +430,40 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             if(isUser)
-            if (appointmentsList.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _buildAppointmentsGroupedByMentor(
-                  appointmentsList,
-                  'Mentor: ',
+              if (appointmentsList.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _buildAppointmentsGroupedByMentor(
+                    appointmentsList,
+                    'Mentor: ',
+                  ),
                 ),
-              ),
             const SizedBox(height: 16.0),
             if(isUser)
-            if (closedAppointmentsList.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Center(
-                      child: Text(
-                        'Closed Appointments:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+              if (closedAppointmentsList.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Center(
+                        child: Text(
+                          'Closed Appointments:',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: _buildAppointmentsGroupedByMentor(
-                      closedAppointmentsList,
-                      'Closed ',
+                    const SizedBox(height: 8.0),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _buildAppointmentsGroupedByMentor(
+                        closedAppointmentsList,
+                        'Closed ',
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             if(isMentor)
               if (appointmentsList.isNotEmpty)
                 Column(
@@ -482,6 +512,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Map<int, List<AppointmentsDetails>> groupedAppointments = {};
     Map<int, bool> isExpanded = {};
 
+    // Group appointments by mentorID
     for (var appointment in appointments) {
       if (!groupedAppointments.containsKey(appointment.advisorID)) {
         groupedAppointments[appointment.advisorID] = [];
@@ -489,8 +520,10 @@ class _MyHomePageState extends State<MyHomePage> {
       groupedAppointments[appointment.advisorID]!.add(appointment);
     }
 
+    // Create widgets for each mentor and their appointments
     groupedAppointments.forEach((mentorID, appointments) {
-      var mentorIndex = mentorDetailsList.indexWhere((mentor) => mentor.advisorID == mentorID);
+      var mentorIndex = mentorDetailsList.indexWhere((mentor) =>
+      mentor.advisorID == mentorID);
       if (mentorIndex != -1) {
         var mentor = mentorDetailsList[mentorIndex];
         bool expanded = isExpanded[mentorID] ?? false;
@@ -498,7 +531,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ExpansionTile(
             title: Text(
               '$titlePrefix${mentor.name}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+              style: const TextStyle(fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue),
             ),
             trailing: Image.network(mentor.imageURL),
             initiallyExpanded: expanded,
@@ -508,19 +543,83 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
             children: appointments.map((appointment) {
-              return Card(
-                child: ListTile(
-                  onTap: () => _onAppointmentTap(appointment.appointmentID),
-                  title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Main Service: ${appointment.mainService}'),
-                      Text('Sub Service: ${appointment.subService}'),
-                      Text('Time: ${appointment.time}'),
-                    ],
-                  ),
-                ),
+              return FutureBuilder<ProgressTracking?>(
+                future: _fetchProgressTrackingByAppointmentId(
+                    appointment.appointmentID),
+                builder: (context, snapshot) {
+                  Icon trailingIcon;
+                  Color trailingColor = Colors.grey;
+
+                  // Determine the appropriate icon and color based on the progress status
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListTile(
+                      title: Text(
+                          'Appointment on ${DateFormat('yyyy-MM-dd').format(
+                              appointment.date)}'),
+                      subtitle: const Text('Loading progress tracking...'),
+                    );
+                  } else if (snapshot.hasError) {
+                    return ListTile(
+                      title: Text(
+                          'Appointment on ${DateFormat('yyyy-MM-dd').format(
+                              appointment.date)}'),
+                      subtitle: const Text('Error loading progress tracking'),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data == null) {
+                    return ListTile(
+                      title: Text(
+                          'Appointment on ${DateFormat('yyyy-MM-dd').format(
+                              appointment.date)}'),
+                      subtitle: const Text('No progress tracking available'),
+                    );
+                  } else {
+                    ProgressTracking? progressTracking = snapshot.data;
+
+                    if (progressTracking != null) {
+                      switch (progressTracking.progressStatus) {
+                        case 'Open':
+                          trailingIcon = const Icon(Icons.check_circle, color: Colors.blue);
+                          trailingColor = Colors.green;
+                          break;
+                        case 'Closed':
+                          trailingIcon = const Icon(Icons.error, color: Colors.red);
+                          trailingColor = Colors.red;
+                          break;
+                        case 'In Progress':
+                          trailingIcon = const Icon(Icons.hourglass_empty, color: Colors.orange);
+                          trailingColor = Colors.orange;
+                          break;
+                        case 'Hold':
+                          trailingIcon = const Icon(Icons.pause_circle_filled, color: Colors.grey);
+                          trailingColor = Colors.grey;
+                          break;
+                        default:
+                          trailingIcon = const Icon(Icons.help, color: Colors.grey);
+                          trailingColor = Colors.grey;
+                          break;
+                      }
+                    } else {
+                      trailingIcon = const Icon(Icons.help, color: Colors.grey);
+                      trailingColor = Colors.grey;
+                    }
+
+                    return ListTile(
+                      onTap: () => _onAppointmentTap(appointment.appointmentID),
+                      title: Text(
+                          'Appointment on ${DateFormat('yyyy-MM-dd').format(
+                              appointment.date)}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Main Service: ${appointment.mainService}'),
+                          Text('Sub Service: ${appointment.subService}'),
+                          Text('Time: ${appointment.time}'),
+                        ],
+                      ),
+                      trailing: trailingIcon,
+                    );
+                  }
+                },
               );
             }).toList(),
           ),
@@ -536,6 +635,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Map<int, List<AppointmentsDetails>> groupedAppointments = {};
     Map<int, bool> isExpanded = {};
 
+    // Group appointments by userID
     for (var appointment in appointments) {
       if (!groupedAppointments.containsKey(appointment.userID)) {
         groupedAppointments[appointment.userID] = [];
@@ -543,6 +643,7 @@ class _MyHomePageState extends State<MyHomePage> {
       groupedAppointments[appointment.userID]!.add(appointment);
     }
 
+    // Create widgets for each user and their appointments
     groupedAppointments.forEach((userID, appointments) {
       var userIndex = userDetailsList.indexWhere((user) => user.userID == userID);
       if (userIndex != -1) {
@@ -562,19 +663,72 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
             children: appointments.map((appointment) {
-              return Card(
-                child: ListTile(
-                  onTap: () => _onAppointmentTap(appointment.appointmentID),
-                    title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Main Service: ${appointment.mainService}'),
-                      Text('Sub Service: ${appointment.subService}'),
-                      Text('Time: ${appointment.time}'),
-                    ],
-                  ),
-                ),
+              return FutureBuilder<ProgressTracking?>(
+                future: _fetchProgressTrackingByAppointmentId(appointment.appointmentID),
+                builder: (context, snapshot) {
+                  Icon trailingIcon;
+                  Color trailingColor = Colors.grey;
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListTile(
+                      title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                      subtitle: const Text('Loading progress tracking...'),
+                    );
+                  } else if (snapshot.hasError) {
+                    return ListTile(
+                      title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                      subtitle: const Text('Error loading progress tracking'),
+                    );
+                  } else if (!snapshot.hasData || snapshot.data == null) {
+                    return ListTile(
+                      title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                      subtitle: const Text('No progress tracking available'),
+                    );
+                  } else {
+                    ProgressTracking? progressTracking = snapshot.data;
+
+                    if (progressTracking != null) {
+                      switch (progressTracking.progressStatus) {
+                        case 'Open':
+                          trailingIcon = const Icon(Icons.check_circle, color: Colors.blue);
+                          trailingColor = Colors.green;
+                          break;
+                        case 'Closed':
+                          trailingIcon = const Icon(Icons.error, color: Colors.red);
+                          trailingColor = Colors.red;
+                          break;
+                        case 'In Progress':
+                          trailingIcon = const Icon(Icons.hourglass_empty, color: Colors.orange);
+                          trailingColor = Colors.orange;
+                          break;
+                        case 'Hold':
+                          trailingIcon = const Icon(Icons.pause_circle_filled, color: Colors.grey);
+                          trailingColor = Colors.grey;
+                          break;
+                        default:
+                          trailingIcon = const Icon(Icons.help, color: Colors.grey);
+                          trailingColor = Colors.grey;
+                          break;
+                      }
+                    } else {
+                      trailingIcon = const Icon(Icons.help, color: Colors.grey);
+                      trailingColor = Colors.grey;
+                    }
+
+                    return ListTile(
+                      onTap: () => _onAppointmentTap(appointment.appointmentID),
+                      title: Text('Appointment on ${DateFormat('yyyy-MM-dd').format(appointment.date)}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Main Service: ${appointment.mainService}'),
+                          Text('Sub Service: ${appointment.subService}'),
+                          Text('Time: ${appointment.time}'),
+                        ],
+                      ),
+                      trailing: trailingIcon,
+                    );
+                  }
+                },
               );
             }).toList(),
           ),

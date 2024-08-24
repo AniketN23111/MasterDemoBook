@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:passionHub/HomeScreen/main_screen.dart';
 import 'package:passionHub/Models/progress_tracking.dart';
 import 'package:passionHub/Services/database_service.dart';
 
@@ -138,8 +139,13 @@ class _ProgressTrackingDetailsPageState
 
     await DatabaseService().updateProgressTracking(updatedProgressTracking);
     if (!mounted) return;
-    Navigator.pop(context); // Close the progress dialog
-    Navigator.pop(context); // Navigate back
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            const MainScreen(),
+      ),
+    );
   }
 
   @override

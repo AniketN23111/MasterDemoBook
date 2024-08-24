@@ -9,6 +9,7 @@ import 'package:passionHub/MentorRegister/service_details.dart';
 
 class MentorDetailsRegister extends StatefulWidget {
   const MentorDetailsRegister({super.key});
+
   @override
   State<MentorDetailsRegister> createState() => _MentorDetailsRegisterState();
 }
@@ -31,12 +32,21 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
   bool isEleveted = false;
   final _formKey = GlobalKey<FormState>();
   GlobalKey<AutoCompleteTextFieldState<String>> autoCompleteKey =
-  GlobalKey<AutoCompleteTextFieldState<String>>();
+      GlobalKey<AutoCompleteTextFieldState<String>>();
 
   String selectedState = 'Maharashtra'; // Default state
   String selectedCountry = 'India'; // Default country
   String selectedCity = 'Pune';
-  List<bool> workingDays = [false, false, false, false, false, false, false, false]; // Monday-Sunday
+  List<bool> workingDays = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ]; // Monday-Sunday
   String? countryValue = "";
   String? stateValue = "";
   String? cityValue = "";
@@ -53,7 +63,8 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
     return '$hours:$minutes $period';
   }
 
-  Future<void> _selectTime(BuildContext context, bool isStartTime, int? index) async {
+  Future<void> _selectTime(
+      BuildContext context, bool isStartTime, int? index) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: isStartTime ? startTime : endTime,
@@ -71,7 +82,8 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
 
   void _addSlot() {
     setState(() {
-      String formattedSlot = '${_formatTime(startTime)} - ${_formatTime(endTime)}';
+      String formattedSlot =
+          '${_formatTime(startTime)} - ${_formatTime(endTime)}';
       timeSlots.add(formattedSlot);
     });
   }
@@ -288,15 +300,14 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                     return null; // Validation passed
                   },
                   obscureText: true,
-                  decoration:  InputDecoration(
+                  decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.all(15),
                       hintText: 'Password',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(9),
-                        child: SvgPicture.asset(
-                            'assets/icons/password.svg'),
+                        child: SvgPicture.asset('assets/icons/password.svg'),
                       ),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
@@ -378,7 +389,8 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                       hintText: 'Designation',
                       prefixIcon: Padding(
                         padding: const EdgeInsets.all(12),
-                        child: SvgPicture.asset('assets/icons/user-id-svgrepo-com.svg'),
+                        child: SvgPicture.asset(
+                            'assets/icons/user-id-svgrepo-com.svg'),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(15),
@@ -544,6 +556,9 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                   ),
                   child: TextFormField(
                     keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
                     controller: _pincode,
                     validator: (text) {
                       if (text == null || text.isEmpty) {
@@ -561,8 +576,8 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                           child: SizedBox(
                             width: 10,
                             height: 10,
-                            child: SvgPicture.asset(
-                                'assets/icons/pin-code.svg'),
+                            child:
+                                SvgPicture.asset('assets/icons/pin-code.svg'),
                           ),
                         ),
                         border: OutlineInputBorder(
@@ -602,8 +617,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                         hintText: 'License',
                         prefixIcon: Padding(
                           padding: const EdgeInsets.all(9),
-                          child: SvgPicture.asset(
-                              'assets/icons/license.svg'),
+                          child: SvgPicture.asset('assets/icons/license.svg'),
                         ),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -679,8 +693,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                           child: SizedBox(
                             width: 10,
                             height: 10,
-                            child: SvgPicture.asset(
-                                'assets/icons/address.svg'),
+                            child: SvgPicture.asset('assets/icons/address.svg'),
                           ),
                         ),
                         border: OutlineInputBorder(
@@ -759,21 +772,39 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
                   ],
                 ),
               ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: _addSlot,
-                      child: const Text('Add Slot'),
-                    ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: _addSlot,
+                child: const Text('Add Slot'),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 150),
                 child: ElevatedButton(
                   onPressed: () {
-                   // if (_formKey.currentState!.validate()) {
-                     Navigator.push(
+                    if (_formKey.currentState!.validate()) {
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) =>  ServiceDetails(_shopname.text,_address.text,_mNumber.text,_email.text,_pincode.text,countryValue.toString(),stateValue.toString(),cityValue.toString(),_area.text,_licence.text,workingDays.toString(),timeSlots.toString(),_companyName.text,_designation.text,_gender.toString(),_selectedDate,_password.text)),
+                        MaterialPageRoute(
+                            builder: (context) => ServiceDetails(
+                                _shopname.text,
+                                _address.text,
+                                _mNumber.text,
+                                _email.text,
+                                _pincode.text,
+                                countryValue.toString(),
+                                stateValue.toString(),
+                                cityValue.toString(),
+                                _area.text,
+                                _licence.text,
+                                workingDays.toString(),
+                                timeSlots.toString(),
+                                _companyName.text,
+                                _designation.text,
+                                _gender.toString(),
+                                _selectedDate,
+                                _password.text)),
                       );
-                 //   }
+                    }
                   },
                   child: const Center(child: Text('Next')),
                 ),
@@ -785,6 +816,7 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
       ),
     );
   }
+
   Widget _buildDayToggleButton(String label, int index) {
     return InkWell(
       onTap: () {
@@ -806,10 +838,11 @@ class _MentorDetailsRegisterState extends State<MentorDetailsRegister> {
     );
   }
 }
+
 bool _validatePassword(String password) {
   // Regular expression to check if password contains at least one letter, one number, and one special character
   final RegExp regex =
-  RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+      RegExp(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
   return regex.hasMatch(password);
 }
 

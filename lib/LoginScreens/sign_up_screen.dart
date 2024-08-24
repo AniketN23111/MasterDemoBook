@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -258,12 +257,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Center(
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (_formkey.currentState!.validate() ) {
+                      if (_formkey.currentState!.validate()) {
                         setState(() {
                           isSigningUp = true;
                         });
-                        bool isRegistered = false;
-                          // Register user on the web
                         try {
                           await _registerUser(
                             nameController.text,
@@ -272,40 +269,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             numberController.text,
                             _downloadUrl ?? '',
                           );
-                          isRegistered =true;
-                        }
-                        catch(e)
-                      {
-                        isRegistered=false;
-                        if (kDebugMode) {
-                          print(e);
-                        }
-                      }
-                        setState(() {
-                          isSigningUp = false;
-                        });
-                        if (isRegistered) {
-                          Navigator.push(
-                            // ignore: use_build_context_synchronously
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginScreen(),
-                            ),
-                          );
-                        } else {
-                          // ignore: use_build_context_synchronously
+                        } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Registration failed. Please try again')),
+                            SnackBar(content: Text("An error occurred: $e")),
                           );
+                          setState(() {
+                            isSigningUp = false;
+                          });
                         }
                       } else {
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(const SnackBar(
-                          content: Text("Fill all fields correctly."),
-                          backgroundColor: Colors.red,
-                        ));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Fill all fields correctly."),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -333,7 +311,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
-  Future<void> _registerUser(String name, String password, String email, String number,String imageUrl) async {
+  Future<void> _registerUser(
+      String name, String password, String email, String number, String imageUrl) async {
     const String apiUrl = 'http://mentor.passionit.com/mentor-api/register';
 
     try {
@@ -349,29 +328,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }),
       );
 
-      if(!mounted)
-      {return;}
+      if (!mounted) return;
+
       if (response.statusCode == 201) {
         // User registered successfully
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User registered successfully')),
+          const SnackBar(
+            content: Text('User registered successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Navigate to login screen on successful registration
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
         );
       } else if (response.statusCode == 400) {
         // Email already exists
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email already exists')),
+          const SnackBar(
+            content: Text('Email already exists'),
+            backgroundColor: Colors.red,
+          ),
         );
+        setState(() {
+          isSigningUp = false;
+        });
       } else {
         // Registration failed
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration failed')),
+          const SnackBar(
+            content: Text('Registration failed'),
+            backgroundColor: Colors.red,
+          ),
         );
+        setState(() {
+          isSigningUp = false;
+        });
       }
     } catch (e) {
       // Handle any errors
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred: $e')),
       );
+      setState(() {
+        isSigningUp = false;
+      });
     }
   }
 
